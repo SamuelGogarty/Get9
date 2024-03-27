@@ -20,7 +20,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Set up session middleware
 app.use(session({
-  secret: 'CA2410DAE8327980C04B378DCBB5B87E',
+  secret: '<api key>',
   resave: false,
   saveUninitialized: false
 }));
