@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Your Profile</h1>
+        <p>Welcome, <span id="username">loading...</span>! Your Steam ID is: <span id="steamId">loading...</span></p>
+        <button id="connectServerBtn">Connect to CS 1.6 Server</button>
+        <a href="/">Go back to main page</a>
+    </div>
+
+    <script>
+        document.getElementById('connectServerBtn').addEventListener('click', function() {
+            const serverIp = '10.0.0.233:27015'; // Replace with your actual server IP
+            window.location.href = `steam://connect/${serverIp}`;
+        });
+
+        fetch('/user/info').then(response => response.json()).then(data => {
+            document.getElementById('username').textContent = data.displayName;
+            document.getElementById('steamId').textContent = data.id;
+        }).catch(error => console.error('Error fetching user info:', error));
+    </script>
+</body>
+</html>
