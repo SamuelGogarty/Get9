@@ -4,18 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>Welcome to Your Profile</h1>
         <p>Welcome, <span id="username">loading...</span>! Your Steam ID is: <span id="steamId">loading...</span></p>
-        <button id="connectServerBtn">Connect to CS 1.6 Server</button>
+        <button id="startMatchmakingBtn">Start Matchmaking</button>
+        <div id="lobby" style="display:none;">
+            <h2>Lobby</h2>
+            <ul id="playerList"></ul>
+            <!-- Connect to server button -->
+            <button id="connectServerBtn" style="display:none;">Connect to CS 1.6 Server</button>
+        </div>
         <a href="/">Go back to main page</a>
     </div>
 
     <script>
+        const socket = io();
+
+        document.getElementById('startMatchmakingBtn').addEventListener('click', () => {
+            const playerData = {
+                username: document.getElementById('username').textContent,
+                steamId: document.getElementById('steamId').textContent
+            };
+            socket.emit('startMatchmaking', playerData);
+        });
+
+        socket.on('lobbyCreated', (lobbyPlayers) => {
+            document.getElementById('lobby').style.display = 'block';
+            const playerList = document.getElementById('playerList');
+            playerList.innerHTML = ''; // Clear existing list
+
+            lobbyPlayers.forEach(player => {
+                const playerItem = document.createElement('li');
+                playerItem.textContent = `${player.username} (Steam ID: ${player.steamId})`;
+                playerList.appendChild(playerItem);
+            });
+
+            // Show the "Connect to Server" button once the lobby is created
+            document.getElementById('connectServerBtn').style.display = 'block';
+        });
+
         document.getElementById('connectServerBtn').addEventListener('click', function() {
-            const serverIp = '10.0.0.233:27015'; // Replace with your actual server IP
+            const serverIp = '10.0.0.233'; // Example IP address, replace with your actual server IP
             window.location.href = `steam://connect/${serverIp}`;
         });
 

@@ -69,10 +69,26 @@ app.get('/user/info', (req, res) => {
     }
 });
 
+let playerQueue = [];
+
 io.on('connection', (socket) => {
     console.log('A user connected');
+    
+    socket.on('startMatchmaking', (playerData) => {
+        console.log(`${playerData.username} is looking for a match`);
+        playerQueue.push({ socketId: socket.id, ...playerData });
+
+        if (playerQueue.length >= 2) {
+            const lobbyPlayers = playerQueue.splice(0, 2);
+            lobbyPlayers.forEach(player => {
+                io.to(player.socketId).emit('lobbyCreated', lobbyPlayers);
+            });
+        }
+    });
+
     socket.on('disconnect', () => {
         console.log('A user disconnected');
+        playerQueue = playerQueue.filter(player => player.socketId !== socket.id);
     });
 });
 
