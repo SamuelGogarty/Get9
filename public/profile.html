@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
+    <link rel="stylesheet" href="styles.css">
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
@@ -14,14 +15,22 @@
         <div id="lobby" style="display:none;">
             <h2>Lobby</h2>
             <ul id="playerList"></ul>
-            <!-- Connect to server button -->
             <button id="connectServerBtn" style="display:none;">Connect to CS 1.6 Server</button>
+            <!-- Server IP display -->
+            <div id="serverInfo" style="display:none;">
+                <p>Server IP: <span id="serverIp">10.0.0.233</span></p>
+            </div>
         </div>
         <a href="/">Go back to main page</a>
     </div>
 
     <script>
         const socket = io();
+
+        fetch('/user/info').then(response => response.json()).then(data => {
+            document.getElementById('username').textContent = data.displayName;
+            document.getElementById('steamId').textContent = data.id;
+        }).catch(error => console.error('Error fetching user info:', error));
 
         document.getElementById('startMatchmakingBtn').addEventListener('click', () => {
             const playerData = {
@@ -34,7 +43,7 @@
         socket.on('lobbyCreated', (lobbyPlayers) => {
             document.getElementById('lobby').style.display = 'block';
             const playerList = document.getElementById('playerList');
-            playerList.innerHTML = ''; // Clear existing list
+            playerList.innerHTML = '';
 
             lobbyPlayers.forEach(player => {
                 const playerItem = document.createElement('li');
@@ -42,19 +51,15 @@
                 playerList.appendChild(playerItem);
             });
 
-            // Show the "Connect to Server" button once the lobby is created
+            // Show the "Connect to Server" button and server IP for all users
             document.getElementById('connectServerBtn').style.display = 'block';
+            document.getElementById('serverInfo').style.display = 'block';
         });
 
         document.getElementById('connectServerBtn').addEventListener('click', function() {
-            const serverIp = '10.0.0.233'; // Example IP address, replace with your actual server IP
+            const serverIp = document.getElementById('serverIp').textContent;
             window.location.href = `steam://connect/${serverIp}`;
         });
-
-        fetch('/user/info').then(response => response.json()).then(data => {
-            document.getElementById('username').textContent = data.displayName;
-            document.getElementById('steamId').textContent = data.id;
-        }).catch(error => console.error('Error fetching user info:', error));
     </script>
 </body>
 </html>

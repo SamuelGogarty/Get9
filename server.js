@@ -28,14 +28,17 @@ passport.use(new SteamStrategy({
     realm: 'http://10.0.0.233:3000/',
     apiKey: 'CA2410DAE8327980C04B378DCBB5B87E'
 }, (identifier, profile, done) => {
+    console.log("Steam profile:", profile);
     return done(null, profile);
 }));
 
 passport.serializeUser((user, done) => {
+    console.log("Serializing user:", user);
     done(null, user);
 });
 
 passport.deserializeUser((user, done) => {
+    console.log("Deserializing user:", user);
     done(null, user);
 });
 
@@ -50,8 +53,17 @@ app.get('/auth/steam/callback', passport.authenticate('steam', {
     failureRedirect: '/'
 }));
 
+app.get('/auth/guest', (req, res) => {
+    const guestUser = {
+        id: `guest_${Math.random().toString(36).substring(2, 15)}`,
+        displayName: 'Guest'
+    };
+    req.session.user = guestUser;
+    res.redirect('/profile');
+});
+
 app.get('/profile', (req, res) => {
-    if (req.isAuthenticated()) {
+    if (req.isAuthenticated() || req.session.user) {
         res.sendFile(path.join(__dirname, 'public', 'profile.html'));
     } else {
         res.redirect('/');
@@ -59,10 +71,11 @@ app.get('/profile', (req, res) => {
 });
 
 app.get('/user/info', (req, res) => {
-    if (req.isAuthenticated()) {
+    const user = req.isAuthenticated() ? req.user : req.session.user;
+    if (user) {
         res.json({
-            id: req.user.id,
-            displayName: req.user.displayName
+            id: user.id,
+            displayName: user.displayName
         });
     } else {
         res.status(401).send('Not authenticated');
@@ -73,7 +86,7 @@ let playerQueue = [];
 
 io.on('connection', (socket) => {
     console.log('A user connected');
-    
+
     socket.on('startMatchmaking', (playerData) => {
         console.log(`${playerData.username} is looking for a match`);
         playerQueue.push({ socketId: socket.id, ...playerData });

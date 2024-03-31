@@ -1,19 +1,26 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Counter-Strike Matchmaking</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Counter-Strike Matchmaking</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Counter-Strike Matchmaking</h1>
-    <button id="steamLoginBtn">Login with Steam</button>
-    <button id="matchmakingBtn" style="display: none;">Enter Matchmaking</button>
-  </div>
-  <script src="https://cdn.socket.io/socket.io-4.0.1.min.js"></script>
-  <script src="app.js"></script>
+    <div class="container">
+        <h1>Counter-Strike Matchmaking</h1>
+        <button id="steamLoginBtn">Login with Steam</button>
+        <button id="guestLoginBtn">Login as Guest</button>
+    </div>
+
+    <script>
+        document.getElementById('steamLoginBtn').addEventListener('click', function() {
+            window.location.href = '/auth/steam';
+        });
+
+        document.getElementById('guestLoginBtn').addEventListener('click', function() {
+            window.location.href = '/auth/guest';
+        });
+    </script>
 </body>
 </html>
