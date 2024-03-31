@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
     <link rel="stylesheet" href="styles.css">
     <script src="/socket.io/socket.io.js"></script>
@@ -16,9 +15,9 @@
             <h2>Lobby</h2>
             <ul id="playerList"></ul>
             <button id="connectServerBtn" style="display:none;">Connect to CS 1.6 Server</button>
-            <!-- Server IP display -->
             <div id="serverInfo" style="display:none;">
-                <p>Server IP: <span id="serverIp">10.0.0.233</span></p>
+                <p>Server IP: <span id="serverIp">...</span></p>
+                <p>Server Port: <span id="serverPort">...</span></p>
             </div>
         </div>
         <a href="/">Go back to main page</a>
@@ -27,39 +26,48 @@
     <script>
         const socket = io();
 
-        fetch('/user/info').then(response => response.json()).then(data => {
-            document.getElementById('username').textContent = data.displayName;
-            document.getElementById('steamId').textContent = data.id;
-        }).catch(error => console.error('Error fetching user info:', error));
+        function fetchUserInfo() {
+            fetch('/user/info')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('username').textContent = data.displayName || 'Unknown user';
+                    document.getElementById('steamId').textContent = data.id || 'No Steam ID';
+                })
+                .catch(error => {
+                    console.error('Error fetching user info:', error);
+                    document.getElementById('username').textContent = 'Error loading username';
+                    document.getElementById('steamId').textContent = 'Error loading Steam ID';
+                });
+        }
 
         document.getElementById('startMatchmakingBtn').addEventListener('click', () => {
-            const playerData = {
-                username: document.getElementById('username').textContent,
-                steamId: document.getElementById('steamId').textContent
-            };
-            socket.emit('startMatchmaking', playerData);
+            const username = document.getElementById('username').textContent;
+            const steamId = document.getElementById('steamId').textContent;
+            socket.emit('startMatchmaking', { username, steamId });
         });
 
-        socket.on('lobbyCreated', (lobbyPlayers) => {
+        socket.on('lobbyCreated', data => {
             document.getElementById('lobby').style.display = 'block';
             const playerList = document.getElementById('playerList');
             playerList.innerHTML = '';
-
-            lobbyPlayers.forEach(player => {
+            data.players.forEach(player => {
                 const playerItem = document.createElement('li');
                 playerItem.textContent = `${player.username} (Steam ID: ${player.steamId})`;
                 playerList.appendChild(playerItem);
             });
 
-            // Show the "Connect to Server" button and server IP for all users
-            document.getElementById('connectServerBtn').style.display = 'block';
-            document.getElementById('serverInfo').style.display = 'block';
+            document.getElementById('serverIp').textContent = data.serverIp;
+            document.getElementById('serverPort').textContent = data.serverPort;
+
+            const connectButton = document.getElementById('connectServerBtn');
+            connectButton.style.display = 'block';
+            connectButton.onclick = () => {
+                window.location.href = `steam://connect/${data.serverIp}:${data.serverPort}`;
+            };
         });
 
-        document.getElementById('connectServerBtn').addEventListener('click', function() {
-            const serverIp = document.getElementById('serverIp').textContent;
-            window.location.href = `steam://connect/${serverIp}`;
-        });
+        // Fetch user info on page load
+        fetchUserInfo();
     </script>
 </body>
 </html>
