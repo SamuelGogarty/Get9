@@ -21,7 +21,7 @@ const db = mysql.createPool({
 passport.use(new SteamStrategy({
     returnURL: 'http://10.0.0.233:3000/auth/steam/callback',
     realm: 'http://10.0.0.233:3000/',
-    apiKey: 'CA2410DAE8327980C04B378DCBB5B87E'
+    apiKey: '<redacted>'
 }, async (identifier, profile, done) => {
     // Optionally update or insert the user into your database here
     // For example, check if the user exists, if not, insert them
