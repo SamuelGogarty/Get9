@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Lobby</title>
+    <link rel="stylesheet" href="lobby_style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="team-container">
+            <div class="team" id="team1">
+                <h2>Team 1</h2>
+                <ul class="player-list" id="team1List">
+                    <!-- Player details will be dynamically added here -->
+                </ul>
+            </div>
+
+            <div class="action-section">
+                <div id="mapSelection">
+                    <h2>Select Map</h2>
+                    <button class="map-option">de_dust2</button>
+                    <button class="map-option">de_inferno</button>
+                    <!-- Add more map options as needed -->
+                </div>
+                <button id="connectServerBtn">Connect to Server</button>
+                <div id="connectionInfo"></div>
+            </div>
+
+            <div class="team" id="team2">
+                <h2>Team 2</h2>
+                <ul class="player-list" id="team2List">
+                    <!-- Player details will be dynamically added here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/user/info')
+                .then(response => response.json())
+                .then(data => {
+                    const playerList = document.getElementById('team1List'); // Or team2List based on some logic
+                    const playerItem = document.createElement('li');
+                    playerItem.innerHTML = `${data.displayName} <img src="${data.profilePictureUrl}" alt="Profile Picture" style="width: 30px; height: 30px;">`;
+                    playerList.appendChild(playerItem);
+
+                    socket.emit('joinLobby', { name: data.displayName, steamId: data.id, profilePictureUrl: data.profilePictureUrl });
+                })
+                .catch(error => console.error('Error fetching user info:', error));
+        });
+
+        document.querySelectorAll('.map-option').forEach(element => {
+            element.addEventListener('click', () => {
+                const mapName = element.textContent;
+                socket.emit('mapSelected', { mapName });
+                document.getElementById('mapSelection').style.display = 'none';
+                document.getElementById('connectServerBtn').style.display = 'block';
+            });
+        });
+
+        socket.on('lobbyCreated', data => {
+            const connectButton = document.getElementById('connectServerBtn');
+            connectButton.style.display = 'block';
+            connectButton.onclick = () => {
+                window.location.href = `steam://connect/${data.serverIp}:${data.serverPort}`;
+            };
+
+            const connectionInfo = document.getElementById('connectionInfo');
+            connectionInfo.innerHTML = `Connect to: steam://connect/${data.serverIp}:${data.serverPort}`;
+            connectionInfo.style.display = 'block';
+        });
+    </script>
+</body>
+</html>

@@ -5,18 +5,51 @@ const path = require('path');
 const passport = require('passport');
 const SteamStrategy = require('passport-steam').Strategy;
 const session = require('express-session');
-const { KubeConfig, AppsV1Api } = require('@kubernetes/client-node');
+const mysql = require('mysql2/promise');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-const kc = new KubeConfig();
-kc.loadFromDefault();
-const k8sAppsApi = kc.makeApiClient(AppsV1Api);
+const db = mysql.createPool({
+    host: 'your-database-host',
+    user: 'your-database-user',
+    password: 'your-database-password',
+    database: 'your-database-name'
+});
 
-const PORT = 3000;
-let basePort = 27015; // Starting port for CS servers
+passport.use(new SteamStrategy({
+    returnURL: 'http://10.0.0.233:3000/auth/steam/callback',
+    realm: 'http://10.0.0.233:3000/',
+    apiKey: 'CA2410DAE8327980C04B378DCBB5B87E'
+}, async (identifier, profile, done) => {
+    // Optionally update or insert the user into your database here
+    // For example, check if the user exists, if not, insert them
+    const steamId = profile.id;
+
+    try {
+        const [rows] = await db.query('SELECT * FROM users WHERE steam_id = ?', [steamId]);
+        if (rows.length === 0) {
+            await db.query('INSERT INTO users (steam_id, elo) VALUES (?, ?)', [steamId, 1000]); // Default ELO rating
+        }
+        return done(null, profile);
+    } catch (error) {
+        return done(error);
+    }
+}));
+
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+    try {
+        const [rows] = await db.query('SELECT * FROM users WHERE steam_id = ?', [id]);
+        done(null, rows[0]);
+    } catch (error) {
+        done(error, null);
+    }
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
@@ -24,125 +57,51 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
-
 app.use(passport.initialize());
 app.use(passport.session());
-
-passport.use(new SteamStrategy({
-    returnURL: 'http://10.0.0.233:3000/auth/steam/callback',
-    realm: 'http://10.0.0.233:3000/',
-    apiKey: 'CA2410DAE8327980C04B378DCBB5B87E'
-}, (identifier, profile, done) => {
-    return done(null, profile);
-}));
-
-passport.serializeUser((user, done) => {
-    done(null, user);
-});
-
-passport.deserializeUser((user, done) => {
-    done(null, user);
-});
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/auth/steam', passport.authenticate('steam'));
-app.get('/auth/steam/callback', passport.authenticate('steam', { successRedirect: '/profile', failureRedirect: '/' }));
-app.get('/auth/guest', (req, res) => {
-    const guestUser = { id: `guest_${Math.random().toString(36).substring(2, 15)}`, displayName: 'Guest' };
-    req.session.user = guestUser;
-    res.redirect('/profile');
-});
+app.get('/auth/steam/callback', 
+    passport.authenticate('steam', { failureRedirect: '/' }), 
+    (req, res) => {
+        res.redirect('/lobby');
+    }
+);
 
-app.get('/profile', (req, res) => {
-    if (req.isAuthenticated() || req.session.user) {
-        res.sendFile(path.join(__dirname, 'public', 'profile.html'));
+app.get('/lobby', (req, res) => {
+    if (req.isAuthenticated()) {
+        res.sendFile(path.join(__dirname, 'public', 'lobby.html'));
     } else {
         res.redirect('/');
     }
 });
 
-app.get('/user/info', (req, res) => {
-    const user = req.isAuthenticated() ? req.user : req.session.user;
-    res.json({ id: user.id, displayName: user.displayName });
-});
-
-let playerQueue = [];
-
-async function createCsServerPod(port) {
-    const deploymentName = `cs-server-${Math.random().toString(36).substring(2, 7)}`;
-    const namespace = 'default'; // Replace with your actual namespace
-
-    const deployment = {
-        apiVersion: 'apps/v1',
-        kind: 'Deployment',
-        metadata: {
-            name: deploymentName,
-            namespace: namespace
-        },
-        spec: {
-            replicas: 1,
-            selector: {
-                matchLabels: {
-                    app: deploymentName
-                }
-            },
-            template: {
-                metadata: {
-                    labels: {
-                        app: deploymentName
-                    }
-                },
-                spec: {
-                    hostNetwork: true,
-                    containers: [{
-                        name: 'cs-server-container',
-                        image: 'goldsourceservers/cstrike:latest',
-                        command: ["/bin/bash", "-c"],
-                        args: [`printenv && ls -al && exec hlds_linux -game cstrike +port ${port} +maxplayers 10 +map de_dust2`],
-                        ports: [{ containerPort: port }]
-                    }]
-                }
-            }
+app.get('/user/info', async (req, res) => {
+    if (req.isAuthenticated()) {
+        const steamId = req.user.steam_id; // Assuming you have a steam_id column in your users table
+        const [rows] = await db.query('SELECT * FROM users WHERE steam_id = ?', [steamId]);
+        if (rows.length > 0) {
+            const user = rows[0];
+            res.json({ 
+                id: user.steam_id, 
+                displayName: req.user.displayName, 
+                profilePictureUrl: req.user.photos[0].value,
+                elo: user.elo 
+            });
+        } else {
+            res.status(404).send('User not found');
         }
-    };
-
-    try {
-        await k8sAppsApi.createNamespacedDeployment(namespace, deployment);
-        console.log('Deployment created:', deploymentName);
-        return { deploymentName, port };
-    } catch (err) {
-        console.error('Error creating CS 1.6 server deployment:', err);
-        throw err;
+    } else {
+        res.status(401).send('User not authenticated');
     }
-}
-
-io.on('connection', (socket) => {
-    socket.on('startMatchmaking', async (playerData) => {
-        playerQueue.push({ socketId: socket.id, ...playerData });
-
-        if (playerQueue.length >= 2) {
-            const lobbyPlayers = playerQueue.splice(0, 2);
-            const port = basePort++;
-            try {
-                const { deploymentName, port: serverPort } = await createCsServerPod(port);
-                console.log(`Server ${deploymentName} started on port ${serverPort}`);
-                lobbyPlayers.forEach(player => {
-                    io.to(player.socketId).emit('lobbyCreated', {
-                        players: lobbyPlayers,
-                        serverIp: '10.0.0.233', // Replace with actual server IP
-                        serverPort: serverPort
-                    });
-                });
-            } catch (error) {
-                console.error('Error in matchmaking process:', error);
-            }
-        }
-    });
 });
 
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+// Add your socket.io and game server logic here...
+
+server.listen(3000, () => {
+    console.log('Server listening on port 3000');
 });

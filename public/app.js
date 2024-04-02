@@ -1,27 +1,39 @@
-document.getElementById('steamLoginBtn').addEventListener('click', () => {
-    window.location.href = '/auth/steam';
-    // Assume the player is logged in for this proof of concept and show the connect button
-    document.getElementById('serverConnection').style.display = 'block';
+// Assuming Socket.IO is already connected
+const socket = io();
+
+socket.on('lobbyCreated', data => {
+    console.log('Lobby created:', data);
+    displayLobby(data);
 });
 
-document.getElementById('matchmakingBtn').addEventListener('click', () => {
-    const playerDetails = {
-        username: 'Player1', // Get actual username from Steam login
-        map: 'de_dust2', // Example map selection
-        region: 'US', // Example region selection
-        skillLevel: 'Intermediate' // Example skill level selection
+function joinLobby(lobbyId, mapName) {
+    const playerData = {
+        lobbyId,
+        mapName,
+        // Include other player data as needed
     };
 
-    socket.emit('searchMatch', playerDetails);
-});
+    socket.emit('startMatchmaking', playerData);
+}
 
-socket.on('lobbyCreated', (lobbyPlayers) => {
-    console.log('Full lobby created:', lobbyPlayers);
-    alert('Full lobby created! Game starting...');
-});
+function displayLobby(lobbyData) {
+    const lobbyElement = document.getElementById('lobby');
+    lobbyElement.innerHTML = ''; // Clear previous lobby data
 
-// Add event listener for the connect server button
-document.getElementById('connectServerBtn').addEventListener('click', () => {
-    const serverIp = '10.0.0.233:27015'; // Replace with your actual server IP
-    window.location.href = `steam://connect/${serverIp}`;
-});
+    lobbyData.players.forEach(player => {
+        const playerElement = document.createElement('div');
+        playerElement.textContent = `${player.displayName} - ${player.steamId}`;
+        lobbyElement.appendChild(playerElement);
+    });
+
+    // Display the "Connect to Server" button
+    const connectButton = document.createElement('button');
+    connectButton.textContent = 'Connect to Server';
+    connectButton.onclick = () => {
+        window.location.href = `steam://connect/${lobbyData.serverIp}:${lobbyData.serverPort}`;
+    };
+    lobbyElement.appendChild(connectButton);
+}
+
+// Example of joining a lobby
+joinLobby('lobby123', 'de_dust2');
