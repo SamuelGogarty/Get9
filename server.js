@@ -6,6 +6,9 @@ const passport = require('passport');
 const SteamStrategy = require('passport-steam').Strategy;
 const session = require('express-session');
 const { KubeConfig, AppsV1Api } = require('@kubernetes/client-node');
+const fs = require('fs');
+const yaml = require('js-yaml');
+const crypto = require('crypto');
 
 const app = express();
 const server = http.createServer(app);
@@ -16,7 +19,6 @@ kc.loadFromDefault();
 const k8sAppsApi = kc.makeApiClient(AppsV1Api);
 
 const PORT = 3000;
-let basePort = 27015; // Starting port for CS servers
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
@@ -24,9 +26,6 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
-
-app.use(passport.initialize());
-app.use(passport.session());
 
 passport.use(new SteamStrategy({
     returnURL: 'http://10.0.0.233:3000/auth/steam/callback',
@@ -44,101 +43,103 @@ passport.deserializeUser((user, done) => {
     done(null, user);
 });
 
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/auth/steam', passport.authenticate('steam'));
-app.get('/auth/steam/callback', passport.authenticate('steam', { successRedirect: '/profile', failureRedirect: '/' }));
+app.get('/auth/steam/callback',
+    passport.authenticate('steam', { failureRedirect: '/' }),
+    (req, res) => {
+        res.redirect('/lobby');
+    }
+);
+
 app.get('/auth/guest', (req, res) => {
     const guestUser = { id: `guest_${Math.random().toString(36).substring(2, 15)}`, displayName: 'Guest' };
     req.session.user = guestUser;
-    res.redirect('/profile');
+    res.redirect('/lobby');
 });
 
-app.get('/profile', (req, res) => {
+app.get('/lobby', (req, res) => {
     if (req.isAuthenticated() || req.session.user) {
-        res.sendFile(path.join(__dirname, 'public', 'profile.html'));
+        res.sendFile(path.join(__dirname, 'public', 'lobby.html'));
     } else {
         res.redirect('/');
     }
 });
 
 app.get('/user/info', (req, res) => {
-    const user = req.isAuthenticated() ? req.user : req.session.user;
-    res.json({ id: user.id, displayName: user.displayName });
+    if (req.isAuthenticated() || req.session.user) {
+        const user = req.user || req.session.user;
+        res.json({ id: user.id, displayName: user.displayName, profilePictureUrl: user.photos[0].value });
+    } else {
+        res.status(401).send('User not authenticated');
+    }
 });
 
-let playerQueue = [];
+function generateUniqueName(baseName) {
+    const randomString = crypto.randomBytes(4).toString('hex');
+    return `${baseName}-${randomString}`.toLowerCase();
+}
 
-async function createCsServerPod(port) {
-    const deploymentName = `cs-server-${Math.random().toString(36).substring(2, 7)}`;
-    const namespace = 'default'; // Replace with your actual namespace
+function getRandomPort() {
+    const min = 27015;
+    const max = 27030;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
-    const deployment = {
-        apiVersion: 'apps/v1',
-        kind: 'Deployment',
-        metadata: {
-            name: deploymentName,
-            namespace: namespace
-        },
-        spec: {
-            replicas: 1,
-            selector: {
-                matchLabels: {
-                    app: deploymentName
-                }
-            },
-            template: {
-                metadata: {
-                    labels: {
-                        app: deploymentName
-                    }
-                },
-                spec: {
-                    hostNetwork: true,
-                    containers: [{
-                        name: 'cs-server-container',
-                        image: 'goldsourceservers/cstrike:latest',
-                        command: ["/bin/bash", "-c"],
-                        args: [`printenv && ls -al && exec hlds_linux -game cstrike +port ${port} +maxplayers 10 +map de_dust2`],
-                        ports: [{ containerPort: port }]
-                    }]
-                }
-            }
-        }
-    };
+async function createOrUpdateCsServerPodAndService(lobbyId, mapName) {
+    const port = getRandomPort();
+    const deploymentName = generateUniqueName(`cs-server-${lobbyId}`);
+    const templatePath = path.join(__dirname, 'k3s-manifest.yaml');
+
+    let manifestTemplate = fs.readFileSync(templatePath, 'utf8');
+    manifestTemplate = manifestTemplate.replace(/{{deploymentName}}/g, deploymentName)
+                                       .replace(/{{port}}/g, port.toString())
+                                       .replace(/{{mapName}}/g, mapName);
+
+    const manifest = yaml.load(manifestTemplate);
 
     try {
-        await k8sAppsApi.createNamespacedDeployment(namespace, deployment);
-        console.log('Deployment created:', deploymentName);
-        return { deploymentName, port };
-    } catch (err) {
-        console.error('Error creating CS 1.6 server deployment:', err);
-        throw err;
+        await k8sAppsApi.createNamespacedDeployment('default', manifest);
+        console.log(`Deployment created: ${deploymentName} on port ${port}`);
+        return { port, deploymentName };
+    } catch (error) {
+        console.error('Error creating deployment:', error);
+        throw error;
     }
 }
 
-io.on('connection', (socket) => {
-    socket.on('startMatchmaking', async (playerData) => {
-        playerQueue.push({ socketId: socket.id, ...playerData });
+let lobbies = {};
 
-        if (playerQueue.length >= 2) {
-            const lobbyPlayers = playerQueue.splice(0, 2);
-            const port = basePort++;
-            try {
-                const { deploymentName, port: serverPort } = await createCsServerPod(port);
-                console.log(`Server ${deploymentName} started on port ${serverPort}`);
-                lobbyPlayers.forEach(player => {
-                    io.to(player.socketId).emit('lobbyCreated', {
-                        players: lobbyPlayers,
-                        serverIp: '10.0.0.233', // Replace with actual server IP
-                        serverPort: serverPort
-                    });
-                });
-            } catch (error) {
-                console.error('Error in matchmaking process:', error);
-            }
+io.on('connection', (socket) => {
+    socket.on('joinLobby', (user) => {
+        const lobbyId = 'defaultLobby';
+        if (!lobbies[lobbyId]) {
+            lobbies[lobbyId] = { team1: [], team2: [], selectedMap: '' };
+        }
+        lobbies[lobbyId].team1.push(user); // Or team2 based on logic
+        io.emit('updateLobby', lobbies[lobbyId]);
+    });
+
+    socket.on('mapSelected', async (data) => {
+        const lobbyId = 'defaultLobby';
+        const { mapName } = data;
+        lobbies[lobbyId].selectedMap = mapName;
+
+        try {
+            const { port, deploymentName } = await createOrUpdateCsServerPodAndService(lobbyId, mapName);
+            io.emit('lobbyCreated', {
+                serverIp: '10.0.0.233', // Replace with actual server IP
+                serverPort: port,
+                mapName: mapName
+            });
+        } catch (error) {
+            console.error('Error in server provisioning:', error);
         }
     });
 });
