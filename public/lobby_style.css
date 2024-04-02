@@ -1,0 +1,99 @@
+header {
+    width: 100%;
+    background-color: #333;
+    color: #fff;
+    padding: 10px 20px;
+    box-sizing: border-box;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 10px auto;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.team-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    margin: 0 10px;
+}
+
+.team {
+    flex: 1;
+    margin: 0 5px;
+    padding: 20px;
+    background-color: #222;
+    border-radius: 8px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.player-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.player-item {
+    background-color: #333;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.action-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 20px;
+}
+
+.map-option {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    margin: 5px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.map-option:hover {
+    background-color: #0056b3;
+}
+
+#connectServerBtn {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: none;
+}
+
+#connectServerBtn:hover {
+    background-color: #218838;
+}
+
+#connectionInfo {
+    margin-top: 20px;
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    display: none;
+}
