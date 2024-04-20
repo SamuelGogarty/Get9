@@ -5,7 +5,7 @@ To-do list
 - [ ] Docker Image tuning
 - [ ] Migrate to ReHLDS
 - [ ] Invite lobby system
-- [ ] Move from K3S Deployments to K3S Jobs
+- [x] Move from K3S Deployments to K3S Jobs
 - [ ] Automatic Pod shutdown
 - [ ] Web UI overhaul
 - [ ] Lobby chat box(es)
