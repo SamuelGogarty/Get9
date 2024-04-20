@@ -1,16 +1,13 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: {{deploymentName}}
+  name: {{jobName}}
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: {{deploymentName}}
+  completions: 1  # Job should successfully complete at least once
+  parallelism: 1  # Number of pods to run at the same time
+  backoffLimit: 0  # Ensures no retries after failure
+  ttlSecondsAfterFinished: 1  # Job and its pods are deleted 1 second after completion
   template:
-    metadata:
-      labels:
-        app: {{deploymentName}}
     spec:
       hostNetwork: true
       containers:
@@ -23,3 +20,4 @@ spec:
         ports:
         - containerPort: {{port}}
           protocol: UDP
+      restartPolicy: Never
