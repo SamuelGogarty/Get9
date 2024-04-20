@@ -5,7 +5,7 @@ const path = require('path');
 const passport = require('passport');
 const SteamStrategy = require('passport-steam').Strategy;
 const session = require('express-session');
-const { KubeConfig, AppsV1Api } = require('@kubernetes/client-node');
+const { KubeConfig, BatchV1Api } = require('@kubernetes/client-node');
 const fs = require('fs');
 const yaml = require('js-yaml');
 const crypto = require('crypto');
@@ -16,7 +16,7 @@ const io = socketIo(server);
 
 const kc = new KubeConfig();
 kc.loadFromDefault();
-const k8sAppsApi = kc.makeApiClient(AppsV1Api);
+const k8sBatchApi = kc.makeApiClient(BatchV1Api);
 
 const PORT = 3000;
 
@@ -30,7 +30,7 @@ app.use(session({
 passport.use(new SteamStrategy({
     returnURL: 'http://10.0.0.233:3000/auth/steam/callback',
     realm: 'http://10.0.0.233:3000/',
-    apiKey: '<redacted>'
+    apiKey: '<>'
 }, (identifier, profile, done) => {
     return done(null, profile);
 }));
@@ -92,24 +92,24 @@ function getRandomPort() {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-async function createOrUpdateCsServerPodAndService(lobbyId, mapName) {
+async function createOrUpdateCsServerJob(lobbyId, mapName) {
     const port = getRandomPort();
-    const deploymentName = generateUniqueName(`cs-server-${lobbyId}`);
+    const jobName = generateUniqueName(`cs-server-${lobbyId}`);
     const templatePath = path.join(__dirname, 'k3s-manifest.yaml');
 
     let manifestTemplate = fs.readFileSync(templatePath, 'utf8');
-    manifestTemplate = manifestTemplate.replace(/{{deploymentName}}/g, deploymentName)
+    manifestTemplate = manifestTemplate.replace(/{{jobName}}/g, jobName)
                                        .replace(/{{port}}/g, port.toString())
                                        .replace(/{{mapName}}/g, mapName);
 
     const manifest = yaml.load(manifestTemplate);
 
     try {
-        await k8sAppsApi.createNamespacedDeployment('default', manifest);
-        console.log(`Deployment created: ${deploymentName} on port ${port}`);
-        return { port, deploymentName };
+        await k8sBatchApi.createNamespacedJob('default', manifest);
+        console.log(`Job created: ${jobName} on port ${port}`);
+        return { port, jobName };
     } catch (error) {
-        console.error('Error creating deployment:', error);
+        console.error('Error creating job:', error);
         throw error;
     }
 }
@@ -132,7 +132,7 @@ io.on('connection', (socket) => {
         lobbies[lobbyId].selectedMap = mapName;
 
         try {
-            const { port, deploymentName } = await createOrUpdateCsServerPodAndService(lobbyId, mapName);
+            const { port, jobName } = await createOrUpdateCsServerJob(lobbyId, mapName);
             io.emit('lobbyCreated', {
                 serverIp: '10.0.0.233', // Replace with actual server IP
                 serverPort: port,
