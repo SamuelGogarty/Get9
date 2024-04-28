@@ -30,7 +30,7 @@ app.use(session({
 passport.use(new SteamStrategy({
     returnURL: 'http://10.0.0.233:3000/auth/steam/callback',
     realm: 'http://10.0.0.233:3000/',
-    apiKey: '<>'
+    apiKey: ''
 }, (identifier, profile, done) => {
     return done(null, profile);
 }));

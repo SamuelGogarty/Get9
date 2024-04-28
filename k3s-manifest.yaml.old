@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ jobName }}
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 1
+  template:
+    spec:
+      hostNetwork: true
+      containers:
+      - name: cs-server-container
+        image: localhost:5000/cs16-server:latest
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            printenv && ls -al && exec ./hlds_run -game cstrike +port {{ port }} +maxplayers {{ maxPlayers }} +map {{ mapName }}
+        ports:
+        - containerPort: {{ port }}
+          protocol: UDP

@@ -12,11 +12,12 @@ spec:
       hostNetwork: true
       containers:
       - name: cs-server-container
-        image: goldsourceservers/cstrike
+        #image: goldsourceservers/cstrike
+        image: localhost:5000/cs16-server:latest
         command: ["/bin/sh", "-c"]
         args:
           - |
-            printenv && ls -al && exec hlds_linux -game cstrike +port {{port}} +maxplayers 10 +map {{mapName}}
+            printenv && ls -al && exec ./hlds_run -game cstrike +port {{port}} +maxplayers 10 +map {{mapName}} -dlls -norestart
         ports:
         - containerPort: {{port}}
           protocol: UDP
