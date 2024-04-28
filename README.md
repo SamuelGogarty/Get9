@@ -3,7 +3,7 @@ Get9 is an open-source A-Z solution for a matchmaking platform primarily targeti
 To-do list
 - [ ] ELO Rating
 - [x] Docker Image tuning
-- [ ] Migrate to ReHLDS
+- [x] Migrate to ReHLDS
 - [ ] Invite lobby system
 - [x] Move from K3S Deployments to K3S Jobs
 - [x] Automatic Pod shutdown
