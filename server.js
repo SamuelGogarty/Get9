@@ -19,6 +19,7 @@ kc.loadFromDefault();
 const k8sBatchApi = kc.makeApiClient(BatchV1Api);
 
 const PORT = 3000;
+const DEFAULT_PROFILE_PICTURE = '/path/to/default/profile-pic.jpg'; // Ensure you have a default image at this path
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
@@ -54,14 +55,18 @@ app.get('/auth/steam', passport.authenticate('steam'));
 app.get('/auth/steam/callback',
     passport.authenticate('steam', { failureRedirect: '/' }),
     (req, res) => {
-        res.redirect('/lobby');
+        res.redirect('/profile.html'); // Redirect to profile.html after login
     }
 );
 
 app.get('/auth/guest', (req, res) => {
-    const guestUser = { id: `guest_${Math.random().toString(36).substring(2, 15)}`, displayName: 'Guest' };
-    req.session.user = guestUser;
-    res.redirect('/lobby');
+    const guestUser = {
+        id: `guest_${Math.random().toString(36).substring(2, 15)}`,
+        displayName: 'Guest',
+        photos: [{ value: DEFAULT_PROFILE_PICTURE }] // Default profile picture for guests
+    };
+    req.session.passport = { user: guestUser };  // Simulate passport behavior for guest
+    res.redirect('/profile.html'); // Redirect to profile.html for guests
 });
 
 app.get('/lobby', (req, res) => {
@@ -75,7 +80,11 @@ app.get('/lobby', (req, res) => {
 app.get('/user/info', (req, res) => {
     if (req.isAuthenticated() || req.session.user) {
         const user = req.user || req.session.user;
-        res.json({ id: user.id, displayName: user.displayName, profilePictureUrl: user.photos[0].value });
+        res.json({
+            id: user.id,
+            displayName: user.displayName,
+            profilePictureUrl: user.photos && user.photos.length > 0 ? user.photos[0].value : DEFAULT_PROFILE_PICTURE
+        });
     } else {
         res.status(401).send('User not authenticated');
     }
@@ -115,26 +124,47 @@ async function createOrUpdateCsServerJob(lobbyId, mapName) {
 }
 
 let lobbies = {};
+let matchmakingQueue = [];
 
 io.on('connection', (socket) => {
-    socket.on('joinLobby', (user) => {
-        const lobbyId = 'defaultLobby';
-        if (!lobbies[lobbyId]) {
-            lobbies[lobbyId] = { team1: [], team2: [], selectedMap: '' };
-        }
-        lobbies[lobbyId].team1.push(user); // Or team2 based on logic
-        io.emit('updateLobby', lobbies[lobbyId]);
+    socket.on('startMatchmaking', (user) => {
+        user.socketId = socket.id;
+        matchmakingQueue.push(user);
+        checkQueueAndFormLobby();
     });
 
+    function checkQueueAndFormLobby() {
+        if (matchmakingQueue.length >= 2) {
+            const players = matchmakingQueue.splice(0, 10);
+            formLobby(players);
+        }
+    }
+
+    function formLobby(players) {
+        const lobbyId = generateUniqueName('lobby');
+        lobbies[lobbyId] = {
+            players: players,
+            mapSelected: false
+        };
+        players.forEach(player => {
+            io.to(player.socketId).emit('lobbyReady', { lobbyId, players: lobbies[lobbyId].players });
+            io.to(player.socketId).emit('redirect', `/lobby.html?lobbyId=${lobbyId}`);
+        });
+    }
+
     socket.on('mapSelected', async (data) => {
-        const lobbyId = 'defaultLobby';
+        const lobbyId = data.lobbyId;
+        if (!lobbies[lobbyId]) {
+            console.error('Lobby does not exist:', lobbyId);
+            return;
+        }
         const { mapName } = data;
         lobbies[lobbyId].selectedMap = mapName;
 
         try {
             const { port, jobName } = await createOrUpdateCsServerJob(lobbyId, mapName);
             io.emit('lobbyCreated', {
-                serverIp: '10.0.0.233', // Replace with actual server IP
+                serverIp: '10.0.0.233',
                 serverPort: port,
                 mapName: mapName
             });
