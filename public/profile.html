@@ -46,7 +46,7 @@
             socket.emit('startMatchmaking', { username, steamId });
         });
 
-        socket.on('lobbyCreated', data => {
+        socket.on('lobbyReady', data => {
             document.getElementById('lobby').style.display = 'block';
             const playerList = document.getElementById('playerList');
             playerList.innerHTML = '';
@@ -55,7 +55,9 @@
                 playerItem.textContent = `${player.username} (Steam ID: ${player.steamId})`;
                 playerList.appendChild(playerItem);
             });
+        });
 
+        socket.on('lobbyCreated', data => {
             document.getElementById('serverIp').textContent = data.serverIp;
             document.getElementById('serverPort').textContent = data.serverPort;
 
@@ -66,8 +68,14 @@
             };
         });
 
+        // Listen for redirect event from the server
+        socket.on('redirect', (url) => {
+            window.location.href = url;  // Redirect to the given URL (e.g., lobby page)
+        });
+
         // Fetch user info on page load
         fetchUserInfo();
     </script>
 </body>
 </html>
+

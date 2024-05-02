@@ -25,7 +25,7 @@
                     <button class="map-option">de_inferno</button>
                     <!-- Add more map options as needed -->
                 </div>
-                <button id="connectServerBtn">Connect to Server</button>
+                <button id="connectServerBtn" style="display:none;">Connect to Server</button>
                 <div id="connectionInfo"></div>
             </div>
 
@@ -42,24 +42,36 @@
     <script>
         const socket = io();
 
+        // Retrieve or initialize lobbyId when the page loads
         document.addEventListener('DOMContentLoaded', () => {
-            fetch('/user/info')
-                .then(response => response.json())
-                .then(data => {
-                    const playerList = document.getElementById('team1List'); // Or team2List based on some logic
-                    const playerItem = document.createElement('li');
-                    playerItem.innerHTML = `${data.displayName} <img src="${data.profilePictureUrl}" alt="Profile Picture" style="width: 30px; height: 30px;">`;
-                    playerList.appendChild(playerItem);
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('lobbyId')) {
+                const lobbyId = params.get('lobbyId');
+                localStorage.setItem('currentLobbyId', lobbyId);
+            } else if (!localStorage.getItem('currentLobbyId')) {
+                alert('No lobby ID provided. Please ensure you are entering through a proper channel.');
+            }
 
-                    socket.emit('joinLobby', { name: data.displayName, steamId: data.id, profilePictureUrl: data.profilePictureUrl });
-                })
-                .catch(error => console.error('Error fetching user info:', error));
+            fetch('/user/info')
+            .then(response => response.json())
+            .then(data => {
+                const playerList = document.getElementById('team1List'); // Assuming all players are added to Team 1 initially
+                const playerItem = document.createElement('li');
+                playerItem.innerHTML = `${data.displayName} <img src="${data.profilePictureUrl}" alt="Profile Picture" style="width: 30px; height: 30px;">`;
+                playerList.appendChild(playerItem);
+
+                // Simulate a join lobby event if needed
+                socket.emit('joinLobby', { name: data.displayName, steamId: data.id, profilePictureUrl: data.profilePictureUrl });
+            })
+            .catch(error => console.error('Error fetching user info:', error));
         });
 
         document.querySelectorAll('.map-option').forEach(element => {
             element.addEventListener('click', () => {
                 const mapName = element.textContent;
-                socket.emit('mapSelected', { mapName });
+                const lobbyId = localStorage.getItem('currentLobbyId'); // Retrieve the lobbyId when needed
+                socket.emit('mapSelected', { lobbyId, mapName });
+
                 document.getElementById('mapSelection').style.display = 'none';
                 document.getElementById('connectServerBtn').style.display = 'block';
             });
@@ -75,6 +87,10 @@
             const connectionInfo = document.getElementById('connectionInfo');
             connectionInfo.innerHTML = `Connect to: steam://connect/${data.serverIp}:${data.serverPort}`;
             connectionInfo.style.display = 'block';
+        });
+
+        socket.on('error', (message) => {
+            alert('Error: ' + message);  // Display any error messages sent from the server
         });
     </script>
 </body>
