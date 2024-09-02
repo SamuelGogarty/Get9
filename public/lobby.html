@@ -48,22 +48,31 @@
             if (params.has('lobbyId')) {
                 const lobbyId = params.get('lobbyId');
                 localStorage.setItem('currentLobbyId', lobbyId);
+                socket.emit('joinLobby', { lobbyId }); // Join the lobby
             } else if (!localStorage.getItem('currentLobbyId')) {
                 alert('No lobby ID provided. Please ensure you are entering through a proper channel.');
             }
+        });
 
-            fetch('/user/info')
-            .then(response => response.json())
-            .then(data => {
-                const playerList = document.getElementById('team1List'); // Assuming all players are added to Team 1 initially
+        socket.on('lobbyReady', (data) => {
+            console.log('Lobby ready data received:', data);
+            const { players } = data;
+            const team1List = document.getElementById('team1List');
+            const team2List = document.getElementById('team2List');
+
+            team1List.innerHTML = '';
+            team2List.innerHTML = '';
+
+            players.forEach((player, index) => {
+                console.log(`Adding player ${player.name} to team ${index % 2 === 0 ? '1' : '2'}`);
                 const playerItem = document.createElement('li');
-                playerItem.innerHTML = `${data.displayName} <img src="${data.profilePictureUrl}" alt="Profile Picture" style="width: 30px; height: 30px;">`;
-                playerList.appendChild(playerItem);
-
-                // Simulate a join lobby event if needed
-                socket.emit('joinLobby', { name: data.displayName, steamId: data.id, profilePictureUrl: data.profilePictureUrl });
-            })
-            .catch(error => console.error('Error fetching user info:', error));
+                playerItem.innerHTML = `${player.name} <img src="${player.profile_picture}" alt="Profile Picture" style="width: 30px; height: 30px;">`;
+                if (index % 2 === 0) {
+                    team1List.appendChild(playerItem);
+                } else {
+                    team2List.appendChild(playerItem);
+                }
+            });
         });
 
         document.querySelectorAll('.map-option').forEach(element => {

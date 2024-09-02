@@ -33,7 +33,7 @@ ARG SERVER_DIR=/server
 ARG APP_MANIFEST_URL=https://github.com/startersclan/hlds-appmanifest/archive/refs/tags/v2.0.0.tar.gz
 
 # Setup environment
-ENV LD_LIBRARY_PATH="${SERVER_DIR}:${LD_LIBRARY_PATH}"
+#ENV LD_LIBRARY_PATH="${SERVER_DIR}:${LD_LIBRARY_PATH}"
 ENV SERVER_DIR="${SERVER_DIR}"
 
 WORKDIR ${SERVER_DIR}
