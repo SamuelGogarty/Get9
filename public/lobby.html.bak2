@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Lobby</title>
+    <link rel="stylesheet" href="lobby_style.css">
+</head>
+<body>
+    <header>
+        <h1>Get9 Game Lobby</h1>
+    </header>
+    <div class="container">
+        <div class="team-container">
+            <div class="team" id="team1">
+                <h2>Team 1</h2>
+                <ul class="player-list" id="team1List">
+                    <!-- Player details will be dynamically added here -->
+                </ul>
+            </div>
+
+            <div class="action-section">
+                <div id="mapSelection">
+                    <h2>Select Map</h2>
+                    <button class="map-option">de_dust2</button>
+                    <button class="map-option">de_inferno</button>
+                    <!-- Add more map options as needed -->
+                </div>
+                <button id="connectServerBtn" style="display:none;">Connect to Server</button>
+                <div id="connectionInfo" style="display:none;"></div>
+            </div>
+
+            <div class="team" id="team2">
+                <h2>Team 2</h2>
+                <ul class="player-list" id="team2List">
+                    <!-- Player details will be dynamically added here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        // Handle incoming data when the lobby is ready
+        socket.on('lobbyReady', data => {
+            // Clear existing player lists
+            document.getElementById('team1List').innerHTML = '';
+            document.getElementById('team2List').innerHTML = '';
+
+            // Populate team lists
+            data.team1.forEach(player => {
+                const playerItem = document.createElement('li');
+                playerItem.textContent = player;
+                document.getElementById('team1List').appendChild(playerItem);
+            });
+
+            data.team2.forEach(player => {
+                const playerItem = document.createElement('li');
+                playerItem.textContent = player;
+                document.getElementById('team2List').appendChild(playerItem);
+            });
+        });
+
+        // Handle map selection visibility
+        document.querySelectorAll('.map-option').forEach(element => {
+            element.addEventListener('click', () => {
+                const mapName = element.textContent;
+                socket.emit('mapSelected', { mapName });
+                document.getElementById('mapSelection').style.display = 'none';
+            });
+        });
+
+        // Update UI when map is selected
+        socket.on('mapSelected', data => {
+            document.getElementById('connectionInfo').textContent = `Connect to: ${data.serverIp}:${data.serverPort}`;
+            document.getElementById('connectionInfo').style.display = 'block';
+            document.getElementById('connectServerBtn').style.display = 'block';
+        });
+
+        // Listen for lobby creation to update connection details
+        socket.on('lobbyCreated', data => {
+            const connectButton = document.getElementById('connectServerBtn');
+            connectButton.onclick = () => {
+                window.location.href = `steam://connect/${data.serverIp}:${data.serverPort}`;
+            };
+        });
+    </script>
+</body>
+</html>
