@@ -28,22 +28,28 @@
     <script>
         const socket = io();
 
+        // Fetch user info and ELO (skill)
         function fetchUserInfo() {
             fetch('/user/info')
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('username').textContent = data.username || 'Unknown user';
                     document.getElementById('steamId').textContent = data.steamId || 'No Steam ID';
+
+                    // Display the profile picture if available
+                    const profilePicture = document.getElementById('profilePicture');
                     if (data.profilePictureUrl) {
-                        const profilePicture = document.getElementById('profilePicture');
                         profilePicture.src = data.profilePictureUrl;
                         profilePicture.style.display = 'block';
                     }
                 })
                 .catch(error => {
                     console.error('Error fetching user info:', error);
+                    document.getElementById('username').textContent = 'Error loading username';
+                    document.getElementById('steamId').textContent = 'Error loading Steam ID';
                 });
 
+            // Fetch player's skill (ELO)
             fetch('/user/skill')
                 .then(response => response.json())
                 .then(data => {
@@ -62,34 +68,8 @@
             socket.emit('startMatchmaking', { username, steamId, photos: [{ value: profilePictureUrl }] });
         });
 
-        socket.on('lobbyReady', data => {
-            document.getElementById('lobby').style.display = 'block';
-            const playerList = document.getElementById('playerList');
-            playerList.innerHTML = '';
-            data.players.forEach(player => {
-                const playerItem = document.createElement('li');
-                playerItem.textContent = `${player.name} (Steam ID: ${player.steamId})`;
-                playerList.appendChild(playerItem);
-            });
-        });
-
-        socket.on('lobbyCreated', data => {
-            document.getElementById('serverIp').textContent = data.serverIp;
-            document.getElementById('serverPort').textContent = data.serverPort;
-
-            const connectButton = document.getElementById('connectServerBtn');
-            connectButton.style.display = 'block';
-            connectButton.onclick = () => {
-                window.location.href = `steam://connect/${data.serverIp}:${data.serverPort}`;
-            };
-        });
-
-        socket.on('redirect', (url) => {
-            window.location.href = url;
-        });
-
+        // Fetch user info and skill on page load
         fetchUserInfo();
     </script>
 </body>
 </html>
-
