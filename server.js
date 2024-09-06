@@ -21,13 +21,20 @@ kc.loadFromDefault();
 const k8sBatchApi = kc.makeApiClient(BatchV1Api);
 
 const PORT = 3000;
-const DEFAULT_PROFILE_PICTURE = 'https://path.to/default/profile-pic.jpg'; // Ensure you have a default image at this path
+const DEFAULT_PROFILE_PICTURE = 'https://path.to/default/profile-pic.jpg';
 
-const dbConfig = {
+const dbConfigMatchmaking = {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
+    database: 'cs_matchmaking' // The database for matchmaking purposes
+};
+
+const dbConfigStats = {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: 'stats' // The database for ELO stats
 };
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -42,7 +49,6 @@ passport.use(new SteamStrategy({
     realm: 'http://192.168.50.238:3000/',
     apiKey: process.env.STEAM_API_KEY
 }, (identifier, profile, done) => {
-    console.log('Steam profile:', profile);
     profile.username = profile.displayName || 'Unknown user';
     profile.photos = profile.photos || [{ value: DEFAULT_PROFILE_PICTURE }];
     profile.steamId = profile.id;
@@ -68,7 +74,7 @@ app.get('/auth/steam', passport.authenticate('steam'));
 app.get('/auth/steam/callback',
     passport.authenticate('steam', { failureRedirect: '/' }),
     (req, res) => {
-        res.redirect('/profile'); // Redirect to profile after login
+        res.redirect('/profile');
     }
 );
 
@@ -76,10 +82,10 @@ app.get('/auth/guest', (req, res) => {
     const guestUser = {
         id: `guest_${Math.random().toString(36).substring(2, 15)}`,
         username: 'Guest',
-        photos: [{ value: DEFAULT_PROFILE_PICTURE }] // Default profile picture for guests
+        photos: [{ value: DEFAULT_PROFILE_PICTURE }]
     };
-    req.session.passport = { user: guestUser };  // Simulate passport behavior for guest
-    res.redirect('/profile'); // Redirect to profile for guests
+    req.session.passport = { user: guestUser };
+    res.redirect('/profile');
 });
 
 app.get('/profile', (req, res) => {
@@ -98,6 +104,31 @@ app.get('/user/info', (req, res) => {
             steamId: user.steamId,
             profilePictureUrl: user.photos && user.photos.length > 0 ? user.photos[0].value : DEFAULT_PROFILE_PICTURE
         });
+    } else {
+        res.status(401).send('User not authenticated');
+    }
+});
+
+app.get('/user/skill', async (req, res) => {
+    if (req.isAuthenticated() || req.session.passport) {
+        const user = req.user || req.session.passport.user;
+        const playerName = user.username;
+
+        const db = await mysql.createConnection(dbConfigStats);
+        try {
+            const [rows] = await db.query('SELECT skill FROM ultimate_stats WHERE name = ?', [playerName]);
+
+            if (rows.length > 0) {
+                res.json({ skill: rows[0].skill });
+            } else {
+                res.status(404).json({ message: 'Player skill not found' });
+            }
+        } catch (error) {
+            console.error('Error fetching player skill:', error);
+            res.status(500).json({ error: 'Database error' });
+        } finally {
+            await db.end();
+        }
     } else {
         res.status(401).send('User not authenticated');
     }
@@ -142,99 +173,64 @@ io.on('connection', (socket) => {
     socket.on('startMatchmaking', async (user) => {
         user.socketId = socket.id;
 
-        console.log('User object:', user);
-
-        const db = await mysql.createConnection(dbConfig);
+        const db = await mysql.createConnection(dbConfigMatchmaking);
         try {
-            console.log('Connecting to database...');
             console.log('Inserting player into players table...');
-
             const profilePicture = user.photos && user.photos.length > 0 ? user.photos[0].value : DEFAULT_PROFILE_PICTURE;
 
             const [insertResult] = await db.query('INSERT INTO players (socket_id, name, profile_picture) VALUES (?, ?, ?)', 
                 [user.socketId, user.username, profilePicture]);
-            console.log('Player inserted:', insertResult);
 
             const playerId = insertResult.insertId;
 
-            console.log('Inserting player into queue...');
             await db.query('INSERT INTO queue (player_id) VALUES (?)', [playerId]);
 
-            console.log('Fetching updated queue...');
             const [queue] = await db.query('SELECT * FROM queue');
-            console.log('Queue fetched:', queue);
-
-            if (!queue.length) {
-                console.error('Queue is empty');
-                return;
-            }
             const matchmakingQueue = queue.map(q => ({ playerId: q.player_id }));
-            console.log('Matchmaking queue:', matchmakingQueue);
 
             await checkQueueAndFormLobby(matchmakingQueue, db);
         } catch (error) {
-            console.error('Error interacting with database:', error);
+            console.error('Error interacting with matchmaking database:', error);
         } finally {
             await db.end();
         }
     });
 
     async function checkQueueAndFormLobby(matchmakingQueue, db) {
-        if (matchmakingQueue.length >= 2) {
+        if (matchmakingQueue.length >= 2) { // Change this value to adjust the number of players needed
             const players = matchmakingQueue.splice(0, 2);
             const playerIds = players.map(player => player.playerId);
 
-            console.log('Fetching player details for IDs:', playerIds);
             const [playerDetails] = await db.query('SELECT * FROM players WHERE id IN (?)', [playerIds]);
-            console.log('Player details fetched:', playerDetails);
 
             if (playerDetails.length === 2) {
-                console.log('Forming lobby for players:', playerDetails);
-
                 const lobbyId = generateUniqueName('lobby');
                 lobbies[lobbyId] = {
                     players: playerDetails,
                     mapSelected: false
                 };
 
-                // Update the lobby_id for matched players
                 await db.query('UPDATE players SET lobby_id = ? WHERE id IN (?)', [lobbyId, playerIds]);
-                playerDetails.forEach(player => player.lobby_id = lobbyId); // Update the lobby_id in player objects
                 await db.query('DELETE FROM queue WHERE player_id IN (?)', [playerIds]);
-                console.log('Removed matched players from queue:', playerIds);
 
                 playerDetails.forEach((player) => {
                     io.to(player.socket_id).emit('lobbyReady', { lobbyId, players: playerDetails });
-                    console.log(`Emitted lobbyReady to ${player.socket_id} with lobbyId ${lobbyId}`);
                     io.to(player.socket_id).emit('redirect', `/lobby.html?lobbyId=${lobbyId}`);
                 });
-            } else {
-                console.log('Not enough players in queue to form a lobby');
             }
-        } else {
-            console.log('Not enough players in queue to form a lobby');
         }
     }
 
     socket.on('mapSelected', async (data) => {
         const lobbyId = data.lobbyId;
-        if (!lobbies[lobbyId]) {
-            console.error('Lobby does not exist:', lobbyId);
-            return;
-        }
         const { mapName } = data;
-        lobbies[lobbyId].selectedMap = mapName;
+        const { port } = await createOrUpdateCsServerJob(lobbyId, mapName);
 
-        try {
-            const { port, jobName } = await createOrUpdateCsServerJob(lobbyId, mapName);
-            io.emit('lobbyCreated', {
-                serverIp: '192.168.50.238',
-                serverPort: port,
-                mapName: mapName
-            });
-        } catch (error) {
-            console.error('Error in server provisioning:', error);
-        }
+        io.emit('lobbyCreated', {
+            serverIp: '192.168.50.238',
+            serverPort: port,
+            mapName: mapName
+        });
     });
 });
 

@@ -1,4 +1,4 @@
-﻿pug_players_min			"2"			// Minimum of players to start a game
+﻿pug_players_min			"1"			// Minimum of players to start a game
 pug_players_max			"10"			// Maximum of players allowed in game
 pug_play_rounds			"30"			// Rounds to play before start overtime
 pug_play_overtime_rounds	"3"			// Win difference to determine a winner in overtime

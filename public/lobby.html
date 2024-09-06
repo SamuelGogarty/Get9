@@ -14,7 +14,6 @@
             <div class="team" id="team1">
                 <h2>Team 1</h2>
                 <ul class="player-list" id="team1List">
-                    <!-- Player details will be dynamically added here -->
                 </ul>
             </div>
 
@@ -23,7 +22,6 @@
                     <h2>Select Map</h2>
                     <button class="map-option">de_dust2</button>
                     <button class="map-option">de_inferno</button>
-                    <!-- Add more map options as needed -->
                 </div>
                 <button id="connectServerBtn" style="display:none;">Connect to Server</button>
                 <div id="connectionInfo"></div>
@@ -32,7 +30,6 @@
             <div class="team" id="team2">
                 <h2>Team 2</h2>
                 <ul class="player-list" id="team2List">
-                    <!-- Player details will be dynamically added here -->
                 </ul>
             </div>
         </div>
@@ -42,20 +39,16 @@
     <script>
         const socket = io();
 
-        // Retrieve or initialize lobbyId when the page loads
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             if (params.has('lobbyId')) {
                 const lobbyId = params.get('lobbyId');
                 localStorage.setItem('currentLobbyId', lobbyId);
-                socket.emit('joinLobby', { lobbyId }); // Join the lobby
-            } else if (!localStorage.getItem('currentLobbyId')) {
-                alert('No lobby ID provided. Please ensure you are entering through a proper channel.');
+                socket.emit('joinLobby', { lobbyId });
             }
         });
 
         socket.on('lobbyReady', (data) => {
-            console.log('Lobby ready data received:', data);
             const { players } = data;
             const team1List = document.getElementById('team1List');
             const team2List = document.getElementById('team2List');
@@ -64,7 +57,6 @@
             team2List.innerHTML = '';
 
             players.forEach((player, index) => {
-                console.log(`Adding player ${player.name} to team ${index % 2 === 0 ? '1' : '2'}`);
                 const playerItem = document.createElement('li');
                 playerItem.innerHTML = `${player.name} <img src="${player.profile_picture}" alt="Profile Picture" style="width: 30px; height: 30px;">`;
                 if (index % 2 === 0) {
@@ -78,7 +70,7 @@
         document.querySelectorAll('.map-option').forEach(element => {
             element.addEventListener('click', () => {
                 const mapName = element.textContent;
-                const lobbyId = localStorage.getItem('currentLobbyId'); // Retrieve the lobbyId when needed
+                const lobbyId = localStorage.getItem('currentLobbyId');
                 socket.emit('mapSelected', { lobbyId, mapName });
 
                 document.getElementById('mapSelection').style.display = 'none';
@@ -99,8 +91,9 @@
         });
 
         socket.on('error', (message) => {
-            alert('Error: ' + message);  // Display any error messages sent from the server
+            alert('Error: ' + message);
         });
     </script>
 </body>
 </html>
+
