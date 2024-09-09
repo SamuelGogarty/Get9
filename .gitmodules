@@ -1,0 +1,3 @@
+[submodule "hlds_docker"]
+	path = hlds_docker
+	url = git@github.com:SamuelGogarty/Get9-hlds.git
