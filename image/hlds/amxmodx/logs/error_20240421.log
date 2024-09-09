@@ -1,14 +1,0 @@
-L 04/21/2024 - 22:18:51: Start of error session.
-L 04/21/2024 - 22:18:51: Info (map "(null)") (file "addons/amxmodx/logs/error_20240421.log")
-L 04/21/2024 - 22:18:51: Error parsing gameconfig file "cstrike/addons/amxmodx/data/gamedata/common.games.txt":
-L 04/21/2024 - 22:18:51: Error 1 on line 0, col 0: Stream failed to open
-L 04/21/2024 - 22:18:51: Start of error session.
-L 04/21/2024 - 22:18:51: Info (map "de_dust2") (file "addons/amxmodx/logs/error_20240421.log")
-L 04/21/2024 - 22:18:51: [AMXX] Plugins list not found (file "addons/amxmodx/configs/plugins.ini")
-L 04/21/2024 - 22:29:51: Start of error session.
-L 04/21/2024 - 22:29:51: Info (map "(null)") (file "addons/amxmodx/logs/error_20240421.log")
-L 04/21/2024 - 22:29:51: Error parsing gameconfig file "cstrike/addons/amxmodx/data/gamedata/common.games.txt":
-L 04/21/2024 - 22:29:51: Error 1 on line 0, col 0: Stream failed to open
-L 04/21/2024 - 22:29:51: Start of error session.
-L 04/21/2024 - 22:29:51: Info (map "de_dust2") (file "addons/amxmodx/logs/error_20240421.log")
-L 04/21/2024 - 22:29:51: [AMXX] Plugins list not found (file "addons/amxmodx/configs/plugins.ini")

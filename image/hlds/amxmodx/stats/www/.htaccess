@@ -1,9 +1,0 @@
-# SSL Off (CS 1.6)
-
-RewriteEngine Off
-
-
-
-# Block Directory Listing
-
-Options -Indexes
