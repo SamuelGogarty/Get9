@@ -170,6 +170,19 @@ async function createOrUpdateCsServerJob(lobbyId, mapName) {
 let lobbies = {};
 
 io.on('connection', (socket) => {
+    // When players join a lobby, we store available maps
+    socket.on('joinLobby', async ({ lobbyId }) => {
+        if (!lobbies[lobbyId]) {
+            lobbies[lobbyId] = {
+                players: [],
+                availableMaps: ['de_dust2', 'de_inferno'], // Add your maps here
+                bannedMaps: []
+            };
+        }
+
+        socket.join(lobbyId); // Add player to the lobby
+    });
+
     socket.on('startMatchmaking', async (user) => {
         user.socketId = socket.id;
 
@@ -178,7 +191,7 @@ io.on('connection', (socket) => {
             console.log('Inserting player into players table...');
             const profilePicture = user.photos && user.photos.length > 0 ? user.photos[0].value : DEFAULT_PROFILE_PICTURE;
 
-            const [insertResult] = await db.query('INSERT INTO players (socket_id, name, profile_picture) VALUES (?, ?, ?)', 
+            const [insertResult] = await db.query('INSERT INTO players (socket_id, name, profile_picture) VALUES (?, ?, ?)',
                 [user.socketId, user.username, profilePicture]);
 
             const playerId = insertResult.insertId;
@@ -197,8 +210,8 @@ io.on('connection', (socket) => {
     });
 
     async function checkQueueAndFormLobby(matchmakingQueue, db) {
-        if (matchmakingQueue.length >= 2) { // Change this value to adjust the number of players needed
-            const players = matchmakingQueue.splice(0, 2);
+        if (matchmakingQueue.length >= 2) { // Adjust the number of players needed for a lobby
+            const players = matchmakingQueue.splice(0, 2); // Pair two players
             const playerIds = players.map(player => player.playerId);
 
             const [playerDetails] = await db.query('SELECT * FROM players WHERE id IN (?)', [playerIds]);
@@ -207,7 +220,9 @@ io.on('connection', (socket) => {
                 const lobbyId = generateUniqueName('lobby');
                 lobbies[lobbyId] = {
                     players: playerDetails,
-                    mapSelected: false
+                    mapSelected: false,
+                    availableMaps: ['de_dust2', 'de_inferno'], // Add available maps here
+                    bannedMaps: []
                 };
 
                 await db.query('UPDATE players SET lobby_id = ? WHERE id IN (?)', [lobbyId, playerIds]);
@@ -221,16 +236,45 @@ io.on('connection', (socket) => {
         }
     }
 
+    // Handle map selection and banning
     socket.on('mapSelected', async (data) => {
         const lobbyId = data.lobbyId;
         const { mapName } = data;
-        const { port } = await createOrUpdateCsServerJob(lobbyId, mapName);
 
-        io.emit('lobbyCreated', {
-            serverIp: '192.168.50.238',
-            serverPort: port,
-            mapName: mapName
-        });
+        const lobby = lobbies[lobbyId];
+
+        if (lobby) {
+            // Add the map to the banned list
+            lobby.bannedMaps.push(mapName);
+            io.to(lobbyId).emit('mapBanned', { mapName });
+
+            // Check if only one map is left
+            const remainingMaps = lobby.availableMaps.filter(map => !lobby.bannedMaps.includes(map));
+            if (remainingMaps.length === 1) {
+                const finalMap = remainingMaps[0];
+
+                // Pass the final map to Kubernetes and launch the server
+                const { port } = await createOrUpdateCsServerJob(lobbyId, finalMap);
+
+                // Notify clients that the server is ready
+                io.to(lobbyId).emit('lobbyCreated', {
+                    serverIp: '192.168.50.238',
+                    serverPort: port,
+                    mapName: finalMap
+                });
+            }
+        }
+    });
+
+    // Chat events
+    socket.on('publicChatMessage', (data) => {
+        io.emit('publicChatMessage', data); // Broadcast to all players
+    });
+
+    socket.on('teamChatMessage', (data) => {
+        // Broadcast the team message only to players in the same lobby
+        const lobbyId = Object.keys(socket.rooms).find(room => room !== socket.id);
+        io.to(lobbyId).emit('teamChatMessage', data);
     });
 });
 

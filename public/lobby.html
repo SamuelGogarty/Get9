@@ -9,17 +9,29 @@
     <header>
         <h1>Get9</h1>
     </header>
+    
     <div class="container">
-        <div class="team-container">
-            <div class="team" id="team1">
-                <h2>Team 1</h2>
-                <ul class="player-list" id="team1List">
-                </ul>
+        <!-- Team and Chat Sections -->
+        <div class="team-chat-wrapper">
+            <!-- Team 1 Section -->
+            <div class="team-section">
+                <div class="team" id="team1">
+                    <h2>Team 1</h2>
+                    <ul class="player-list" id="team1List"></ul>
+                </div>
+                <!-- Team Chat (below Team 1) -->
+                <div class="chat-box" id="teamChat">
+                    <h3>Team Chat</h3>
+                    <ul id="teamChatMessages"></ul>
+                    <input type="text" id="teamChatInput" placeholder="Message your team...">
+                    <button id="sendTeamMessage">Send</button>
+                </div>
             </div>
 
+            <!-- Map Selection Section -->
             <div class="action-section">
                 <div id="mapSelection">
-                    <h2>Select Map</h2>
+                    <h2>Select Map (Captains Only)</h2>
                     <button class="map-option">de_dust2</button>
                     <button class="map-option">de_inferno</button>
                 </div>
@@ -27,10 +39,19 @@
                 <div id="connectionInfo"></div>
             </div>
 
-            <div class="team" id="team2">
-                <h2>Team 2</h2>
-                <ul class="player-list" id="team2List">
-                </ul>
+            <!-- Team 2 Section -->
+            <div class="team-section">
+                <div class="team" id="team2">
+                    <h2>Team 2</h2>
+                    <ul class="player-list" id="team2List"></ul>
+                </div>
+                <!-- Public Chat (below Team 2) -->
+                <div class="chat-box" id="publicChat">
+                    <h3>Public Chat</h3>
+                    <ul id="publicChatMessages"></ul>
+                    <input type="text" id="publicChatInput" placeholder="Message everyone...">
+                    <button id="sendPublicMessage">Send</button>
+                </div>
             </div>
         </div>
     </div>
@@ -48,6 +69,7 @@
             }
         });
 
+        // Lobby setup
         socket.on('lobbyReady', (data) => {
             const { players } = data;
             const team1List = document.getElementById('team1List');
@@ -67,17 +89,24 @@
             });
         });
 
+        // Map selection logic
         document.querySelectorAll('.map-option').forEach(element => {
             element.addEventListener('click', () => {
                 const mapName = element.textContent;
                 const lobbyId = localStorage.getItem('currentLobbyId');
                 socket.emit('mapSelected', { lobbyId, mapName });
 
-                document.getElementById('mapSelection').style.display = 'none';
-                document.getElementById('connectServerBtn').style.display = 'block';
+                element.disabled = true;
+                if (document.querySelectorAll('.map-option:not([disabled])').length === 1) {
+                    const finalMap = document.querySelector('.map-option:not([disabled])').textContent;
+                    socket.emit('finalMapSelected', { lobbyId, mapName: finalMap });
+                    document.getElementById('mapSelection').style.display = 'none';
+                    document.getElementById('connectServerBtn').style.display = 'block';
+                }
             });
         });
 
+        // Server connection logic
         socket.on('lobbyCreated', data => {
             const connectButton = document.getElementById('connectServerBtn');
             connectButton.style.display = 'block';
@@ -90,10 +119,43 @@
             connectionInfo.style.display = 'block';
         });
 
+        // Public chat functionality
+        document.getElementById('sendPublicMessage').addEventListener('click', () => {
+            const message = document.getElementById('publicChatInput').value;
+            if (message) {
+                socket.emit('publicChatMessage', { message });
+                document.getElementById('publicChatInput').value = '';
+            }
+        });
+
+        socket.on('publicChatMessage', (data) => {
+            const publicChatMessages = document.getElementById('publicChatMessages');
+            const messageItem = document.createElement('li');
+            messageItem.textContent = data.message;
+            publicChatMessages.appendChild(messageItem);
+            publicChatMessages.scrollTop = publicChatMessages.scrollHeight;
+        });
+
+        // Team chat functionality
+        document.getElementById('sendTeamMessage').addEventListener('click', () => {
+            const message = document.getElementById('teamChatInput').value;
+            if (message) {
+                socket.emit('teamChatMessage', { message });
+                document.getElementById('teamChatInput').value = '';
+            }
+        });
+
+        socket.on('teamChatMessage', (data) => {
+            const teamChatMessages = document.getElementById('teamChatMessages');
+            const messageItem = document.createElement('li');
+            messageItem.textContent = data.message;
+            teamChatMessages.appendChild(messageItem);
+            teamChatMessages.scrollTop = teamChatMessages.scrollHeight;
+        });
+
         socket.on('error', (message) => {
             alert('Error: ' + message);
         });
     </script>
 </body>
 </html>
-
