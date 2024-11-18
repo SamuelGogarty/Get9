@@ -9,7 +9,7 @@
     <header>
         <h1>Get9</h1>
     </header>
-    
+
     <div class="container">
         <!-- Team and Chat Sections -->
         <div class="team-chat-wrapper">
@@ -80,7 +80,11 @@
 
             players.forEach((player, index) => {
                 const playerItem = document.createElement('li');
-                playerItem.innerHTML = `${player.name} <img src="${player.profile_picture}" alt="Profile Picture" style="width: 30px; height: 30px;">`;
+                playerItem.classList.add('player-item');
+                playerItem.innerHTML = `
+                    ${player.name}
+                    <img src="${player.profile_picture}" alt="Profile Picture" style="width: 30px; height: 30px;">
+                `;
                 if (index % 2 === 0) {
                     team1List.appendChild(playerItem);
                 } else {
@@ -97,13 +101,17 @@
                 socket.emit('mapSelected', { lobbyId, mapName });
 
                 element.disabled = true;
-                if (document.querySelectorAll('.map-option:not([disabled])').length === 1) {
-                    const finalMap = document.querySelector('.map-option:not([disabled])').textContent;
-                    socket.emit('finalMapSelected', { lobbyId, mapName: finalMap });
-                    document.getElementById('mapSelection').style.display = 'none';
-                    document.getElementById('connectServerBtn').style.display = 'block';
-                }
+                element.style.opacity = '0.5';
             });
+        });
+
+        socket.on('mapBanned', (data) => {
+            const { mapName } = data;
+            const mapButton = Array.from(document.querySelectorAll('.map-option')).find(btn => btn.textContent === mapName);
+            if (mapButton) {
+                mapButton.disabled = true;
+                mapButton.style.opacity = '0.5';
+            }
         });
 
         // Server connection logic

@@ -170,17 +170,35 @@ async function createOrUpdateCsServerJob(lobbyId, mapName) {
 let lobbies = {};
 
 io.on('connection', (socket) => {
-    // When players join a lobby, we store available maps
+    // When players join a lobby
     socket.on('joinLobby', async ({ lobbyId }) => {
-        if (!lobbies[lobbyId]) {
-            lobbies[lobbyId] = {
-                players: [],
-                availableMaps: ['de_dust2', 'de_inferno'], // Add your maps here
-                bannedMaps: []
-            };
+        socket.join(lobbyId); // Add player to the lobby
+
+        if (!lobbies[lobbyId] || !lobbies[lobbyId].players || lobbies[lobbyId].players.length === 0) {
+            // Fetch players from the database
+            const db = await mysql.createConnection(dbConfigMatchmaking);
+            try {
+                const [playerDetails] = await db.query('SELECT * FROM players WHERE lobby_id = ?', [lobbyId]);
+                lobbies[lobbyId] = lobbies[lobbyId] || {
+                    availableMaps: ['de_dust2', 'de_inferno'], // Add your maps here
+                    bannedMaps: []
+                };
+                lobbies[lobbyId].players = playerDetails;
+            } catch (error) {
+                console.error('Error fetching players for lobby:', error);
+            } finally {
+                await db.end();
+            }
         }
 
-        socket.join(lobbyId); // Add player to the lobby
+        const lobby = lobbies[lobbyId];
+
+        if (lobby && lobby.players) {
+            // Send the lobby data to the client
+            socket.emit('lobbyReady', { lobbyId, players: lobby.players });
+        } else {
+            socket.emit('error', 'Lobby not found or no players');
+        }
     });
 
     socket.on('startMatchmaking', async (user) => {
@@ -229,7 +247,7 @@ io.on('connection', (socket) => {
                 await db.query('DELETE FROM queue WHERE player_id IN (?)', [playerIds]);
 
                 playerDetails.forEach((player) => {
-                    io.to(player.socket_id).emit('lobbyReady', { lobbyId, players: playerDetails });
+                    // Redirect players to the lobby page
                     io.to(player.socket_id).emit('redirect', `/lobby.html?lobbyId=${lobbyId}`);
                 });
             }
@@ -268,13 +286,18 @@ io.on('connection', (socket) => {
 
     // Chat events
     socket.on('publicChatMessage', (data) => {
-        io.emit('publicChatMessage', data); // Broadcast to all players
+        const lobbyId = Object.keys(socket.rooms).find(room => room !== socket.id);
+        if (lobbyId) {
+            io.to(lobbyId).emit('publicChatMessage', data); // Broadcast to all players in the lobby
+        }
     });
 
     socket.on('teamChatMessage', (data) => {
         // Broadcast the team message only to players in the same lobby
         const lobbyId = Object.keys(socket.rooms).find(room => room !== socket.id);
-        io.to(lobbyId).emit('teamChatMessage', data);
+        if (lobbyId) {
+            io.to(lobbyId).emit('teamChatMessage', data);
+        }
     });
 });
 
