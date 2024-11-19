@@ -71,25 +71,31 @@
 
         // Lobby setup
         socket.on('lobbyReady', (data) => {
-            const { players } = data;
+            const { players, teams } = data;
             const team1List = document.getElementById('team1List');
             const team2List = document.getElementById('team2List');
 
             team1List.innerHTML = '';
             team2List.innerHTML = '';
 
-            players.forEach((player, index) => {
+            teams.team1.forEach((player) => {
                 const playerItem = document.createElement('li');
                 playerItem.classList.add('player-item');
                 playerItem.innerHTML = `
                     ${player.name}
                     <img src="${player.profile_picture}" alt="Profile Picture" style="width: 30px; height: 30px;">
                 `;
-                if (index % 2 === 0) {
-                    team1List.appendChild(playerItem);
-                } else {
-                    team2List.appendChild(playerItem);
-                }
+                team1List.appendChild(playerItem);
+            });
+
+            teams.team2.forEach((player) => {
+                const playerItem = document.createElement('li');
+                playerItem.classList.add('player-item');
+                playerItem.innerHTML = `
+                    ${player.name}
+                    <img src="${player.profile_picture}" alt="Profile Picture" style="width: 30px; height: 30px;">
+                `;
+                team2List.appendChild(playerItem);
             });
         });
 

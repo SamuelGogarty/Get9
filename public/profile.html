@@ -12,16 +12,29 @@
         <p>Welcome, <span id="username">loading...</span>! Your Steam ID is: <span id="steamId">loading...</span></p>
         <p>Your ELO (Skill): <span id="skill">loading...</span></p>
         <img id="profilePicture" src="" alt="Profile Picture" style="display: none; width: 100px; height: 100px;">
+
         <button id="startMatchmakingBtn">Start Matchmaking</button>
-        <div id="lobby" style="display:none;">
-            <h2>Lobby</h2>
-            <ul id="playerList"></ul>
-            <button id="connectServerBtn" style="display:none;">Connect to CS 1.6 Server</button>
-            <div id="serverInfo" style="display:none;">
-                <p>Server IP: <span id="serverIp">...</span></p>
-                <p>Server Port: <span id="serverPort">...</span></p>
-            </div>
+
+        <!-- Pre-Lobby Controls (Visible Initially) -->
+        <div id="preLobbyControls">
+            <h2>Pre-Lobby</h2>
+            <button id="createPreLobbyBtn">Create Pre-Lobby</button>
+
+            <h3>Join a Pre-Lobby</h3>
+            <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
+            <button id="joinPreLobbyBtn">Join Pre-Lobby</button>
         </div>
+
+        <!-- Pre-Lobby Section (Hidden Initially) -->
+        <div id="preLobbySection" style="display: none;">
+            <p>Your Invite Code: <span id="inviteCode"></span></p>
+
+            <h3>Players in Pre-Lobby:</h3>
+            <ul id="preLobbyPlayerList"></ul>
+
+            <button id="startPreLobbyMatchmakingBtn" style="display: none;">Start Matchmaking</button>
+        </div>
+
         <a href="/">Go back to main page</a>
     </div>
 
@@ -62,34 +75,61 @@
             socket.emit('startMatchmaking', { username, steamId, photos: [{ value: profilePictureUrl }] });
         });
 
-        socket.on('lobbyReady', data => {
-            document.getElementById('lobby').style.display = 'block';
-            const playerList = document.getElementById('playerList');
+        socket.on('redirect', (url) => {
+            window.location.href = url;
+        });
+
+        // Pre-Lobby functionality
+        document.getElementById('createPreLobbyBtn').addEventListener('click', () => {
+            const user = {
+                username: document.getElementById('username').textContent,
+                steamId: document.getElementById('steamId').textContent,
+                socketId: socket.id,
+                photos: [{ value: document.getElementById('profilePicture').src }],
+            };
+            socket.emit('createPreLobby', user);
+        });
+
+        socket.on('preLobbyCreated', ({ inviteCode }) => {
+            document.getElementById('inviteCode').textContent = inviteCode;
+            // Show the pre-lobby section
+            document.getElementById('preLobbySection').style.display = 'block';
+            document.getElementById('startPreLobbyMatchmakingBtn').style.display = 'block';
+        });
+
+        document.getElementById('joinPreLobbyBtn').addEventListener('click', () => {
+            const inviteCode = document.getElementById('inviteCodeInput').value;
+            const user = {
+                username: document.getElementById('username').textContent,
+                steamId: document.getElementById('steamId').textContent,
+                socketId: socket.id,
+                photos: [{ value: document.getElementById('profilePicture').src }],
+            };
+            socket.emit('joinPreLobby', { inviteCode, user });
+            // Show the pre-lobby section
+            document.getElementById('preLobbySection').style.display = 'block';
+        });
+
+        socket.on('preLobbyUpdated', ({ players }) => {
+            const playerList = document.getElementById('preLobbyPlayerList');
             playerList.innerHTML = '';
-            data.players.forEach(player => {
+            players.forEach((player) => {
                 const playerItem = document.createElement('li');
-                playerItem.textContent = `${player.name} (Steam ID: ${player.steamId})`;
+                playerItem.textContent = player.username;
                 playerList.appendChild(playerItem);
             });
         });
 
-        socket.on('lobbyCreated', data => {
-            document.getElementById('serverIp').textContent = data.serverIp;
-            document.getElementById('serverPort').textContent = data.serverPort;
-
-            const connectButton = document.getElementById('connectServerBtn');
-            connectButton.style.display = 'block';
-            connectButton.onclick = () => {
-                window.location.href = `steam://connect/${data.serverIp}:${data.serverPort}`;
-            };
+        document.getElementById('startPreLobbyMatchmakingBtn').addEventListener('click', () => {
+            const inviteCode = document.getElementById('inviteCode').textContent;
+            socket.emit('startPreLobbyMatchmaking', { inviteCode });
         });
 
-        socket.on('redirect', (url) => {
-            window.location.href = url;
+        socket.on('error', (message) => {
+            alert('Error: ' + message);
         });
 
         fetchUserInfo();
     </script>
 </body>
 </html>
-
