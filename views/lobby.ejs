@@ -1,0 +1,40 @@
+<!-- views/lobby.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('partials/header') %>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="logo">CS 1.6 Matchmaking</div>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <% if (isAuthenticated) { %>
+        <li><a href="/logout">Logout</a></li>
+      <% } else { %>
+        <li><a href="/auth/steam">Login with Steam</a></li>
+        <li><a href="/auth/guest">Continue as Guest</a></li>
+      <% } %>
+    </ul>
+  </nav>
+
+  <!-- Lobby Content -->
+  <section class="lobby">
+    <h2>Lobby</h2>
+    <ul id="playerList"></ul>
+    <div id="serverInfo" style="display:none;">
+      <p>Server IP: <span id="serverIp">...</span></p>
+      <p>Server Port: <span id="serverPort">...</span></p>
+      <button id="connectServerBtn" class="btn-primary">Connect to CS 1.6 Server</button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <%- include('partials/footer') %>
+
+  <!-- Include Socket.IO and lobby script -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/lobby.js"></script>
+</body>
+</html>

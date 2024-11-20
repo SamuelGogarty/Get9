@@ -1,0 +1,145 @@
+/* public/css/styles.css */
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+/* Navigation Bar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background-color: #1f1f1f;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+}
+
+.nav-links li {
+  margin-left: 20px;
+}
+
+.nav-links a {
+  color: #e0e0e0;
+  transition: color 0.3s;
+}
+
+.nav-links a:hover {
+  color: #bb86fc;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  padding: 100px 20px;
+  background: linear-gradient(rgba(18, 18, 18, 0.8), rgba(18, 18, 18, 0.8)), url('/images/hero-bg.jpg') no-repeat center center/cover;
+}
+
+.hero h1 {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.hero p {
+  font-size: 18px;
+  margin-bottom: 40px;
+}
+
+.btn-primary {
+  padding: 15px 30px;
+  background-color: #bb86fc;
+  color: #121212;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #9a67ea;
+  transform: translateY(-2px);
+}
+
+/* Main Content */
+.matchmaking {
+  display: flex;
+  justify-content: center;
+  padding: 50px 20px;
+}
+
+.match-card {
+  background-color: #1f1f1f;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  max-width: 400px;
+}
+
+.match-card h2 {
+  margin-bottom: 15px;
+}
+
+.match-card p {
+  margin-bottom: 25px;
+}
+
+/* Lobby Section */
+.lobby {
+  padding: 50px 20px;
+  text-align: center;
+}
+
+.lobby ul {
+  list-style: none;
+  margin-bottom: 20px;
+}
+
+.lobby li {
+  margin-bottom: 10px;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 20px;
+  background-color: #1f1f1f;
+  color: #777;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .nav-links {
+    flex-direction: column;
+    display: none;
+  }
+
+  .navbar.active .nav-links {
+    display: flex;
+  }
+
+  .menu-toggle {
+    display: block;
+    cursor: pointer;
+  }
+}

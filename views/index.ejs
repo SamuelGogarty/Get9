@@ -1,0 +1,59 @@
+<!-- views/index.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('partials/header') %>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="logo">CS 1.6 Matchmaking</div>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/matchmaking">Matchmaking</a></li>
+      <li><a href="/players">Players</a></li>
+      <% if (isAuthenticated) { %>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/logout">Logout</a></li>
+      <% } else { %>
+        <li><a href="/auth/steam">Login with Steam</a></li>
+        <li><a href="/auth/guest">Continue as Guest</a></li>
+      <% } %>
+    </ul>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>Experience Competitive CS 1.6</h1>
+    <p>Join matches, compete in rankings, and connect with players worldwide.</p>
+    <% if (isAuthenticated) { %>
+      <a href="#matchmaking" class="btn-primary">Get Started</a>
+    <% } else { %>
+      <a href="/auth/steam" class="btn-primary">Login with Steam</a>
+    <% } %>
+  </section>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Matchmaking Section -->
+    <section id="matchmaking" class="matchmaking">
+      <div class="match-card">
+        <h2>Find a Match</h2>
+        <p>Join the queue and play with players of similar skill level.</p>
+        <% if (isAuthenticated) { %>
+          <button id="queueUpBtn" class="btn-primary">Queue Up</button>
+        <% } else { %>
+          <p>Please <a href="/auth/steam">login</a> or <a href="/auth/guest">continue as guest</a> to start matchmaking.</p>
+        <% } %>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <%- include('partials/footer') %>
+
+  <!-- Include Socket.IO and your custom script -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/scripts.js"></script>
+</body>
+</html>

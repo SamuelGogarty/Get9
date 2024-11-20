@@ -9,17 +9,29 @@
     <header>
         <h1>Get9</h1>
     </header>
+
     <div class="container">
-        <div class="team-container">
-            <div class="team" id="team1">
-                <h2>Team 1</h2>
-                <ul class="player-list" id="team1List">
-                </ul>
+        <!-- Team and Chat Sections -->
+        <div class="team-chat-wrapper">
+            <!-- Team 1 Section -->
+            <div class="team-section">
+                <div class="team" id="team1">
+                    <h2>Team 1</h2>
+                    <ul class="player-list" id="team1List"></ul>
+                </div>
+                <!-- Team Chat (below Team 1) -->
+                <div class="chat-box" id="teamChat">
+                    <h3>Team Chat</h3>
+                    <ul id="teamChatMessages"></ul>
+                    <input type="text" id="teamChatInput" placeholder="Message your team...">
+                    <button id="sendTeamMessage">Send</button>
+                </div>
             </div>
 
+            <!-- Map Selection Section -->
             <div class="action-section">
                 <div id="mapSelection">
-                    <h2>Select Map</h2>
+                    <h2>Select Map (Captains Only)</h2>
                     <button class="map-option">de_dust2</button>
                     <button class="map-option">de_inferno</button>
                 </div>
@@ -27,10 +39,19 @@
                 <div id="connectionInfo"></div>
             </div>
 
-            <div class="team" id="team2">
-                <h2>Team 2</h2>
-                <ul class="player-list" id="team2List">
-                </ul>
+            <!-- Team 2 Section -->
+            <div class="team-section">
+                <div class="team" id="team2">
+                    <h2>Team 2</h2>
+                    <ul class="player-list" id="team2List"></ul>
+                </div>
+                <!-- Public Chat (below Team 2) -->
+                <div class="chat-box" id="publicChat">
+                    <h3>Public Chat</h3>
+                    <ul id="publicChatMessages"></ul>
+                    <input type="text" id="publicChatInput" placeholder="Message everyone...">
+                    <button id="sendPublicMessage">Send</button>
+                </div>
             </div>
         </div>
     </div>
@@ -48,36 +69,58 @@
             }
         });
 
+        // Lobby setup
         socket.on('lobbyReady', (data) => {
-            const { players } = data;
+            const { players, teams } = data;
             const team1List = document.getElementById('team1List');
             const team2List = document.getElementById('team2List');
 
             team1List.innerHTML = '';
             team2List.innerHTML = '';
 
-            players.forEach((player, index) => {
+            teams.team1.forEach((player) => {
                 const playerItem = document.createElement('li');
-                playerItem.innerHTML = `${player.name} <img src="${player.profile_picture}" alt="Profile Picture" style="width: 30px; height: 30px;">`;
-                if (index % 2 === 0) {
-                    team1List.appendChild(playerItem);
-                } else {
-                    team2List.appendChild(playerItem);
-                }
+                playerItem.classList.add('player-item');
+                playerItem.innerHTML = `
+                    ${player.name}
+                    <img src="${player.profile_picture}" alt="Profile Picture" style="width: 30px; height: 30px;">
+                `;
+                team1List.appendChild(playerItem);
+            });
+
+            teams.team2.forEach((player) => {
+                const playerItem = document.createElement('li');
+                playerItem.classList.add('player-item');
+                playerItem.innerHTML = `
+                    ${player.name}
+                    <img src="${player.profile_picture}" alt="Profile Picture" style="width: 30px; height: 30px;">
+                `;
+                team2List.appendChild(playerItem);
             });
         });
 
+        // Map selection logic
         document.querySelectorAll('.map-option').forEach(element => {
             element.addEventListener('click', () => {
                 const mapName = element.textContent;
                 const lobbyId = localStorage.getItem('currentLobbyId');
                 socket.emit('mapSelected', { lobbyId, mapName });
 
-                document.getElementById('mapSelection').style.display = 'none';
-                document.getElementById('connectServerBtn').style.display = 'block';
+                element.disabled = true;
+                element.style.opacity = '0.5';
             });
         });
 
+        socket.on('mapBanned', (data) => {
+            const { mapName } = data;
+            const mapButton = Array.from(document.querySelectorAll('.map-option')).find(btn => btn.textContent === mapName);
+            if (mapButton) {
+                mapButton.disabled = true;
+                mapButton.style.opacity = '0.5';
+            }
+        });
+
+        // Server connection logic
         socket.on('lobbyCreated', data => {
             const connectButton = document.getElementById('connectServerBtn');
             connectButton.style.display = 'block';
@@ -90,10 +133,43 @@
             connectionInfo.style.display = 'block';
         });
 
+        // Public chat functionality
+        document.getElementById('sendPublicMessage').addEventListener('click', () => {
+            const message = document.getElementById('publicChatInput').value;
+            if (message) {
+                socket.emit('publicChatMessage', { message });
+                document.getElementById('publicChatInput').value = '';
+            }
+        });
+
+        socket.on('publicChatMessage', (data) => {
+            const publicChatMessages = document.getElementById('publicChatMessages');
+            const messageItem = document.createElement('li');
+            messageItem.textContent = data.message;
+            publicChatMessages.appendChild(messageItem);
+            publicChatMessages.scrollTop = publicChatMessages.scrollHeight;
+        });
+
+        // Team chat functionality
+        document.getElementById('sendTeamMessage').addEventListener('click', () => {
+            const message = document.getElementById('teamChatInput').value;
+            if (message) {
+                socket.emit('teamChatMessage', { message });
+                document.getElementById('teamChatInput').value = '';
+            }
+        });
+
+        socket.on('teamChatMessage', (data) => {
+            const teamChatMessages = document.getElementById('teamChatMessages');
+            const messageItem = document.createElement('li');
+            messageItem.textContent = data.message;
+            teamChatMessages.appendChild(messageItem);
+            teamChatMessages.scrollTop = teamChatMessages.scrollHeight;
+        });
+
         socket.on('error', (message) => {
             alert('Error: ' + message);
         });
     </script>
 </body>
 </html>
-
