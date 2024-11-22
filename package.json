@@ -1,13 +1,19 @@
 {
   "dependencies": {
     "@kubernetes/client-node": "^0.20.0",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.3",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "express-session": "^1.18.0",
+    "express-session": "^1.18.1",
     "http": "^0.0.1-security",
+    "js-yaml": "^4.1.0",
+    "mysql2": "^3.11.4",
     "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
     "passport-steam": "^1.0.18",
     "path": "^0.12.7",
-    "socket.io": "^4.7.5",
+    "socket.io": "^4.8.1",
     "uuid": "^9.0.1"
   }
 }
