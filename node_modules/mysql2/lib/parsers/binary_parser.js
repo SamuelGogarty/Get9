@@ -55,6 +55,8 @@ function readCodeFor(field, config, options, fieldNum) {
       return 'packet.readLengthCodedString("ascii");';
     case Types.GEOMETRY:
       return 'packet.parseGeometryValue();';
+    case Types.VECTOR:
+      return 'packet.parseVector()';  
     case Types.JSON:
       // Since for JSON columns mysql always returns charset 63 (BINARY),
       // we have to handle it according to JSON specs and use "utf8",
@@ -100,6 +102,24 @@ function compile(fields, options, config) {
           console.warn(
             `typeCast: JSON column "${field.name}" is interpreted as BINARY by default, recommended to manually set utf8 encoding: \`field.string("utf8")\``,
           );
+        }
+
+        if (
+          [Types.DATETIME, Types.NEWDATE, Types.TIMESTAMP, Types.DATE].includes(
+            field.columnType,
+          )
+        ) {
+          return packet.readDateTimeString(parseInt(field.decimals, 10));
+        }
+
+        if (field.columnType === Types.TINY) {
+          const unsigned = field.flags & FieldFlags.UNSIGNED;
+
+          return String(unsigned ? packet.readInt8() : packet.readSInt8());
+        }
+
+        if (field.columnType === Types.TIME) {
+          return packet.readTimeString();
         }
 
         return packet.readLengthCodedString(encoding);
