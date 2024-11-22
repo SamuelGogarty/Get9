@@ -4,7 +4,7 @@ To-do list
 - [ ] ELO Rating
 - [x] Docker Image tuning
 - [x] Migrate to ReHLDS
-- [ ] Invite lobby system
+- [x] Invite lobby system
 - [x] Move from K3S Deployments to K3S Jobs
 - [x] Automatic Pod shutdown
 - [ ] Web UI overhaul

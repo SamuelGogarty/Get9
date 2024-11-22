@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Admin Panel</h1>
+    <table id="usersTable">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- User rows will be populated here -->
+        </tbody>
+    </table>
+
+    <script>
+        fetch('/admin/users')
+            .then(response => response.json())
+            .then(users => {
+                const tableBody = document.querySelector('#usersTable tbody');
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${user.username}</td>
+                        <td>${user.email || 'N/A'}</td>
+                        <td>
+                            <select data-user-id="${user.id}" class="status-select">
+                                <option value="active" ${user.status === 'active' ? 'selected' : ''}>Active</option>
+                                <option value="banned" ${user.status === 'banned' ? 'selected' : ''}>Banned</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select data-user-id="${user.id}" class="role-select">
+                                <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                <option value="VIP" ${user.role === 'VIP' ? 'selected' : ''}>VIP</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button data-user-id="${user.id}" class="update-user-btn">Update</button>
+                        </td>
+                    `;
+
+                    tableBody.appendChild(row);
+                });
+
+                document.querySelectorAll('.update-user-btn').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const userId = button.getAttribute('data-user-id');
+                        const status = document.querySelector(`.status-select[data-user-id="${userId}"]`).value;
+                        const role = document.querySelector(`.role-select[data-user-id="${userId}"]`).value;
+
+                        fetch('/admin/updateUser', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId, status, role })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    alert('User updated successfully.');
+                                } else {
+                                    alert('Error updating user.');
+                                }
+                            });
+                    });
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching users:', error);
+            });
+    </script>
+</body>
+</html>

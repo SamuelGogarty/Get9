@@ -9,7 +9,8 @@
 <body>
     <div class="container">
         <h1>Welcome to Your Profile</h1>
-        <p>Welcome, <span id="username">loading...</span>! Your Steam ID is: <span id="steamId">loading...</span></p>
+        <p>Welcome, <span id="username">loading...</span>!</p>
+        <p>Your Steam ID / Email: <span id="identifier">loading...</span></p>
         <p>Your ELO (Skill): <span id="skill">loading...</span></p>
         <img id="profilePicture" src="" alt="Profile Picture" style="display: none; width: 100px; height: 100px;">
 
@@ -46,7 +47,7 @@
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('username').textContent = data.username || 'Unknown user';
-                    document.getElementById('steamId').textContent = data.steamId || 'No Steam ID';
+                    document.getElementById('identifier').textContent = data.steamId || data.email || 'No Steam ID or Email';
                     if (data.profilePictureUrl) {
                         const profilePicture = document.getElementById('profilePicture');
                         profilePicture.src = data.profilePictureUrl;
@@ -70,22 +71,38 @@
 
         document.getElementById('startMatchmakingBtn').addEventListener('click', () => {
             const username = document.getElementById('username').textContent;
-            const steamId = document.getElementById('steamId').textContent;
+            const identifier = document.getElementById('identifier').textContent;
             const profilePictureUrl = document.getElementById('profilePicture').src;
-            socket.emit('startMatchmaking', { username, steamId, photos: [{ value: profilePictureUrl }] });
+
+            // Determine if the identifier is a Steam ID or Email
+            const isSteamUser = identifier.startsWith('7656'); // Steam IDs typically start with '7656'
+
+            const steamId = isSteamUser ? identifier : null;
+            const email = isSteamUser ? null : identifier;
+
+            socket.emit('startMatchmaking', { username, steamId, email, profilePictureUrl });
         });
 
         socket.on('redirect', (url) => {
             window.location.href = url;
         });
 
+        // Handle error messages
+        socket.on('error', (message) => {
+            alert('Error: ' + message);
+            // Re-enable the matchmaking button in case of error
+            const button = document.getElementById('startMatchmakingBtn');
+            button.disabled = false;
+            button.textContent = 'Start Matchmaking';
+        });
+
         // Pre-Lobby functionality
         document.getElementById('createPreLobbyBtn').addEventListener('click', () => {
             const user = {
                 username: document.getElementById('username').textContent,
-                steamId: document.getElementById('steamId').textContent,
-                socketId: socket.id,
-                photos: [{ value: document.getElementById('profilePicture').src }],
+                steamId: null,
+                email: document.getElementById('identifier').textContent,
+                profilePictureUrl: document.getElementById('profilePicture').src,
             };
             socket.emit('createPreLobby', user);
         });
@@ -101,9 +118,9 @@
             const inviteCode = document.getElementById('inviteCodeInput').value;
             const user = {
                 username: document.getElementById('username').textContent,
-                steamId: document.getElementById('steamId').textContent,
-                socketId: socket.id,
-                photos: [{ value: document.getElementById('profilePicture').src }],
+                steamId: null,
+                email: document.getElementById('identifier').textContent,
+                profilePictureUrl: document.getElementById('profilePicture').src,
             };
             socket.emit('joinPreLobby', { inviteCode, user });
             // Show the pre-lobby section
@@ -123,10 +140,6 @@
         document.getElementById('startPreLobbyMatchmakingBtn').addEventListener('click', () => {
             const inviteCode = document.getElementById('inviteCode').textContent;
             socket.emit('startPreLobbyMatchmaking', { inviteCode });
-        });
-
-        socket.on('error', (message) => {
-            alert('Error: ' + message);
         });
 
         fetchUserInfo();
