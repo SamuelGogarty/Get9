@@ -59,17 +59,33 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
+        let currentUserId = null;
 
-        document.addEventListener('DOMContentLoaded', () => {
+        // On page load, fetch user info for userId, then join the lobby
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const userInfoResp = await fetch('/user/info');
+                if (!userInfoResp.ok) {
+                    console.error('Failed to fetch user info.');
+                    return;
+                }
+                const userData = await userInfoResp.json();
+                // The server returns "id" as the numeric user ID
+                currentUserId = userData.id;
+            } catch (err) {
+                console.error('Error fetching user info:', err);
+                return;
+            }
+
             const params = new URLSearchParams(window.location.search);
-            if (params.has('lobbyId')) {
+            if (params.has('lobbyId') && currentUserId) {
                 const lobbyId = params.get('lobbyId');
                 localStorage.setItem('currentLobbyId', lobbyId);
-                socket.emit('joinLobby', { lobbyId });
+                socket.emit('joinLobby', { lobbyId, userId: currentUserId });
             }
         });
 
-        // Lobby setup
+        // When server sends updated lobby data
         socket.on('lobbyReady', (data) => {
             const { players, teams } = data;
             const team1List = document.getElementById('team1List');
@@ -78,50 +94,53 @@
             team1List.innerHTML = '';
             team2List.innerHTML = '';
 
+            // Render Team 1
             teams.team1.forEach((player) => {
-                const playerItem = document.createElement('li');
-                playerItem.classList.add('player-item');
-                playerItem.innerHTML = `
+                const li = document.createElement('li');
+                li.classList.add('player-item');
+                li.innerHTML = `
                     ${player.name}
                     <img src="${player.profile_picture}" alt="Profile Picture" style="width: 30px; height: 30px;">
                 `;
-                team1List.appendChild(playerItem);
+                team1List.appendChild(li);
             });
 
+            // Render Team 2
             teams.team2.forEach((player) => {
-                const playerItem = document.createElement('li');
-                playerItem.classList.add('player-item');
-                playerItem.innerHTML = `
+                const li = document.createElement('li');
+                li.classList.add('player-item');
+                li.innerHTML = `
                     ${player.name}
                     <img src="${player.profile_picture}" alt="Profile Picture" style="width: 30px; height: 30px;">
                 `;
-                team2List.appendChild(playerItem);
+                team2List.appendChild(li);
             });
         });
 
-        // Map selection logic
-        document.querySelectorAll('.map-option').forEach(element => {
-            element.addEventListener('click', () => {
-                const mapName = element.textContent;
+        // Map selection
+        document.querySelectorAll('.map-option').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const mapName = btn.textContent;
                 const lobbyId = localStorage.getItem('currentLobbyId');
                 socket.emit('mapSelected', { lobbyId, mapName });
-
-                element.disabled = true;
-                element.style.opacity = '0.5';
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
             });
         });
 
         socket.on('mapBanned', (data) => {
             const { mapName } = data;
-            const mapButton = Array.from(document.querySelectorAll('.map-option')).find(btn => btn.textContent === mapName);
-            if (mapButton) {
-                mapButton.disabled = true;
-                mapButton.style.opacity = '0.5';
+            const target = Array
+                .from(document.querySelectorAll('.map-option'))
+                .find(el => el.textContent === mapName);
+            if (target) {
+                target.disabled = true;
+                target.style.opacity = '0.5';
             }
         });
 
-        // Server connection logic
-        socket.on('lobbyCreated', data => {
+        // If a server is created, show connect info
+        socket.on('lobbyCreated', (data) => {
             const connectButton = document.getElementById('connectServerBtn');
             connectButton.style.display = 'block';
             connectButton.onclick = () => {
@@ -133,42 +152,50 @@
             connectionInfo.style.display = 'block';
         });
 
-        // Public chat functionality
+        // Public chat
         document.getElementById('sendPublicMessage').addEventListener('click', () => {
-            const message = document.getElementById('publicChatInput').value;
-            if (message) {
-                socket.emit('publicChatMessage', { message });
-                document.getElementById('publicChatInput').value = '';
-            }
+            const msg = document.getElementById('publicChatInput').value.trim();
+            if (!msg) return;
+            const lobbyId = localStorage.getItem('currentLobbyId');
+            socket.emit('publicChatMessage', { message: msg, lobbyId });
+            document.getElementById('publicChatInput').value = '';
         });
 
         socket.on('publicChatMessage', (data) => {
-            const publicChatMessages = document.getElementById('publicChatMessages');
-            const messageItem = document.createElement('li');
-            messageItem.textContent = data.message;
-            publicChatMessages.appendChild(messageItem);
-            publicChatMessages.scrollTop = publicChatMessages.scrollHeight;
+            // data => { username, message }
+            const ul = document.getElementById('publicChatMessages');
+            const li = document.createElement('li');
+            li.textContent = `${data.username}: ${data.message}`;
+            ul.appendChild(li);
+            ul.scrollTop = ul.scrollHeight;
         });
 
-        // Team chat functionality
+        // Team chat
         document.getElementById('sendTeamMessage').addEventListener('click', () => {
-            const message = document.getElementById('teamChatInput').value;
-            if (message) {
-                socket.emit('teamChatMessage', { message });
-                document.getElementById('teamChatInput').value = '';
-            }
+            const msg = document.getElementById('teamChatInput').value.trim();
+            if (!msg) return;
+            const lobbyId = localStorage.getItem('currentLobbyId');
+            socket.emit('teamChatMessage', { message: msg, lobbyId });
+            document.getElementById('teamChatInput').value = '';
         });
 
         socket.on('teamChatMessage', (data) => {
-            const teamChatMessages = document.getElementById('teamChatMessages');
-            const messageItem = document.createElement('li');
-            messageItem.textContent = data.message;
-            teamChatMessages.appendChild(messageItem);
-            teamChatMessages.scrollTop = teamChatMessages.scrollHeight;
+            // data => { username, message }
+            const ul = document.getElementById('teamChatMessages');
+            const li = document.createElement('li');
+            li.textContent = `${data.username}: ${data.message}`;
+            ul.appendChild(li);
+            ul.scrollTop = ul.scrollHeight;
         });
 
-        socket.on('error', (message) => {
-            alert('Error: ' + message);
+        // Handle error events
+        socket.on('error', (msg) => {
+            alert('Error: ' + msg);
+        });
+
+        // If server redirects user
+        socket.on('redirect', (url) => {
+            window.location.href = url;
         });
     </script>
 </body>

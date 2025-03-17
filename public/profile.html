@@ -3,45 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <title>User Profile</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/styles.css">
     <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            text-align: center;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: linear-gradient(90deg, #1e1e2d, #29293d);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #bb86fc;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .profile-info .elo {
+            font-size: 14px;
+            font-weight: 600;
+            color: #a0a0a0;
+        }
+
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #bb86fc;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #bb86fc;
+        }
+
+        .info-text {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #bb86fc, #7f5de9);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            margin: 10px 0;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #7f5de9, #bb86fc);
+            transform: translateY(-2px);
+        }
+
+        .input-field {
+            width: 80%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #29293d;
+            border-radius: 4px;
+            background: #1e1e2d;
+            color: #e0e0e0;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #bb86fc;
+            box-shadow: 0 0 5px #bb86fc;
+        }
+
+        .lobby-players {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .player-card {
+            background: #29293d;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            color: #e0e0e0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s, background 0.3s;
+        }
+
+        .player-card:hover {
+            transform: translateY(-2px);
+            background: #333347;
+        }
+    </style>
 </head>
 <body>
+    <!-- Header Bar -->
+    <header class="navbar">
+        <div class="logo">Get9</div>
+        <div class="profile-info">
+            <div>
+                <span class="elo">ELO: <span id="skill">loading...</span></span>
+                <span id="username">loading...</span>
+            </div>
+            <img id="profilePicture" src="" alt="Profile Picture" class="profile-pic">
+        </div>
+    </header>
+
     <div class="container">
-        <h1>Welcome to Your Profile</h1>
-        <p>Welcome, <span id="username">loading...</span>!</p>
-        <p>Your Steam ID / Email: <span id="identifier">loading...</span></p>
-        <p>Your ELO (Skill): <span id="skill">loading...</span></p>
-        <img id="profilePicture" src="" alt="Profile Picture" style="display: none; width: 100px; height: 100px;">
+        <h1 class="section-title">Welcome to Your Profile</h1>
+        <p class="info-text">Your Steam ID / Email: <span id="identifier">loading...</span></p>
 
-        <button id="startMatchmakingBtn">Start Matchmaking</button>
-
-        <!-- Pre-Lobby Controls (Visible Initially) -->
-        <div id="preLobbyControls">
-            <h2>Pre-Lobby</h2>
-            <button id="createPreLobbyBtn">Create Pre-Lobby</button>
-
-            <h3>Join a Pre-Lobby</h3>
-            <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
-            <button id="joinPreLobbyBtn">Join Pre-Lobby</button>
+        <!-- Start Matchmaking Button -->
+        <div id="matchmakingSection">
+            <button id="startMatchmakingBtn" class="btn-primary">Start Matchmaking</button>
         </div>
 
-        <!-- Pre-Lobby Section (Hidden Initially) -->
-        <div id="preLobbySection" style="display: none;">
-            <p>Your Invite Code: <span id="inviteCode"></span></p>
+        <!-- Pre-Lobby Controls -->
+        <section class="pre-lobby">
+            <h2 class="section-title">Pre-Lobby</h2>
+            <div class="pre-lobby-controls">
+                <button id="createPreLobbyBtn" class="btn-primary">Create Pre-Lobby</button>
+                <div>
+                    <h3 class="info-text">Join a Pre-Lobby</h3>
+                    <input type="text" id="inviteCodeInput" placeholder="Enter invite code" class="input-field">
+                    <button id="joinPreLobbyBtn" class="btn-primary">Join</button>
+                </div>
+            </div>
+        </section>
 
-            <h3>Players in Pre-Lobby:</h3>
-            <ul id="preLobbyPlayerList"></ul>
+        <!-- Pre-Lobby Section -->
+        <section id="preLobbySection" style="display: none;">
+            <p class="info-text">Your Invite Code: <span id="inviteCode"></span></p>
+            <div class="lobby-players">
+                <h3 class="section-title">Players in Pre-Lobby:</h3>
+                <div id="preLobbyPlayerList"></div>
+            </div>
+            <button id="startPreLobbyMatchmakingBtn" class="btn-primary" style="display: none;">Start Matchmaking</button>
+        </section>
 
-            <button id="startPreLobbyMatchmakingBtn" style="display: none;">Start Matchmaking</button>
-        </div>
-
-        <a href="/">Go back to main page</a>
+        <a href="/" class="btn-primary">Go back to main page</a>
     </div>
 
     <script>
         const socket = io();
 
+        // Fetch and populate user data
         function fetchUserInfo() {
             fetch('/user/info')
                 .then(response => response.json())
@@ -74,8 +207,7 @@
             const identifier = document.getElementById('identifier').textContent;
             const profilePictureUrl = document.getElementById('profilePicture').src;
 
-            // Determine if the identifier is a Steam ID or Email
-            const isSteamUser = identifier.startsWith('7656'); // Steam IDs typically start with '7656'
+            const isSteamUser = identifier.startsWith('7656');
 
             const steamId = isSteamUser ? identifier : null;
             const email = isSteamUser ? null : identifier;
@@ -87,16 +219,10 @@
             window.location.href = url;
         });
 
-        // Handle error messages
         socket.on('error', (message) => {
             alert('Error: ' + message);
-            // Re-enable the matchmaking button in case of error
-            const button = document.getElementById('startMatchmakingBtn');
-            button.disabled = false;
-            button.textContent = 'Start Matchmaking';
         });
 
-        // Pre-Lobby functionality
         document.getElementById('createPreLobbyBtn').addEventListener('click', () => {
             const user = {
                 username: document.getElementById('username').textContent,
@@ -109,7 +235,6 @@
 
         socket.on('preLobbyCreated', ({ inviteCode }) => {
             document.getElementById('inviteCode').textContent = inviteCode;
-            // Show the pre-lobby section
             document.getElementById('preLobbySection').style.display = 'block';
             document.getElementById('startPreLobbyMatchmakingBtn').style.display = 'block';
         });
@@ -123,7 +248,6 @@
                 profilePictureUrl: document.getElementById('profilePicture').src,
             };
             socket.emit('joinPreLobby', { inviteCode, user });
-            // Show the pre-lobby section
             document.getElementById('preLobbySection').style.display = 'block';
         });
 
@@ -131,15 +255,11 @@
             const playerList = document.getElementById('preLobbyPlayerList');
             playerList.innerHTML = '';
             players.forEach((player) => {
-                const playerItem = document.createElement('li');
+                const playerItem = document.createElement('div');
+                playerItem.classList.add('player-card');
                 playerItem.textContent = player.username;
                 playerList.appendChild(playerItem);
             });
-        });
-
-        document.getElementById('startPreLobbyMatchmakingBtn').addEventListener('click', () => {
-            const inviteCode = document.getElementById('inviteCode').textContent;
-            socket.emit('startPreLobbyMatchmaking', { inviteCode });
         });
 
         fetchUserInfo();
