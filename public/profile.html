@@ -52,8 +52,10 @@
         <div id="preLobbySection" class="window" style="display: none;">
             <h2>Active Pre-Lobby</h2>
             <p>Invite Code: <span id="inviteCode"></span></p>
-            <div id="preLobbyPlayerList" class="border inset" style="padding: 10px; margin: 10px 0;"></div>
-            <button id="startPreLobbyMatchmakingBtn" class="greensteam-button" style="display: none;">
+            <div id="preLobbyPlayerList" class="border inset" style="padding: 10px; margin: 10px 0;">
+                <!-- Players will be dynamically inserted here -->
+            </div>
+                        <button id="startPreLobbyMatchmakingBtn" class="greensteam-button" style="display: none;">
                 Start Matchmaking
             </button>
         </div>
@@ -140,15 +142,50 @@
         });
 
         socket.on('preLobbyUpdated', ({ players }) => {
-            const playerList = document.getElementById('preLobbyPlayerList');
-            playerList.innerHTML = '';
-            players.forEach((player) => {
-                const playerItem = document.createElement('div');
-                playerItem.classList.add('player-card');
-                playerItem.textContent = player.username;
-                playerList.appendChild(playerItem);
-            });
-        });
+    const playerList = document.getElementById('preLobbyPlayerList');
+    playerList.innerHTML = ''; // Clear existing list
+    
+    players.forEach((player) => {
+        const playerItem = document.createElement('div');
+        playerItem.classList.add('player-card', 'flex-row');
+        playerItem.style.margin = '5px 0';
+        playerItem.style.padding = '10px';
+        playerItem.style.alignItems = 'center';
+        playerItem.style.gap = '10px';
+        
+        // Create profile picture element
+        const profilePic = document.createElement('img');
+        profilePic.src = player.profilePictureUrl || '/default-avatar.png';
+        profilePic.alt = 'Profile Picture';
+        profilePic.style.width = '32px';
+        profilePic.style.height = '32px';
+        profilePic.style.borderRadius = '50%';
+        
+        // Create player info container
+        const infoContainer = document.createElement('div');
+        infoContainer.classList.add('flex-column');
+        
+        // Add username
+        const username = document.createElement('span');
+        username.textContent = player.username;
+        username.style.fontWeight = 'bold';
+        
+        // Add ELO rating
+        const elo = document.createElement('span');
+        elo.textContent = `ELO: ${player.skill || 'Unrated'}`;
+        elo.style.fontSize = '0.9em';
+        elo.style.color = '#888';
+        
+        // Assemble the components
+        infoContainer.appendChild(username);
+        infoContainer.appendChild(elo);
+        
+        playerItem.appendChild(profilePic);
+        playerItem.appendChild(infoContainer);
+        
+        playerList.appendChild(playerItem);
+    });
+});
 
         fetchUserInfo();
     </script>
