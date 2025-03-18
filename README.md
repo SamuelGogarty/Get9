@@ -1,7 +1,7 @@
 Get9 is an open-source A-Z solution for a matchmaking platform primarily targeting counter-strike 1.6 but can easily be adjusted for other games.
 
 To-do list
-- [-] ELO Rating
+- [~] ELO Rating
 - [x] Docker Image tuning
 - [x] Migrate to ReHLDS
 - [x] Invite lobby system
