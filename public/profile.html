@@ -63,131 +63,97 @@
 
     <script>
         const socket = io();
-
-        // Fetch and populate user data
-        function fetchUserInfo() {
-            fetch('/user/info')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('username').textContent = data.username || 'Unknown user';
-                    document.getElementById('identifier').textContent = data.steamId || data.email || 'No Steam ID or Email';
-                    if (data.profilePictureUrl) {
-                        const profilePicture = document.getElementById('profilePicture');
-                        profilePicture.src = data.profilePictureUrl;
-                        profilePicture.style.display = 'block';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching user info:', error);
-                });
-
-            fetch('/user/skill')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('skill').textContent = data.skill || 'No skill data';
-                })
-                .catch(error => {
-                    console.error('Error fetching player skill:', error);
-                    document.getElementById('skill').textContent = 'Error loading skill';
-                });
+        
+        async function fetchUserInfo() {
+            try {
+                const [userInfo, skillInfo] = await Promise.all([
+                    fetch('/user/info').then(r => r.json()),
+                    fetch('/user/skill').then(r => r.json())
+                ]);
+                
+                document.getElementById('username').textContent = userInfo.username || 'Unknown user';
+                document.getElementById('identifier').textContent = userInfo.steamId || userInfo.email || 'No ID';
+                document.getElementById('skill').textContent = skillInfo.skill || 'Unrated';
+                
+                if (userInfo.profilePictureUrl) {
+                    const profilePicture = document.getElementById('profilePicture');
+                    profilePicture.src = userInfo.profilePictureUrl;
+                    profilePicture.style.display = 'block';
+                }
+                
+                return { ...userInfo, skill: skillInfo.skill };
+            } catch (error) {
+                console.error('Error fetching user info:', error);
+                return null;
+            }
         }
-
-        document.getElementById('startMatchmakingBtn').addEventListener('click', () => {
-            const username = document.getElementById('username').textContent;
-            const identifier = document.getElementById('identifier').textContent;
-            const profilePictureUrl = document.getElementById('profilePicture').src;
-
-            const isSteamUser = identifier.startsWith('7656');
-
-            const steamId = isSteamUser ? identifier : null;
-            const email = isSteamUser ? null : identifier;
-
-            socket.emit('startMatchmaking', { username, steamId, email, profilePictureUrl });
+    
+        // Update create/join pre-lobby handlers
+        document.getElementById('createPreLobbyBtn').addEventListener('click', async () => {
+            const userInfo = await fetchUserInfo();
+            socket.emit('createPreLobby', userInfo);
         });
-
-        socket.on('redirect', (url) => {
-            window.location.href = url;
+    
+        document.getElementById('joinPreLobbyBtn').addEventListener('click', async () => {
+            const inviteCode = document.getElementById('inviteCodeInput').value;
+            const userInfo = await fetchUserInfo();
+            socket.emit('joinPreLobby', { inviteCode, user: userInfo });
         });
-
-        socket.on('error', (message) => {
-            alert('Error: ' + message);
+    
+        // Update pre-lobby display handler
+        socket.on('preLobbyUpdated', ({ players }) => {
+            const playerList = document.getElementById('preLobbyPlayerList');
+            playerList.innerHTML = '';
+    
+            players.forEach((player) => {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'border outset flex-row';
+                playerCard.style.padding = '8px';
+                playerCard.style.margin = '4px 0';
+                playerCard.style.alignItems = 'center';
+    
+                // Profile picture
+                const profilePic = document.createElement('img');
+                profilePic.src = player.profilePictureUrl || '/images/default-avatar.png';
+                profilePic.alt = 'Avatar';
+                profilePic.className = 'avatar';
+                profilePic.style.width = '32px';
+                profilePic.style.height = '32px';
+                profilePic.style.marginRight = '8px';
+                profilePic.style.borderRadius = '4px';
+    
+                // Player info
+                const info = document.createElement('div');
+                info.className = 'flex-column';
+                info.style.flex = '1';
+    
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = player.username;
+                nameSpan.style.fontWeight = 'bold';
+    
+                const skillSpan = document.createElement('span');
+                skillSpan.textContent = `ELO: ${player.skill || 'Unrated'}`;
+                skillSpan.style.fontSize = '0.9em';
+                skillSpan.style.opacity = '0.8';
+    
+                info.appendChild(nameSpan);
+                info.appendChild(skillSpan);
+    
+                playerCard.appendChild(profilePic);
+                playerCard.appendChild(info);
+                playerList.appendChild(playerCard);
+            });
         });
-
-        document.getElementById('createPreLobbyBtn').addEventListener('click', () => {
-            const user = {
-                username: document.getElementById('username').textContent,
-                steamId: null,
-                email: document.getElementById('identifier').textContent,
-                profilePictureUrl: document.getElementById('profilePicture').src,
-            };
-            socket.emit('createPreLobby', user);
-        });
-
+    
+        // Handle pre-lobby creation success
         socket.on('preLobbyCreated', ({ inviteCode }) => {
             document.getElementById('inviteCode').textContent = inviteCode;
             document.getElementById('preLobbySection').style.display = 'block';
             document.getElementById('startPreLobbyMatchmakingBtn').style.display = 'block';
         });
-
-        document.getElementById('joinPreLobbyBtn').addEventListener('click', () => {
-            const inviteCode = document.getElementById('inviteCodeInput').value;
-            const user = {
-                username: document.getElementById('username').textContent,
-                steamId: null,
-                email: document.getElementById('identifier').textContent,
-                profilePictureUrl: document.getElementById('profilePicture').src,
-            };
-            socket.emit('joinPreLobby', { inviteCode, user });
-            document.getElementById('preLobbySection').style.display = 'block';
-        });
-
-        socket.on('preLobbyUpdated', ({ players }) => {
-    const playerList = document.getElementById('preLobbyPlayerList');
-    playerList.innerHTML = ''; // Clear existing list
     
-    players.forEach((player) => {
-        const playerItem = document.createElement('div');
-        playerItem.classList.add('player-card', 'flex-row');
-        playerItem.style.margin = '5px 0';
-        playerItem.style.padding = '10px';
-        playerItem.style.alignItems = 'center';
-        playerItem.style.gap = '10px';
-        
-        // Create profile picture element
-        const profilePic = document.createElement('img');
-        profilePic.src = player.profilePictureUrl || '/default-avatar.png';
-        profilePic.alt = 'Profile Picture';
-        profilePic.style.width = '32px';
-        profilePic.style.height = '32px';
-        profilePic.style.borderRadius = '50%';
-        
-        // Create player info container
-        const infoContainer = document.createElement('div');
-        infoContainer.classList.add('flex-column');
-        
-        // Add username
-        const username = document.createElement('span');
-        username.textContent = player.username;
-        username.style.fontWeight = 'bold';
-        
-        // Add ELO rating
-        const elo = document.createElement('span');
-        elo.textContent = `ELO: ${player.skill || 'Unrated'}`;
-        elo.style.fontSize = '0.9em';
-        elo.style.color = '#888';
-        
-        // Assemble the components
-        infoContainer.appendChild(username);
-        infoContainer.appendChild(elo);
-        
-        playerItem.appendChild(profilePic);
-        playerItem.appendChild(infoContainer);
-        
-        playerList.appendChild(playerItem);
-    });
-});
-
+        // Start with user info fetch
         fetchUserInfo();
     </script>
-</body>
+    </body>
 </html>
