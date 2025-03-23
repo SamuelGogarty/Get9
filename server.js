@@ -226,28 +226,21 @@ app.post('/register', async (req, res) => {
   if (!username || !email || !password) {
     return res.status(400).send('Please fill all fields.');
   }
-
   try {
     const db = await mysql.createConnection(dbConfigMatchmaking);
     const passwordHash = await bcrypt.hash(password, 10);
-
-    const [result] = await db.query(
+    await db.query(
       'INSERT INTO users (username, email, password_hash, role, status) VALUES (?, ?, ?, ?, ?)',
       [username, email, passwordHash, 'user', 'active']
     );
-
-    const userId = result.insertId;
-    const dbStats = await mysql.createConnection(dbConfigStats);
-    await dbStats.query('INSERT INTO ultimate_stats (steamid, skill) VALUES (?, ?)', [email, 1000]);
-    await dbStats.end();
     await db.end();
-
     res.redirect('/login');
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).send('Server error.');
   }
 });
+
 
 app.get('/register', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'register.html'));
