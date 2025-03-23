@@ -203,7 +203,7 @@ async function createOrUpdateCsServerJob(lobbyId, mapName) {
   }
 }
 
-// Express routes
+// Routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -226,21 +226,28 @@ app.post('/register', async (req, res) => {
   if (!username || !email || !password) {
     return res.status(400).send('Please fill all fields.');
   }
+
   try {
     const db = await mysql.createConnection(dbConfigMatchmaking);
     const passwordHash = await bcrypt.hash(password, 10);
-    await db.query(
+
+    const [result] = await db.query(
       'INSERT INTO users (username, email, password_hash, role, status) VALUES (?, ?, ?, ?, ?)',
       [username, email, passwordHash, 'user', 'active']
     );
+
+    const userId = result.insertId;
+    const dbStats = await mysql.createConnection(dbConfigStats);
+    await dbStats.query('INSERT INTO ultimate_stats (steamid, skill) VALUES (?, ?)', [email, 1000]);
+    await dbStats.end();
     await db.end();
+
     res.redirect('/login');
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).send('Server error.');
   }
 });
-
 
 app.get('/register', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'register.html'));
@@ -255,9 +262,10 @@ app.get('/profile', ensureAuthenticated, (req, res) => {
 });
 
 app.get('/user/info', ensureAuthenticated, (req, res) => {
+  // Return a numeric userId so that the front-end can call joinLobby with userId
   const user = req.user;
   res.json({
-    id: user.id,
+    id: user.id,                     // important: numeric ID
     username: user.username,
     steamId: user.steamId || null,
     email: user.email || null,
@@ -285,7 +293,6 @@ app.get('/user/skill', ensureAuthenticated, async (req, res) => {
   }
 });
 
-// Admin
 app.get('/admin', ensureAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
@@ -315,17 +322,11 @@ app.post('/admin/updateUser', ensureAdmin, express.json(), async (req, res) => {
   }
 });
 
-// ----------------------------------------------------------
-// Lobby & Pre-Lobby Data
-// ----------------------------------------------------------
 let lobbies = {};
 let preLobbies = {};
 
-// ----------------------------------------------------------
-// Socket.io
-// ----------------------------------------------------------
 io.on('connection', (socket) => {
-  // joinLobby
+  // joinLobby with userId
   socket.on('joinLobby', async ({ lobbyId, userId }) => {
     socket.join(lobbyId);
     socket.lobbyId = lobbyId;
@@ -357,6 +358,7 @@ io.on('connection', (socket) => {
       }
     }
 
+    // Identify the correct occupant row by user_id + lobby_id
     const db = await mysql.createConnection(dbConfigMatchmaking);
     try {
       const [pRows] = await db.query(
@@ -489,7 +491,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Pre-lobby
+  // Pre-lobby events
   socket.on('createPreLobby', (user) => {
     const inviteCode = generateInviteCode();
     const preLobby = {
@@ -534,6 +536,10 @@ io.on('connection', (socket) => {
           [existingPlayer] = await db.query('SELECT id FROM players WHERE email = ?', [u.email]);
         }
 
+        // If your 'users' table has a record for them, you can do a second query 
+        // to find the user.id and store user_id in players. 
+        // For brevity, omitted here.
+
         let playerId;
         if (existingPlayer.length > 0) {
           playerId = existingPlayer[0].id;
@@ -560,9 +566,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ----------------------------------------------------------
-  // Main Matchmaking Logic
-  // ----------------------------------------------------------
+  // This is the main logic for forming a 10-player lobby
   async function checkQueueAndFormLobby(matchmakingQueue, db) {
     const groupedPlayers = {};
     for (const queued of matchmakingQueue) {
@@ -572,7 +576,7 @@ io.on('connection', (socket) => {
       groupedPlayers[groupId].push(playerData[0]);
     }
 
-    // For testing: require exactly 2 players
+    // e.g. a 10-player lobby
     const requiredPlayers = 2;
 
     const groups = Object.values(groupedPlayers);
@@ -593,12 +597,16 @@ io.on('connection', (socket) => {
       const team1 = [];
       const team2 = [];
 
-      // Force the first occupant on Team 1, second occupant on Team 2
-      team1.push(lobbyPlayers[0]);
-      lobbyPlayers[0].team = 'team1';
-
-      team2.push(lobbyPlayers[1]);
-      lobbyPlayers[1].team = 'team2';
+      // For example: first 5 go to team1, next 5 to team2
+      lobbyPlayers.forEach((player, index) => {
+        if (index < 5) {
+          team1.push(player);
+          player.team = 'team1';
+        } else {
+          team2.push(player);
+          player.team = 'team2';
+        }
+      });
 
       lobbies[lobbyId] = {
         players: lobbyPlayers,
@@ -608,17 +616,17 @@ io.on('connection', (socket) => {
       };
 
       const playerIds = lobbyPlayers.map(p => p.id);
-
-      // Update DB with the assigned team
-      await db.query('UPDATE players SET lobby_id = ?, team = ? WHERE id = ?', [lobbyId, 'team1', lobbyPlayers[0].id]);
-      await db.query('UPDATE players SET lobby_id = ?, team = ? WHERE id = ?', [lobbyId, 'team2', lobbyPlayers[1].id]);
-
-      // Remove them from the queue
+      for (const p of team1) {
+        await db.query('UPDATE players SET lobby_id = ?, team = ? WHERE id = ?', [lobbyId, 'team1', p.id]);
+      }
+      for (const p of team2) {
+        await db.query('UPDATE players SET lobby_id = ?, team = ? WHERE id = ?', [lobbyId, 'team2', p.id]);
+      }
       await db.query('DELETE FROM queue WHERE player_id IN (?)', [playerIds]);
 
-      // Redirect them to the new lobby
+      // redirect each occupant
       const socketIds = lobbyPlayers.map(p => p.socket_id);
-      socketIds.forEach(sid => {
+      socketIds.forEach((sid) => {
         io.to(sid).emit('redirect', `/lobby.html?lobbyId=${lobbyId}`);
       });
     }
@@ -635,7 +643,6 @@ io.on('connection', (socket) => {
     if (remainingMaps.length === 1) {
       const finalMap = remainingMaps[0];
       const { port } = await createOrUpdateCsServerJob(lobbyId, finalMap);
-
       io.to(lobbyId).emit('lobbyCreated', {
         serverIp: '192.168.2.69',
         serverPort: port,
@@ -644,7 +651,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Disconnection
+  // Disconnect
   socket.on('disconnect', async () => {
     console.log(`Socket ${socket.id} disconnected.`);
     const db = await mysql.createConnection(dbConfigMatchmaking);
@@ -663,7 +670,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Start server
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
