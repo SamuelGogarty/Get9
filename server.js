@@ -25,7 +25,7 @@ kc.loadFromDefault();
 const k8sBatchApi = kc.makeApiClient(BatchV1Api);
 
 const PORT = 3000;
-const DEFAULT_PROFILE_PICTURE = 'https://path.to/default/profile-pic.jpg';
+const DEFAULT_PROFILE_PICTURE = '/img/nonsteam-profile.png';
 
 const dbConfigMatchmaking = {
   host: process.env.DB_HOST,
