@@ -20,6 +20,7 @@ nav {
   background: #212121;
   padding: 0;
   margin-bottom: 30px;
+  width: 1040px;
 }
 
 nav ul {
@@ -50,11 +51,13 @@ nav li a:hover {
 }
 
 nav .right-nav {
+  display: flex;
+  align-items: center;
   margin-left: auto;
   padding-right: 10px;
 }
 
-/* Player Name Box in Navbar */
+/* Player box in navbar */
 .nav-player-name {
   background: #080808;
   border-top: solid 1px #080808;
@@ -64,14 +67,23 @@ nav .right-nav {
   color: white;
   padding: 5px 8px;
   font-size: 14px;
-  min-width: 150px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-player-name img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  border: 1px solid #323232;
 }
 
 /* GRID */
 .lobby-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto;
   gap: 40px 40px;
   justify-content: center;
 }
@@ -106,7 +118,7 @@ nav .right-nav {
 .player-row {
   display: flex;
   align-items: center;
-  gap: 14px; /* increased spacing */
+  gap: 14px;
   margin-bottom: 20px;
 }
 
@@ -128,7 +140,8 @@ nav .right-nav {
 }
 
 /* MAP VOTE BUTTONS */
-.mapvotebutton {
+.mapvotebutton,
+#connectServerBtn {
   display: block;
   background-color: #212121;
   color: white;
@@ -141,14 +154,39 @@ nav .right-nav {
   cursor: pointer;
   min-width: 160px;
   text-align: center;
+  font-family: inherit;
+  font-size: 14px;
 }
 
-.mapvotebutton:hover {
+.mapvotebutton:hover,
+#connectServerBtn:hover {
   background-color: #181818;
   color: #E3E41F;
 }
 
+/* Manual Connect Info */
+#connectionInfo {
+  background-color: #080808;
+  border: 1px solid #323232;
+  color: white;
+  font-size: 13px;
+  padding: 6px 8px;
+  margin-top: 5px;
+  font-family: monospace;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
 /* CHAT BOX */
+.window ul {
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 0;
+  margin: 0 0 10px 0;
+  list-style-type: disc;
+  padding-left: 18px;
+}
+
 input[type="text"] {
   border: 1px solid #323232;
   background: #080808;
@@ -157,4 +195,53 @@ input[type="text"] {
   width: calc(100% - 12px);
   margin-top: 10px;
   height: 28px;
+  font-family: inherit;
+}
+
+button {
+  margin-top: 5px;
+  padding: 4px 10px;
+  border: 1px solid #323232;
+  background: #212121;
+  color: white;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #181818;
+  color: #E3E41F;
+}
+/* Only affects chat box layout inside windows */
+.chat-inner {
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+}
+
+/* Make chat input and send button sit inline */
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.chat-input-row input[type="text"] {
+  flex: 1;
+  margin-top: 10px;
+}
+
+.chat-input-row button {
+  margin-top: 10px;
+}
+
+/* Prevent one chat window from affecting the other's height */
+.lobby-grid > .window:nth-child(4),
+.lobby-grid > .window:nth-child(6) {
+  align-self: start;
+}
+
+/* Prevent message overflow */
+.window ul li {
+  word-break: break-word;
 }

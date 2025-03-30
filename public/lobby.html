@@ -13,19 +13,24 @@
         <li><a href="#">Home</a></li>
         <li><a href="#">Services</a></li>
         <li><a href="#">Contact</a></li>
-        <li class="right-nav"><div class="nav-player-name">Player Name</div></li>
+        <li class="right-nav">
+          <div class="nav-player-name">
+            <img id="navbarProfile" src="/img/nonsteam-profile.png" alt="Avatar" />
+            <span id="navbarUsername">Player Name</span>
+          </div>
+        </li>
       </ul>
     </nav>
 
     <!-- GRID -->
     <div class="lobby-grid">
       <!-- Team 1 -->
-      <div class="window" name="Window Title">
+      <div class="window" name="Team 1">
         <div id="team1-container"></div>
       </div>
 
       <!-- Map vote -->
-      <div class="window" name="Window Title">
+      <div class="window" name="Map Vote">
         <button class="mapvotebutton">de_dust</button>
         <button class="mapvotebutton">de_dust2</button>
         <button class="mapvotebutton">de_inferno</button>
@@ -33,30 +38,39 @@
         <button class="mapvotebutton">de_tuscan</button>
         <button class="mapvotebutton">de_cpl_strike</button>
         <button class="mapvotebutton">de_prodigy</button>
-        <div id="connectionInfo" style="display: none; margin-top: 10px;"></div>
-        <button id="connectServerBtn" style="display: none; margin-top: 5px;">Connect to Server</button>
       </div>
 
       <!-- Team 2 -->
-      <div class="window" name="Window Title">
+      <div class="window" name="Team 2">
         <div id="team2-container"></div>
       </div>
 
-      <!-- Chatbox under Team 1 -->
-      <div class="window" name="Window Title">
-        <ul id="teamChatMessages"></ul>
-        <input type="text" id="teamChatInput" placeholder="Message your team..." />
-        <button id="sendTeamMessage">Send</button>
+      <!-- Team Chat -->
+      <div class="window" name="Team Chat">
+        <div class="chat-inner">
+          <ul id="teamChatMessages"></ul>
+          <div class="chat-input-row">
+            <input type="text" id="teamChatInput" placeholder="Message your team..." />
+            <button id="sendTeamMessage">Send</button>
+          </div>
+        </div>
       </div>
 
-      <!-- Empty middle column to center layout properly -->
-      <div></div>
+      <!-- Connect Window -->
+      <div class="window" name="Server Info">
+        <button id="connectServerBtn" class="mapvotebutton" style="display: none;">Connect to Server</button>
+        <div id="connectionInfo" style="display: none;"></div>
+      </div>
 
-      <!-- Chatbox under Team 2 -->
-      <div class="window" name="Window Title">
-        <ul id="publicChatMessages"></ul>
-        <input type="text" id="publicChatInput" placeholder="Message everyone..." />
-        <button id="sendPublicMessage">Send</button>
+      <!-- Public Chat -->
+      <div class="window" name="Public Chat">
+        <div class="chat-inner">
+          <ul id="publicChatMessages"></ul>
+          <div class="chat-input-row">
+            <input type="text" id="publicChatInput" placeholder="Message everyone..." />
+            <button id="sendPublicMessage">Send</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -72,6 +86,10 @@
         if (!userInfoResp.ok) throw new Error('Failed to fetch user info.');
         const userData = await userInfoResp.json();
         currentUserId = userData.id;
+
+        document.getElementById('navbarUsername').textContent = userData.username;
+        document.getElementById('navbarProfile').src = userData.profilePictureUrl;
+
       } catch (err) {
         console.error('Error fetching user info:', err);
         return;
@@ -99,7 +117,7 @@
           row.classList.add('player-row');
           row.innerHTML = `
             <img src="${player.profile_picture}" class="profile-pic" alt="Profile">
-            <div class="box inset">${player.name}</div>
+            <div class="player-name">${player.name}</div>
           `;
           container.appendChild(row);
         });
@@ -136,11 +154,10 @@
       infoDiv.style.display = 'block';
 
       const url = `steam://connect/${serverIp}:${serverPort}`;
-      infoDiv.innerText = `Connect to: ${url}`;
+      infoDiv.innerText = url;
       connectButton.onclick = () => window.location.href = url;
     });
 
-    // Chat
     document.getElementById('sendTeamMessage').addEventListener('click', () => {
       const msg = document.getElementById('teamChatInput').value.trim();
       if (!msg) return;
