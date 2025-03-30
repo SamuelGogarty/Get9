@@ -1,0 +1,160 @@
+body {
+  background-color: #080808;
+  font-family: "Trebuchet MS", "Verdana", sans-serif;
+  color: #d8ded3;
+  font-size: 14px;
+  margin: 0;
+  padding: 40px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.container {
+  width: 1040px;
+}
+
+/* NAVBAR */
+nav {
+  border: solid 1px #323232;
+  background: #212121;
+  padding: 0;
+  margin-bottom: 30px;
+}
+
+nav ul {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+nav li {
+  display: inline-block;
+}
+
+nav li a {
+  display: block;
+  padding: 8px 20px;
+  color: #F0B43F;
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+nav li a:hover {
+  color: #E3E41F;
+  background: #181818;
+}
+
+nav .right-nav {
+  margin-left: auto;
+  padding-right: 10px;
+}
+
+/* Player Name Box in Navbar */
+.nav-player-name {
+  background: #080808;
+  border-top: solid 1px #080808;
+  border-bottom: solid 1px #323232;
+  border-left: solid 1px #080808;
+  border-right: solid 1px #323232;
+  color: white;
+  padding: 5px 8px;
+  font-size: 14px;
+  min-width: 150px;
+}
+
+/* GRID */
+.lobby-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 40px 40px;
+  justify-content: center;
+}
+
+/* WINDOW */
+.window {
+  border: solid 1px #323232;
+  background-color: #212121;
+  padding: 10px;
+  position: relative;
+}
+
+.window::before {
+  content: attr(name);
+  display: block;
+  width: 100%;
+  height: 18px;
+  line-height: 18px;
+  text-indent: 24px;
+  background-image: url("steamico.png"), url("minimize.png"), url("close.png");
+  background-repeat: no-repeat;
+  background-position: top left, top right 20px, top right;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
+  color: white;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+/* PLAYER ROWS */
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 14px; /* increased spacing */
+  margin-bottom: 20px;
+}
+
+.player-row img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border: solid 2px #7b8484;
+}
+
+.player-name {
+  flex-grow: 1;
+  background: #080808;
+  border-top: solid 1px #080808;
+  border-bottom: solid 1px #323232;
+  border-left: solid 1px #080808;
+  border-right: solid 1px #323232;
+  padding: 5px 8px;
+}
+
+/* MAP VOTE BUTTONS */
+.mapvotebutton {
+  display: block;
+  background-color: #212121;
+  color: white;
+  border-top: solid 1px #323232;
+  border-bottom: solid 1px #080808;
+  border-left: solid 1px #323232;
+  border-right: solid 1px #080808;
+  padding: 5px 15px;
+  margin: 10px auto;
+  cursor: pointer;
+  min-width: 160px;
+  text-align: center;
+}
+
+.mapvotebutton:hover {
+  background-color: #181818;
+  color: #E3E41F;
+}
+
+/* CHAT BOX */
+input[type="text"] {
+  border: 1px solid #323232;
+  background: #080808;
+  color: white;
+  padding: 5px;
+  width: calc(100% - 12px);
+  margin-top: 10px;
+  height: 28px;
+}
