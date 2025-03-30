@@ -21,11 +21,7 @@
     <div class="lobby-grid">
       <!-- Team 1 -->
       <div class="window" name="Window Title">
-        <div class="player-row"><img src="https://via.placeholder.com/32" alt="Player" /><div class="player-name">Player 1</div></div>
-        <div class="player-row"><img src="https://via.placeholder.com/32" alt="Player" /><div class="player-name">Player 2</div></div>
-        <div class="player-row"><img src="https://via.placeholder.com/32" alt="Player" /><div class="player-name">Player 3</div></div>
-        <div class="player-row"><img src="https://via.placeholder.com/32" alt="Player" /><div class="player-name">Player 4</div></div>
-        <div class="player-row"><img src="https://via.placeholder.com/32" alt="Player" /><div class="player-name">Player 5</div></div>
+        <div id="team1-container"></div>
       </div>
 
       <!-- Map vote -->
@@ -37,20 +33,20 @@
         <button class="mapvotebutton">de_tuscan</button>
         <button class="mapvotebutton">de_cpl_strike</button>
         <button class="mapvotebutton">de_prodigy</button>
+        <div id="connectionInfo" style="display: none; margin-top: 10px;"></div>
+        <button id="connectServerBtn" style="display: none; margin-top: 5px;">Connect to Server</button>
       </div>
 
       <!-- Team 2 -->
       <div class="window" name="Window Title">
-        <div class="player-row"><img src="https://via.placeholder.com/32" alt="Player" /><div class="player-name">Player 6</div></div>
-        <div class="player-row"><img src="https://via.placeholder.com/32" alt="Player" /><div class="player-name">Player 7</div></div>
-        <div class="player-row"><img src="https://via.placeholder.com/32" alt="Player" /><div class="player-name">Player 8</div></div>
-        <div class="player-row"><img src="https://via.placeholder.com/32" alt="Player" /><div class="player-name">Player 9</div></div>
-        <div class="player-row"><img src="https://via.placeholder.com/32" alt="Player" /><div class="player-name">Player 10</div></div>
+        <div id="team2-container"></div>
       </div>
 
       <!-- Chatbox under Team 1 -->
       <div class="window" name="Window Title">
-        <input type="text" placeholder="Enter text here" />
+        <ul id="teamChatMessages"></ul>
+        <input type="text" id="teamChatInput" placeholder="Message your team..." />
+        <button id="sendTeamMessage">Send</button>
       </div>
 
       <!-- Empty middle column to center layout properly -->
@@ -58,9 +54,127 @@
 
       <!-- Chatbox under Team 2 -->
       <div class="window" name="Window Title">
-        <input type="text" placeholder="Enter text here" />
+        <ul id="publicChatMessages"></ul>
+        <input type="text" id="publicChatInput" placeholder="Message everyone..." />
+        <button id="sendPublicMessage">Send</button>
       </div>
     </div>
   </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let currentUserId = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const userInfoResp = await fetch('/user/info');
+        if (!userInfoResp.ok) throw new Error('Failed to fetch user info.');
+        const userData = await userInfoResp.json();
+        currentUserId = userData.id;
+      } catch (err) {
+        console.error('Error fetching user info:', err);
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('lobbyId') && currentUserId) {
+        const lobbyId = params.get('lobbyId');
+        localStorage.setItem('currentLobbyId', lobbyId);
+        socket.emit('joinLobby', { lobbyId, userId: currentUserId });
+      }
+    });
+
+    socket.on('lobbyReady', (data) => {
+      const { teams } = data;
+      const team1Container = document.getElementById('team1-container');
+      const team2Container = document.getElementById('team2-container');
+
+      team1Container.innerHTML = '';
+      team2Container.innerHTML = '';
+
+      const renderTeam = (container, team) => {
+        team.forEach(player => {
+          const row = document.createElement('div');
+          row.classList.add('player-row');
+          row.innerHTML = `
+            <img src="${player.profile_picture}" class="profile-pic" alt="Profile">
+            <div class="box inset">${player.name}</div>
+          `;
+          container.appendChild(row);
+        });
+      };
+
+      renderTeam(team1Container, teams.team1);
+      renderTeam(team2Container, teams.team2);
+    });
+
+    document.querySelectorAll('.mapvotebutton').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mapName = btn.textContent.trim();
+        const lobbyId = localStorage.getItem('currentLobbyId');
+        socket.emit('mapSelected', { lobbyId, mapName });
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+      });
+    });
+
+    socket.on('mapBanned', ({ mapName }) => {
+      const btn = Array.from(document.querySelectorAll('.mapvotebutton'))
+        .find(b => b.textContent.trim() === mapName);
+      if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+      }
+    });
+
+    socket.on('lobbyCreated', ({ serverIp, serverPort }) => {
+      const connectButton = document.getElementById('connectServerBtn');
+      const infoDiv = document.getElementById('connectionInfo');
+
+      connectButton.style.display = 'block';
+      infoDiv.style.display = 'block';
+
+      const url = `steam://connect/${serverIp}:${serverPort}`;
+      infoDiv.innerText = `Connect to: ${url}`;
+      connectButton.onclick = () => window.location.href = url;
+    });
+
+    // Chat
+    document.getElementById('sendTeamMessage').addEventListener('click', () => {
+      const msg = document.getElementById('teamChatInput').value.trim();
+      if (!msg) return;
+      const lobbyId = localStorage.getItem('currentLobbyId');
+      socket.emit('teamChatMessage', { message: msg, lobbyId });
+      document.getElementById('teamChatInput').value = '';
+    });
+
+    socket.on('teamChatMessage', ({ username, message }) => {
+      const ul = document.getElementById('teamChatMessages');
+      const li = document.createElement('li');
+      li.textContent = `${username}: ${message}`;
+      ul.appendChild(li);
+      ul.scrollTop = ul.scrollHeight;
+    });
+
+    document.getElementById('sendPublicMessage').addEventListener('click', () => {
+      const msg = document.getElementById('publicChatInput').value.trim();
+      if (!msg) return;
+      const lobbyId = localStorage.getItem('currentLobbyId');
+      socket.emit('publicChatMessage', { message: msg, lobbyId });
+      document.getElementById('publicChatInput').value = '';
+    });
+
+    socket.on('publicChatMessage', ({ username, message }) => {
+      const ul = document.getElementById('publicChatMessages');
+      const li = document.createElement('li');
+      li.textContent = `${username}: ${message}`;
+      ul.appendChild(li);
+      ul.scrollTop = ul.scrollHeight;
+    });
+
+    socket.on('error', msg => alert('Error: ' + msg));
+    socket.on('redirect', url => window.location.href = url);
+  </script>
 </body>
 </html>
