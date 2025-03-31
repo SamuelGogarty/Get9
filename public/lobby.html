@@ -15,7 +15,7 @@
         <li><a href="#">Contact</a></li>
         <li class="right-nav">
           <div class="nav-player-name">
-            <img id="navbarProfile" src="/img/nonsteam-profile.png" alt="Avatar" />
+            <img id="navbarProfile" src="/img/fallback-pfp.jpg" alt="Avatar" />
             <span id="navbarUsername">Player Name</span>
           </div>
         </li>
@@ -30,7 +30,14 @@
       </div>
 
       <!-- Map vote -->
-      <div class="window" name="Map Vote">
+      <div class="window" name="Map Vote" style="position: relative;">
+        <!-- Overlay for turn and countdown -->
+        <div id="mapVoteOverlay">
+          <span id="overlayMessage">Waiting for your team captain to ban a map...</span>
+          <br>
+          <span id="countdownTimer"></span>
+        </div>
+        <!-- Ensure these button texts exactly match availableMaps on the server -->
         <button class="mapvotebutton">de_dust</button>
         <button class="mapvotebutton">de_dust2</button>
         <button class="mapvotebutton">de_inferno</button>
@@ -58,7 +65,7 @@
 
       <!-- Connect Window -->
       <div class="window" name="Server Info">
-        <button id="connectServerBtn" class="mapvotebutton" style="display: none;">Connect to Server</button>
+        <button id="connectServerBtn" style="display: none;">Connect to Server</button>
         <div id="connectionInfo" style="display: none;"></div>
       </div>
 
@@ -79,22 +86,23 @@
   <script>
     const socket = io();
     let currentUserId = null;
+    let myTeam = null;      // 'team1' or 'team2'
+    let isCaptain = false;  // true if current user is designated captain
 
     document.addEventListener('DOMContentLoaded', async () => {
+      // Show overlay by default
+      document.getElementById('mapVoteOverlay').style.display = 'block';
       try {
         const userInfoResp = await fetch('/user/info');
         if (!userInfoResp.ok) throw new Error('Failed to fetch user info.');
         const userData = await userInfoResp.json();
         currentUserId = userData.id;
-
         document.getElementById('navbarUsername').textContent = userData.username;
         document.getElementById('navbarProfile').src = userData.profilePictureUrl;
-
       } catch (err) {
         console.error('Error fetching user info:', err);
         return;
       }
-
       const params = new URLSearchParams(window.location.search);
       if (params.has('lobbyId') && currentUserId) {
         const lobbyId = params.get('lobbyId');
@@ -104,31 +112,72 @@
     });
 
     socket.on('lobbyReady', (data) => {
-      const { teams } = data;
+      const { teams, currentTurn } = data;
       const team1Container = document.getElementById('team1-container');
       const team2Container = document.getElementById('team2-container');
-
       team1Container.innerHTML = '';
       team2Container.innerHTML = '';
 
-      const renderTeam = (container, team) => {
+      // Render teams and determine myTeam and captain status
+      function renderTeam(container, team, teamName) {
         team.forEach(player => {
           const row = document.createElement('div');
           row.classList.add('player-row');
-          row.innerHTML = `
-            <img src="${player.profile_picture}" class="profile-pic" alt="Profile">
-            <div class="player-name">${player.name}</div>
-          `;
+          row.innerHTML = `<img src="${player.profile_picture}" class="profile-pic" alt="Profile">
+                           <div class="player-name">${player.name}${player.captain ? " (Captain)" : ""}</div>`;
           container.appendChild(row);
+          if (player.user_id == currentUserId) { // compare using user_id
+            myTeam = teamName;
+            isCaptain = player.captain;
+          }
         });
-      };
+      }
+      renderTeam(team1Container, teams.team1, 'team1');
+      renderTeam(team2Container, teams.team2, 'team2');
 
-      renderTeam(team1Container, teams.team1);
-      renderTeam(team2Container, teams.team2);
+      // Only hide overlay if it's your team's turn AND you are the captain.
+      if (currentTurn === myTeam && isCaptain) {
+        document.getElementById('mapVoteOverlay').style.display = 'none';
+      } else {
+        document.getElementById('mapVoteOverlay').style.display = 'block';
+        document.getElementById('overlayMessage').textContent =
+          (currentTurn === myTeam)
+            ? "Your team captain is choosing a ban..."
+            : "Waiting for the other captain...";
+      }
     });
 
+    socket.on('turnChanged', ({ currentTurn }) => {
+      if (currentTurn === myTeam && isCaptain) {
+        document.getElementById('mapVoteOverlay').style.display = 'none';
+      } else {
+        document.getElementById('mapVoteOverlay').style.display = 'block';
+        document.getElementById('overlayMessage').textContent =
+          (currentTurn === myTeam)
+            ? "Your team captain is choosing a ban..."
+            : "Waiting for the other captain...";
+      }
+    });
+
+    socket.on('countdownTick', ({ time, currentTurn }) => {
+      const countdownTimer = document.getElementById('countdownTimer');
+      if (currentTurn === myTeam && isCaptain) {
+        countdownTimer.textContent = `Time remaining: ${time}s`;
+      } else {
+        countdownTimer.textContent = `Other captain has ${time}s remaining`;
+      }
+    });
+
+    // Do not auto-ban any map; the server simply passes the turn when time expires.
+    socket.on('autoBan', () => {
+      // No action on client side for autoBan.
+    });
+
+    // Allow map vote button clicks only if overlay is hidden (i.e. it's your turn and you're captain)
     document.querySelectorAll('.mapvotebutton').forEach(btn => {
       btn.addEventListener('click', () => {
+        const overlay = document.getElementById('mapVoteOverlay');
+        if (overlay.style.display !== 'none') return;
         const mapName = btn.textContent.trim();
         const lobbyId = localStorage.getItem('currentLobbyId');
         socket.emit('mapSelected', { lobbyId, mapName });
@@ -146,13 +195,12 @@
       }
     });
 
-    socket.on('lobbyCreated', ({ serverIp, serverPort }) => {
+    socket.on('lobbyCreated', ({ serverIp, serverPort, mapName }) => {
+      document.getElementById('mapVoteOverlay').style.display = 'none';
       const connectButton = document.getElementById('connectServerBtn');
       const infoDiv = document.getElementById('connectionInfo');
-
       connectButton.style.display = 'block';
       infoDiv.style.display = 'block';
-
       const url = `steam://connect/${serverIp}:${serverPort}`;
       infoDiv.innerText = url;
       connectButton.onclick = () => window.location.href = url;

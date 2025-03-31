@@ -15,6 +15,16 @@ const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 
+// Read captain configuration from captains.json
+let captainConfig = { steamIds: [], emails: [] };
+try {
+  const configPath = path.join(__dirname, 'captains.json');
+  const configData = fs.readFileSync(configPath, 'utf8');
+  captainConfig = JSON.parse(configData);
+} catch (err) {
+  console.error("Error reading captain configuration:", err);
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
@@ -74,11 +84,9 @@ passport.use(new SteamStrategy({
         [profile.username, profile.steamId, profile.photos[0].value, 'user', 'active', '']
       );
       const userId = insertResult.insertId;
-
       const dbStats = await mysql.createConnection(dbConfigStats);
       await dbStats.query('INSERT INTO ultimate_stats (steamid, skill) VALUES (?, ?)', [profile.steamId, 1000]);
       await dbStats.end();
-
       user = {
         id: userId,
         username: profile.username,
@@ -96,7 +104,6 @@ passport.use(new SteamStrategy({
       user.steamId = user.steam_id;
       user.profile_picture = user.profile_picture || DEFAULT_PROFILE_PICTURE;
     }
-
     await db.end();
     return done(null, user);
   } catch (error) {
@@ -114,17 +121,14 @@ passport.use('local', new LocalStrategy({
     const db = await mysql.createConnection(dbConfigMatchmaking);
     const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
     await db.end();
-
     if (rows.length === 0) {
       return done(null, false, { message: 'Incorrect email.' });
     }
-
     const user = rows[0];
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) {
       return done(null, false, { message: 'Incorrect password.' });
     }
-
     return done(null, user);
   } catch (err) {
     return done(err);
@@ -140,11 +144,9 @@ passport.deserializeUser(async (obj, done) => {
     const db = await mysql.createConnection(dbConfigMatchmaking);
     const [rows] = await db.query('SELECT * FROM users WHERE id = ?', [obj.id]);
     await db.end();
-
     if (rows.length === 0) {
       return done(new Error('User not found'));
     }
-
     const user = rows[0];
     if (obj.type === 'steam') {
       user.steamId = user.steam_id;
@@ -185,13 +187,11 @@ async function createOrUpdateCsServerJob(lobbyId, mapName) {
   const port = getRandomPort();
   const jobName = generateUniqueName(`cs-server-${lobbyId}`);
   const templatePath = path.join(__dirname, 'k3s-manifest.yaml');
-
   let manifestTemplate = fs.readFileSync(templatePath, 'utf8');
   manifestTemplate = manifestTemplate
     .replace(/{{jobName}}/g, jobName)
     .replace(/{{port}}/g, port.toString())
     .replace(/{{mapName}}/g, mapName);
-
   const manifest = yaml.load(manifestTemplate);
   try {
     await k8sBatchApi.createNamespacedJob('default', manifest);
@@ -207,60 +207,47 @@ async function createOrUpdateCsServerJob(lobbyId, mapName) {
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
 app.get('/auth/steam', passport.authenticate('steam'));
 app.get('/auth/steam/callback',
   passport.authenticate('steam', { failureRedirect: '/' }),
-  (req, res) => {
-    res.redirect('/profile');
-  }
+  (req, res) => { res.redirect('/profile'); }
 );
-
 app.post('/login', passport.authenticate('local', {
   successRedirect: '/profile',
   failureRedirect: '/login?error=1'
 }));
-
 app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
   if (!username || !email || !password) {
     return res.status(400).send('Please fill all fields.');
   }
-
   try {
     const db = await mysql.createConnection(dbConfigMatchmaking);
     const passwordHash = await bcrypt.hash(password, 10);
-
     const [result] = await db.query(
       'INSERT INTO users (username, email, password_hash, role, status) VALUES (?, ?, ?, ?, ?)',
       [username, email, passwordHash, 'user', 'active']
     );
-
     const userId = result.insertId;
     const dbStats = await mysql.createConnection(dbConfigStats);
     await dbStats.query('INSERT INTO ultimate_stats (steamid, skill) VALUES (?, ?)', [email, 1000]);
     await dbStats.end();
     await db.end();
-
     res.redirect('/login');
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).send('Server error.');
   }
 });
-
 app.get('/register', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'register.html'));
 });
-
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
-
 app.get('/profile', ensureAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'profile.html'));
 });
-
 app.get('/user/info', ensureAuthenticated, (req, res) => {
   const user = req.user;
   res.json({
@@ -271,11 +258,9 @@ app.get('/user/info', ensureAuthenticated, (req, res) => {
     profilePictureUrl: user.profile_picture || DEFAULT_PROFILE_PICTURE
   });
 });
-
 app.get('/user/skill', ensureAuthenticated, async (req, res) => {
   const user = req.user;
   const playerName = user.username;
-
   const db = await mysql.createConnection(dbConfigStats);
   try {
     const [rows] = await db.query('SELECT skill FROM ultimate_stats WHERE name = ?', [playerName]);
@@ -291,12 +276,10 @@ app.get('/user/skill', ensureAuthenticated, async (req, res) => {
     await db.end();
   }
 });
-
 // Admin
 app.get('/admin', ensureAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
-
 app.get('/admin/users', ensureAdmin, async (req, res) => {
   try {
     const db = await mysql.createConnection(dbConfigMatchmaking);
@@ -308,7 +291,6 @@ app.get('/admin/users', ensureAdmin, async (req, res) => {
     res.status(500).json({ error: 'Database error' });
   }
 });
-
 app.post('/admin/updateUser', ensureAdmin, express.json(), async (req, res) => {
   const { userId, status, role } = req.body;
   try {
@@ -327,6 +309,53 @@ app.post('/admin/updateUser', ensureAdmin, express.json(), async (req, res) => {
 // ----------------------------------------------------------
 let lobbies = {};
 let preLobbies = {};
+let banTimers = {};  // For countdown timers during map banning
+
+// ----------------------------------------------------------
+// Helper functions for map ban countdown
+function startCountdown(lobbyId, currentTurn) {
+  let countdown = 10;
+  function tick() {
+    io.to(lobbyId).emit('countdownTick', { time: countdown, currentTurn });
+    if (countdown <= 0) {
+      autoBan(lobbyId, currentTurn);
+    } else {
+      countdown--;
+      banTimers[lobbyId] = { timer: setTimeout(tick, 1000) };
+    }
+  }
+  banTimers[lobbyId] = { timer: setTimeout(tick, 1000) };
+}
+
+async function autoBan(lobbyId, currentTurn) {
+  const lobby = lobbies[lobbyId];
+  if (!lobby) return;
+  const remainingMaps = lobby.availableMaps.filter(m => !lobby.bannedMaps.includes(m));
+  if (remainingMaps.length === 0) return;
+  const autoBannedMap = remainingMaps[0];
+  lobby.bannedMaps.push(autoBannedMap);
+  io.to(lobbyId).emit('mapBanned', { mapName: autoBannedMap });
+  
+  const newRemaining = lobby.availableMaps.filter(m => !lobby.bannedMaps.includes(m));
+  if (newRemaining.length === 1) {
+    const finalMap = newRemaining[0];
+    const { port } = await createOrUpdateCsServerJob(lobbyId, finalMap);
+    io.to(lobbyId).emit('lobbyCreated', {
+      serverIp: '192.168.2.69',
+      serverPort: port,
+      mapName: finalMap
+    });
+    lobby.turn = null;
+    if (banTimers[lobbyId] && banTimers[lobbyId].timer) {
+      clearTimeout(banTimers[lobbyId].timer);
+    }
+    return;
+  }
+  // Switch turn and restart countdown
+  lobby.turn = lobby.turn === 'team1' ? 'team2' : 'team1';
+  io.to(lobbyId).emit('turnChanged', { currentTurn: lobby.turn });
+  startCountdown(lobbyId, lobby.turn);
+}
 
 // ----------------------------------------------------------
 // Socket.io
@@ -336,16 +365,16 @@ io.on('connection', (socket) => {
   socket.on('joinLobby', async ({ lobbyId, userId }) => {
     socket.join(lobbyId);
     socket.lobbyId = lobbyId;
-
     if (!lobbies[lobbyId]) {
       lobbies[lobbyId] = {
-        availableMaps: ['de_dust2', 'de_inferno'],
+        availableMaps: ['de_dust', 'de_dust2', 'de_inferno', 'de_nuke', 'de_tuscan', 'de_cpl_strike', 'de_prodigy'],
         bannedMaps: [],
         players: [],
-        teams: { team1: [], team2: [] }
+        teams: { team1: [], team2: [] },
+        turn: null,
+        teamCaptains: {}
       };
     }
-
     if (!lobbies[lobbyId].players || lobbies[lobbyId].players.length === 0) {
       const db = await mysql.createConnection(dbConfigMatchmaking);
       try {
@@ -363,7 +392,6 @@ io.on('connection', (socket) => {
         await db.end();
       }
     }
-
     const db = await mysql.createConnection(dbConfigMatchmaking);
     try {
       const [pRows] = await db.query(
@@ -373,7 +401,6 @@ io.on('connection', (socket) => {
       if (pRows.length > 0) {
         const occupant = pRows[0];
         await db.query('UPDATE players SET socket_id = ? WHERE id = ?', [socket.id, occupant.id]);
-
         const memP = lobbies[lobbyId].players.find(p => p.id === occupant.id);
         if (memP) memP.socket_id = socket.id;
       }
@@ -382,41 +409,44 @@ io.on('connection', (socket) => {
     } finally {
       await db.end();
     }
-
     const lobby = lobbies[lobbyId];
     if (lobby && lobby.players) {
+      const transformedPlayers = lobby.players.map(p => ({
+        user_id: p.user_id,
+        id: p.id,
+        name: p.name,
+        profile_picture: p.profile_picture,
+        team: p.team,
+        steam_id: p.steam_id,
+        email: p.email
+      }));
       socket.emit('lobbyReady', {
         lobbyId,
-        players: lobby.players,
-        teams: lobby.teams
+        players: transformedPlayers,
+        teams: lobby.teams,
+        currentTurn: lobby.turn
       });
     } else {
       socket.emit('error', 'Lobby not found or no players');
     }
   });
-
   // Public chat
   socket.on('publicChatMessage', ({ message, lobbyId }) => {
     const finalLobbyId = lobbyId || socket.lobbyId;
     if (!finalLobbyId || !lobbies[finalLobbyId]) return;
-
     const player = lobbies[finalLobbyId].players.find(p => p.socket_id === socket.id);
     if (!player) return;
-
     io.to(finalLobbyId).emit('publicChatMessage', {
       username: player.name,
       message
     });
   });
-
   // Team chat
   socket.on('teamChatMessage', ({ message, lobbyId }) => {
     const finalLobbyId = lobbyId || socket.lobbyId;
     if (!finalLobbyId || !lobbies[finalLobbyId]) return;
-
     const player = lobbies[finalLobbyId].players.find(p => p.socket_id === socket.id);
     if (!player) return;
-
     const team = player.team;
     const teamSockets = lobbies[finalLobbyId].teams[team].map(p => p.socket_id);
     teamSockets.forEach(sid => {
@@ -426,7 +456,6 @@ io.on('connection', (socket) => {
       });
     });
   });
-
   // Start Matchmaking
   socket.on('startMatchmaking', async (user) => {
     user.socketId = socket.id;
@@ -438,21 +467,17 @@ io.on('connection', (socket) => {
       } else {
         [rows] = await db.query('SELECT id, status, role FROM users WHERE email = ?', [user.email]);
       }
-
       if (rows.length === 0 || rows[0].status !== 'active') {
         socket.emit('error', 'Your account is not active.');
         return;
       }
-
       const foundUserId = rows[0].id;
-
       let existingPlayer;
       if (user.steamId) {
         [existingPlayer] = await db.query('SELECT id FROM players WHERE steam_id = ?', [user.steamId]);
       } else {
         [existingPlayer] = await db.query('SELECT id FROM players WHERE email = ?', [user.email]);
       }
-
       let playerId;
       if (existingPlayer.length > 0) {
         playerId = existingPlayer[0].id;
@@ -474,17 +499,12 @@ io.on('connection', (socket) => {
         );
         playerId = insertResult.insertId;
       }
-
       const [queueRows] = await db.query('SELECT * FROM queue WHERE player_id = ?', [playerId]);
       if (queueRows.length > 0) {
         socket.emit('error', 'You are already in the matchmaking queue.');
         return;
       }
-
-      // Add them to the queue
       await db.query('INSERT INTO queue (player_id) VALUES (?)', [playerId]);
-
-      // Evaluate matchmaking
       const [queue] = await db.query('SELECT * FROM queue');
       const matchmakingQueue = queue.map(q => ({ playerId: q.player_id }));
       await checkQueueAndFormLobby(matchmakingQueue, db);
@@ -495,7 +515,6 @@ io.on('connection', (socket) => {
       await db.end();
     }
   });
-
   // Pre-lobby
   socket.on('createPreLobby', (user) => {
     const inviteCode = generateInviteCode();
@@ -508,7 +527,6 @@ io.on('connection', (socket) => {
     socket.join(`preLobby_${inviteCode}`);
     socket.emit('preLobbyCreated', { inviteCode });
   });
-
   socket.on('joinPreLobby', ({ inviteCode, user }) => {
     const preLobby = preLobbies[inviteCode];
     if (!preLobby) {
@@ -520,7 +538,6 @@ io.on('connection', (socket) => {
     socket.join(`preLobby_${inviteCode}`);
     io.to(`preLobby_${inviteCode}`).emit('preLobbyUpdated', { players: preLobby.players });
   });
-
   socket.on('startPreLobbyMatchmaking', async ({ inviteCode }) => {
     const preLobby = preLobbies[inviteCode];
     if (!preLobby) {
@@ -528,7 +545,6 @@ io.on('connection', (socket) => {
       return;
     }
     const groupId = generateUniqueName('group');
-
     const db = await mysql.createConnection(dbConfigMatchmaking);
     try {
       const playerIds = [];
@@ -540,7 +556,6 @@ io.on('connection', (socket) => {
         } else {
           [existingPlayer] = await db.query('SELECT id FROM players WHERE email = ?', [u.email]);
         }
-
         let playerId;
         if (existingPlayer.length > 0) {
           playerId = existingPlayer[0].id;
@@ -555,7 +570,6 @@ io.on('connection', (socket) => {
         playerIds.push(playerId);
         await db.query('INSERT INTO queue (player_id) VALUES (?)', [playerId]);
       }
-
       delete preLobbies[inviteCode];
       const [queue] = await db.query('SELECT * FROM queue');
       const matchmakingQueue = queue.map(q => ({ playerId: q.player_id }));
@@ -566,7 +580,6 @@ io.on('connection', (socket) => {
       await db.end();
     }
   });
-
   // ----------------------------------------------------------
   // Main Matchmaking Logic
   // ----------------------------------------------------------
@@ -578,13 +591,10 @@ io.on('connection', (socket) => {
       if (!groupedPlayers[groupId]) groupedPlayers[groupId] = [];
       groupedPlayers[groupId].push(playerData[0]);
     }
-
-    // For testing: require exactly 2 players
-    const requiredPlayers = 2;
-
+    // For normal use, set requiredPlayers to an even number (e.g., 10)
+    const requiredPlayers = 10;
     const groups = Object.values(groupedPlayers);
     let lobbyPlayers = [];
-
     while (groups.length > 0 && lobbyPlayers.length < requiredPlayers) {
       const group = groups.shift();
       if (lobbyPlayers.length + group.length <= requiredPlayers) {
@@ -594,63 +604,110 @@ io.on('connection', (socket) => {
         break;
       }
     }
-
     if (lobbyPlayers.length === requiredPlayers) {
       const lobbyId = generateUniqueName('lobby');
       const team1 = [];
       const team2 = [];
-
-      // Force the first occupant on Team 1, second occupant on Team 2
-      team1.push(lobbyPlayers[0]);
-      lobbyPlayers[0].team = 'team1';
-
-      team2.push(lobbyPlayers[1]);
-      lobbyPlayers[1].team = 'team2';
-
+      // Evenly distribute players across two teams
+      for (let i = 0; i < lobbyPlayers.length; i++) {
+        if (i % 2 === 0) {
+          team1.push(lobbyPlayers[i]);
+          lobbyPlayers[i].team = 'team1';
+        } else {
+          team2.push(lobbyPlayers[i]);
+          lobbyPlayers[i].team = 'team2';
+        }
+      }
+      // Designate captain with priority:
+      // For each team, check for a player whose steamId (or steam_id) or email matches the captainConfig.
+      // If none match, choose the first player.
+      function designateCaptain(team) {
+        const priorityCandidate = team.find(p => {
+          const sid = p.steam_id || p.steamId; // check both possible keys
+          if (sid && captainConfig.steamIds.includes(sid)) return true;
+          if (p.email && captainConfig.emails.includes(p.email)) return true;
+          return false;
+        });
+        return priorityCandidate || team[0];
+      }
+      const captainTeam1 = designateCaptain(team1);
+      const captainTeam2 = designateCaptain(team2);
+      // Mark only these players as captains
+      team1.forEach(p => p.captain = false);
+      team2.forEach(p => p.captain = false);
+      captainTeam1.captain = true;
+      captainTeam2.captain = true;
+      const teamCaptains = {
+        team1: captainTeam1.user_id || captainTeam1.id,
+        team2: captainTeam2.user_id || captainTeam2.id
+      };
       lobbies[lobbyId] = {
         players: lobbyPlayers,
         teams: { team1, team2 },
-        availableMaps: ['de_dust2', 'de_inferno'],
-        bannedMaps: []
+        availableMaps: ['de_dust', 'de_dust2', 'de_inferno', 'de_nuke', 'de_tuscan', 'de_cpl_strike', 'de_prodigy'],
+        bannedMaps: [],
+        turn: 'team1', // Set initial turn to team1
+        teamCaptains
       };
-
       const playerIds = lobbyPlayers.map(p => p.id);
-
-      // Update DB with the assigned team
-      await db.query('UPDATE players SET lobby_id = ?, team = ? WHERE id = ?', [lobbyId, 'team1', lobbyPlayers[0].id]);
-      await db.query('UPDATE players SET lobby_id = ?, team = ? WHERE id = ?', [lobbyId, 'team2', lobbyPlayers[1].id]);
-
+      // Update DB with the assigned team for each player
+      for (let p of lobbyPlayers) {
+        await db.query('UPDATE players SET lobby_id = ?, team = ? WHERE id = ?', [lobbyId, p.team, p.id]);
+      }
       // Remove them from the queue
       await db.query('DELETE FROM queue WHERE player_id IN (?)', [playerIds]);
-
-      // Redirect them to the new lobby
+      // Emit initial turn info so that clients know which team is active
+      io.to(lobbyId).emit('turnChanged', { currentTurn: 'team1' });
+      // Redirect players to the new lobby
       const socketIds = lobbyPlayers.map(p => p.socket_id);
       socketIds.forEach(sid => {
         io.to(sid).emit('redirect', `/lobby.html?lobbyId=${lobbyId}`);
       });
     }
   }
-
-  // Map selection
+  // Map selection with alternating bans and countdown timer
   socket.on('mapSelected', async ({ lobbyId, mapName }) => {
     const lobby = lobbies[lobbyId];
     if (!lobby) return;
-    lobby.bannedMaps.push(mapName);
-    io.to(lobbyId).emit('mapBanned', { mapName });
-
+    if (!lobby.turn) {
+      lobby.turn = 'team1';
+      startCountdown(lobbyId, lobby.turn);
+    }
+    const player = lobby.players.find(p => p.socket_id === socket.id);
+    if (!player || player.team !== lobby.turn) return;
+    // Check if the player is the designated captain for their team
+    const teamCaptain = lobby.teamCaptains[player.team];
+    const playerUserId = player.user_id || player.id;
+    if (playerUserId !== teamCaptain) {
+      socket.emit('error', 'Only your team captain can ban a map.');
+      return;
+    }
+    if (banTimers[lobbyId] && banTimers[lobbyId].timer) {
+      clearTimeout(banTimers[lobbyId].timer);
+    }
+    if (!lobby.bannedMaps.includes(mapName)) {
+      lobby.bannedMaps.push(mapName);
+      io.to(lobbyId).emit('mapBanned', { mapName });
+    }
     const remainingMaps = lobby.availableMaps.filter(m => !lobby.bannedMaps.includes(m));
     if (remainingMaps.length === 1) {
       const finalMap = remainingMaps[0];
       const { port } = await createOrUpdateCsServerJob(lobbyId, finalMap);
-
       io.to(lobbyId).emit('lobbyCreated', {
         serverIp: '192.168.2.69',
         serverPort: port,
         mapName: finalMap
       });
+      lobby.turn = null;
+      if (banTimers[lobbyId] && banTimers[lobbyId].timer) {
+        clearTimeout(banTimers[lobbyId].timer);
+      }
+      return;
     }
+    lobby.turn = lobby.turn === 'team1' ? 'team2' : 'team1';
+    io.to(lobbyId).emit('turnChanged', { currentTurn: lobby.turn });
+    startCountdown(lobbyId, lobby.turn);
   });
-
   // Disconnection
   socket.on('disconnect', async () => {
     console.log(`Socket ${socket.id} disconnected.`);
@@ -669,7 +726,7 @@ io.on('connection', (socket) => {
     }
   });
 });
-
+  
 // Start server
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
