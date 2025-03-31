@@ -177,6 +177,15 @@ nav .right-nav {
   overflow-x: auto;
 }
 
+/* Ban Countdown */
+#banCountdown {
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  color: #E3E41F;
+}
+
 /* CHAT BOX */
 .window ul {
   max-height: 180px;

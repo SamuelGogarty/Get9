@@ -592,7 +592,7 @@ io.on('connection', (socket) => {
       groupedPlayers[groupId].push(playerData[0]);
     }
     // For normal use, set requiredPlayers to an even number (e.g., 10)
-    const requiredPlayers = 10;
+    const requiredPlayers = 2;
     const groups = Object.values(groupedPlayers);
     let lobbyPlayers = [];
     while (groups.length > 0 && lobbyPlayers.length < requiredPlayers) {
