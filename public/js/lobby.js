@@ -98,20 +98,36 @@ socket.on('mapBanned', ({ mapName }) => {
   countdown.style.display = 'none';
 });
 
+// Updated map vote button listener: checks if button is already disabled.
 document.querySelectorAll('.mapvotebutton').forEach(btn => {
   btn.addEventListener('click', () => {
+    if (btn.disabled) return;
     if (document.getElementById('mapVoteOverlay').style.display !== 'none') return;
     const mapName = btn.textContent.trim();
     const lobbyId = localStorage.getItem('currentLobbyId');
     socket.emit('mapSelected', { lobbyId, mapName });
+    // Mark the button as clicked
     btn.disabled = true;
     btn.style.opacity = '0.5';
   });
 });
 
+// Updated lobbyCreated handler disables all map vote buttons.
+// The final (remaining) map button is disabled but its opacity remains at 1.
 socket.on('lobbyCreated', ({ serverIp, serverPort, mapName }) => {
   document.getElementById('mapVoteOverlay').style.display = 'none';
   document.getElementById('banCountdown').style.display = 'none';
+
+  // Disable all map vote buttons so no further clicks can trigger a timer.
+  document.querySelectorAll('.mapvotebutton').forEach(btn => {
+    btn.disabled = true;
+    if (btn.textContent.trim() === mapName) {
+      // For the final map button, keep its appearance unclicked.
+      btn.style.opacity = '1';
+    } else {
+      btn.style.opacity = '0.5';
+    }
+  });
 
   const btn = document.getElementById('connectServerBtn');
   const info = document.getElementById('connectionInfo');

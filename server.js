@@ -25,6 +25,9 @@ try {
   console.error("Error reading captain configuration:", err);
 }
 
+// Update the fallback image to use a local file that exists in your public directory.
+const DEFAULT_PROFILE_PICTURE = '/img/fallback-pfp.png';
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
@@ -35,7 +38,6 @@ kc.loadFromDefault();
 const k8sBatchApi = kc.makeApiClient(BatchV1Api);
 
 const PORT = 3000;
-const DEFAULT_PROFILE_PICTURE = '/img/fallback-pfp.png';
 
 const dbConfigMatchmaking = {
   host: process.env.DB_HOST,
@@ -414,11 +416,12 @@ io.on('connection', (socket) => {
     }
     const lobby = lobbies[lobbyId];
     if (lobby && lobby.players) {
+      // Transform player data and ensure fallback image is used if needed.
       const transformedPlayers = lobby.players.map(p => ({
         user_id: p.user_id,
         id: p.id,
         name: p.name,
-        profile_picture: p.profile_picture,
+        profile_picture: p.profile_picture || DEFAULT_PROFILE_PICTURE,
         team: p.team,
         steam_id: p.steam_id,
         email: p.email
@@ -651,7 +654,7 @@ io.on('connection', (socket) => {
         bannedMaps: [],
         turn: 'team1', // Set initial turn to team1
         teamCaptains,
-        serverCreated: false   // <-- Added flag to prevent duplicate server creation
+        serverCreated: false
       };
       const playerIds = lobbyPlayers.map(p => p.id);
       // Update DB with the assigned team for each player
