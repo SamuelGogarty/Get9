@@ -35,7 +35,7 @@ kc.loadFromDefault();
 const k8sBatchApi = kc.makeApiClient(BatchV1Api);
 
 const PORT = 3000;
-const DEFAULT_PROFILE_PICTURE = 'https://path.to/default/profile-pic.jpg';
+const DEFAULT_PROFILE_PICTURE = '/img/fallback-pfp.png';
 
 const dbConfigMatchmaking = {
   host: process.env.DB_HOST,
@@ -338,16 +338,19 @@ async function autoBan(lobbyId, currentTurn) {
   
   const newRemaining = lobby.availableMaps.filter(m => !lobby.bannedMaps.includes(m));
   if (newRemaining.length === 1) {
-    const finalMap = newRemaining[0];
-    const { port } = await createOrUpdateCsServerJob(lobbyId, finalMap);
-    io.to(lobbyId).emit('lobbyCreated', {
-      serverIp: '192.168.2.69',
-      serverPort: port,
-      mapName: finalMap
-    });
-    lobby.turn = null;
-    if (banTimers[lobbyId] && banTimers[lobbyId].timer) {
-      clearTimeout(banTimers[lobbyId].timer);
+    if (!lobby.serverCreated) {
+      lobby.serverCreated = true;
+      const finalMap = newRemaining[0];
+      const { port } = await createOrUpdateCsServerJob(lobbyId, finalMap);
+      io.to(lobbyId).emit('lobbyCreated', {
+        serverIp: '192.168.2.69',
+        serverPort: port,
+        mapName: finalMap
+      });
+      lobby.turn = null;
+      if (banTimers[lobbyId] && banTimers[lobbyId].timer) {
+        clearTimeout(banTimers[lobbyId].timer);
+      }
     }
     return;
   }
@@ -647,7 +650,8 @@ io.on('connection', (socket) => {
         availableMaps: ['de_dust', 'de_dust2', 'de_inferno', 'de_nuke', 'de_tuscan', 'de_cpl_strike', 'de_prodigy'],
         bannedMaps: [],
         turn: 'team1', // Set initial turn to team1
-        teamCaptains
+        teamCaptains,
+        serverCreated: false   // <-- Added flag to prevent duplicate server creation
       };
       const playerIds = lobbyPlayers.map(p => p.id);
       // Update DB with the assigned team for each player
@@ -691,16 +695,19 @@ io.on('connection', (socket) => {
     }
     const remainingMaps = lobby.availableMaps.filter(m => !lobby.bannedMaps.includes(m));
     if (remainingMaps.length === 1) {
-      const finalMap = remainingMaps[0];
-      const { port } = await createOrUpdateCsServerJob(lobbyId, finalMap);
-      io.to(lobbyId).emit('lobbyCreated', {
-        serverIp: '192.168.2.69',
-        serverPort: port,
-        mapName: finalMap
-      });
-      lobby.turn = null;
-      if (banTimers[lobbyId] && banTimers[lobbyId].timer) {
-        clearTimeout(banTimers[lobbyId].timer);
+      if (!lobby.serverCreated) {
+        lobby.serverCreated = true;
+        const finalMap = remainingMaps[0];
+        const { port } = await createOrUpdateCsServerJob(lobbyId, finalMap);
+        io.to(lobbyId).emit('lobbyCreated', {
+          serverIp: '192.168.2.69',
+          serverPort: port,
+          mapName: finalMap
+        });
+        lobby.turn = null;
+        if (banTimers[lobbyId] && banTimers[lobbyId].timer) {
+          clearTimeout(banTimers[lobbyId].timer);
+        }
       }
       return;
     }
