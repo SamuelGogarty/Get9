@@ -305,10 +305,19 @@ button:hover {
   margin-top: 10px;
 }
 
-/* Prevent one chat window from affecting the other's height */
-.lobby-grid > .window:nth-child(4), /* Team chat */
-.lobby-grid > .window:nth-child(6) { /* Public chat */
-  align-self: stretch; /* Allow these to grow vertically */
+/* Change the grid alignment and height constraints */
+.lobby-grid > .window:nth-child(4), /* Team Chat */
+.lobby-grid > .window:nth-child(6) { /* Public Chat */
+  align-self: start;
+  height: 300px; /* Fixed height */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure chat content scrolls independently */
+.chat-inner {
+  flex: 1;
+  overflow-y: auto;
 }
 
 /* Target server info window */
