@@ -268,7 +268,10 @@ app.get('/user/skill', ensureAuthenticated, async (req, res) => {
   const playerName = user.username;
   const db = await mysql.createConnection(dbConfigStats);
   try {
-    const [rows] = await db.query('SELECT skill FROM ultimate_stats WHERE name = ?', [playerName]);
+    const [rows] = await db.query(
+      'SELECT skill FROM ultimate_stats WHERE steamid = ? OR name = ?',
+      [user.steamId || '', user.username || '']
+    );
     if (rows.length > 0) {
       res.json({ skill: rows[0].skill });
     } else {
@@ -433,8 +436,11 @@ io.on('connection', (socket) => {
         const dbStats = await mysql.createConnection(dbConfigStats);
         const [eloRows] = await dbStats.query(
           'SELECT skill FROM ultimate_stats WHERE steamid = ? OR name = ?',
-          [p.steam_id || '', p.name || '']  // Handle potential null values
+          [p.steam_id || '', p.name || '']  // Already correct, but ensure fallback
         );
+        if (!eloRows.length) {
+          console.log(`No ELO found for ${p.name} (steam: ${p.steam_id}), using default`);
+        }
         await dbStats.end();
 
         return {
@@ -613,8 +619,10 @@ io.on('connection', (socket) => {
       
       // Add ELO fetch from stats database
       const dbStats = await mysql.createConnection(dbConfigStats);
-      const [eloRows] = await dbStats.query('SELECT skill FROM ultimate_stats WHERE steamid = ? OR name = ?', 
-        [playerData[0].steam_id, playerData[0].email]);
+      const [eloRows] = await dbStats.query(
+        'SELECT skill FROM ultimate_stats WHERE steamid = ? OR name = ?',
+        [playerData[0].steam_id, playerData[0].name] // Use name instead of email
+      );
       await dbStats.end();
       
       // Create player object with ELO
