@@ -174,3 +174,13 @@ socket.on('publicChatMessage', ({ username, message }) => {
 
 socket.on('redirect', url => window.location.href = url);
 socket.on('error', msg => alert('Error: ' + msg));
+
+// Add periodic connection checks
+setInterval(() => {
+  if (document.visibilityState === 'visible') {
+    const lobbyId = localStorage.getItem('currentLobbyId');
+    if (lobbyId) {
+      socket.emit('heartbeat', { lobbyId });
+    }
+  }
+}, 30000);

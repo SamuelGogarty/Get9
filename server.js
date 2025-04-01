@@ -25,6 +25,9 @@ try {
   console.error("Error reading captain configuration:", err);
 }
 
+// Server cleanup configuration
+const MAX_SERVER_AGE = 7200000; // 2 hours in milliseconds
+
 // Update the fallback image to use a local file that exists in your public directory.
 const DEFAULT_PROFILE_PICTURE = '/img/fallback-pfp.png';
 
@@ -367,6 +370,12 @@ async function autoBan(lobbyId, currentTurn) {
 // Socket.io
 // ----------------------------------------------------------
 io.on('connection', (socket) => {
+  // Heartbeat handler for connection tracking
+  socket.on('heartbeat', ({ lobbyId }) => {
+    if (lobbies[lobbyId]) {
+      lobbies[lobbyId].lastHeartbeat = Date.now();
+    }
+  });
   // joinLobby
   socket.on('joinLobby', async ({ lobbyId, userId }) => {
     socket.join(lobbyId);
@@ -656,7 +665,8 @@ io.on('connection', (socket) => {
         bannedMaps: [],
         turn: 'team1', // Set initial turn to team1
         teamCaptains,
-        serverCreated: false
+        serverCreated: false,
+        createdAt: Date.now()
       };
       const playerIds = lobbyPlayers.map(p => p.id);
       // Update DB with the assigned team for each player
@@ -705,6 +715,7 @@ io.on('connection', (socket) => {
         const finalMap = remainingMaps[0];
         const { port, jobName } = await createOrUpdateCsServerJob(lobbyId, finalMap);
         lobby.jobName = jobName;
+        lobby.serverCreatedAt = Date.now();
         io.to(lobbyId).emit('lobbyCreated', {
           serverIp: '192.168.2.69',
           serverPort: port,
@@ -749,18 +760,18 @@ io.on('connection', (socket) => {
               delete banTimers[lobbyId];
             }
             
-            // Delete Kubernetes job if created
-            if (lobby.serverCreated && lobby.jobName) {
+            // ONLY delete job if server was NEVER created
+            if (!lobby.serverCreated && lobby.jobName) {
               try {
                 await k8sBatchApi.deleteNamespacedJob(lobby.jobName, 'default');
                 console.log(`Deleted abandoned job: ${lobby.jobName}`);
               } catch (error) {
-                console.error('Error deleting job:', error.body || error);
+                console.error('Error deleting pre-server job:', error.body || error);
               }
             }
             
             delete lobbies[lobbyId];
-            console.log(`Lobby ${lobbyId} cleaned up due to empty players`);
+            console.log(`Lobby ${lobbyId} cleaned up ${lobby.serverCreated ? '(server remains active)' : ''}`);
           }
         }
       }
