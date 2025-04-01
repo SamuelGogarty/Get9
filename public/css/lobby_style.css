@@ -310,7 +310,7 @@ button:hover {
 .lobby-grid > .window:nth-child(4), /* Team Chat */
 .lobby-grid > .window:nth-child(6) { /* Public Chat */
   align-self: start;
-  min-height: 200px; /* Increased minimum height when empty */
+  min-height: 60px; /* Increased minimum height when empty */
   max-height: 400px; /* Increased maximum height before scrolling */
   height: auto; /* Let content dictate height */
   display: flex;
