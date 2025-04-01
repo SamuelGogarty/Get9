@@ -173,6 +173,12 @@ document.getElementById('sendTeamMessage').addEventListener('click', () => {
   document.getElementById('teamChatInput').value = '';
 });
 
+document.getElementById('teamChatInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('sendTeamMessage').click();
+  }
+});
+
 socket.on('teamChatMessage', ({ username, message }) => {
   const ul = document.getElementById('teamChatMessages');
   const li = document.createElement('li');
@@ -187,6 +193,12 @@ document.getElementById('sendPublicMessage').addEventListener('click', () => {
   const lobbyId = localStorage.getItem('currentLobbyId');
   socket.emit('publicChatMessage', { message: msg, lobbyId });
   document.getElementById('publicChatInput').value = '';
+});
+
+document.getElementById('publicChatInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('sendPublicMessage').click();
+  }
 });
 
 socket.on('publicChatMessage', ({ username, message }) => {

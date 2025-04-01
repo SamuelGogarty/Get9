@@ -73,7 +73,7 @@ nav .right-nav {
 }
 
 .nav-player-name .elo-display {
-  color: #bb86fc;
+  color: #ffffff; /* Changed from #bb86fc */
   font-size: 12px;
   margin-left: 8px;
   padding: 2px 6px;
@@ -259,12 +259,23 @@ input[type="text"] {
 button {
   margin-top: 5px;
   padding: 4px 10px;
-  border: 1px solid #323232;
+  border-top: solid 1px #323232;
+  border-bottom: solid 1px #080808;
+  border-left: solid 1px #323232;
+  border-right: solid 1px #080808;
   background: #212121;
   color: white;
   font-family: inherit;
   font-size: 13px;
   cursor: pointer;
+  min-width: 80px; /* Added to match map buttons */
+}
+
+/* Specifically target Send buttons to match map buttons */
+#sendTeamMessage, #sendPublicMessage {
+  height: 28px; /* Match input field height */
+  padding: 5px 15px; /* Match map button padding */
+  margin-top: 10px; /* Align with map button spacing */
 }
 
 button:hover {
