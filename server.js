@@ -90,7 +90,7 @@ passport.use(new SteamStrategy({
       );
       const userId = insertResult.insertId;
       const dbStats = await mysql.createConnection(dbConfigStats);
-      await dbStats.query('INSERT INTO ultimate_stats (steamid, skill) VALUES (?, ?)', [profile.steamId, 1000]);
+      await dbStats.query('INSERT INTO ultimate_stats (steamid, skill) VALUES (?, ?)', [profile.steamId, 0]);
       await dbStats.end();
       user = {
         id: userId,
@@ -235,7 +235,7 @@ app.post('/register', async (req, res) => {
     );
     const userId = result.insertId;
     const dbStats = await mysql.createConnection(dbConfigStats);
-    await dbStats.query('INSERT INTO ultimate_stats (steamid, skill) VALUES (?, ?)', [email, 1000]);
+    await dbStats.query('INSERT INTO ultimate_stats (steamid, skill) VALUES (?, ?)', [email, 0]);
     await dbStats.end();
     await db.end();
     res.redirect('/login');
@@ -446,7 +446,7 @@ io.on('connection', (socket) => {
         return {
           ...p,  // Spread existing player properties
           profile_picture: p.profile_picture || DEFAULT_PROFILE_PICTURE,
-          elo: eloRows[0]?.skill || 1000
+          elo: eloRows[0]?.skill || 0
         };
       }));
       socket.emit('lobbyReady', {
@@ -628,7 +628,7 @@ io.on('connection', (socket) => {
       // Create player object with ELO
       const playerWithElo = {
         ...playerData[0],
-        elo: eloRows[0]?.skill || 1000
+        elo: eloRows[0]?.skill || 0
       };
       
       const groupId = playerWithElo.group_id || `solo_${playerWithElo.id}`;
