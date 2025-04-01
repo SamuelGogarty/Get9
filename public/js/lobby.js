@@ -78,10 +78,17 @@ function updateOverlayAndCountdown(currentTurn) {
 }
 
 socket.on('countdownTick', ({ time, currentTurn }) => {
-  const countdown = document.getElementById('banCountdown');
-  if (currentTurn) {
-    countdown.style.display = 'block';
-    countdown.textContent = `Ban timer: ${time}s`;
+  const progressBar = document.getElementById('banProgressBar');
+  const countdownText = document.getElementById('banCountdown');
+  const percent = (time / 10) * 100;
+  
+  progressBar.style.width = `${percent}%`;
+  countdownText.textContent = `${time} SECONDS REMAINING`;
+  
+  if (currentTurn === myTeam && isCaptain) {
+    document.getElementById('mapVoteOverlay').style.display = 'none';
+  } else {
+    document.getElementById('mapVoteOverlay').style.display = 'flex';
   }
 });
 
@@ -93,9 +100,8 @@ socket.on('mapBanned', ({ mapName }) => {
     btn.style.opacity = '0.5';
   }
 
-  const countdown = document.getElementById('banCountdown');
-  countdown.textContent = '';
-  countdown.style.display = 'none';
+  document.getElementById('banProgressBar').style.width = '100%';
+  document.getElementById('banCountdown').textContent = 'TIME REMAINING';
 });
 
 // Updated map vote button listener: checks if button is already disabled.

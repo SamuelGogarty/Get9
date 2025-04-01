@@ -31,9 +31,13 @@
 
       <!-- Map vote -->
       <div class="window" name="Map Vote" style="position: relative;">
-        <!-- Overlay for turn -->
         <div id="mapVoteOverlay">
-          <span id="overlayMessage">Waiting for your team captain to ban a map...</span>
+          <div class="vgui-titlebar">CAPTAIN'S TURN</div>
+          <span id="overlayMessage">Waiting for map selection...</span>
+          <div class="vgui-progress">
+            <div id="banProgressBar" class="vgui-progress-bar"></div>
+          </div>
+          <div id="banCountdown">TIME REMAINING</div>
         </div>
         <button class="mapvotebutton">de_dust</button>
         <button class="mapvotebutton">de_dust2</button>

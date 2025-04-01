@@ -179,11 +179,26 @@ nav .right-nav {
 
 /* Ban Countdown */
 #banCountdown {
-  margin-bottom: 10px;
-  font-size: 14px;
-  font-weight: bold;
+  color: #8a9a4d;
+  font-family: "Verdana", sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   text-align: center;
-  color: #E3E41F;
+  margin: 10px 0;
+}
+
+/* Add VGUI titlebar style */
+.vgui-titlebar {
+  background: #2d341d;
+  border-bottom: 2px solid #4d5c2c;
+  padding: 6px 12px;
+  font-family: "Verdana", sans-serif;
+  font-size: 14px;
+  color: #e3e41f;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  width: 100%;
 }
 
 /* CHAT BOX */
@@ -261,15 +276,58 @@ button:hover {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(8, 8, 8, 0.85);
-  color: #E3E41F;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 10;
-  font-size: 18px;
+  right: 0;
+  bottom: 0;
+  background: #1a1d12 url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQIW2NkQAKrVq36zwjjgzhhYWGMYAEYB8RmROaABADeOQ8CXl/xfgAAAABJRU5ErkJggg==');
+  border: 2px solid #4d5c2c;
+  z-index: 100;
   display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 12px rgba(0,0,0,0.5);
+}
+
+#overlayMessage {
+  color: #e3e41f;
+  font-family: "Verdana", sans-serif;
+  font-size: 14px;
+  text-shadow: 1px 1px 2px black;
+  padding: 20px;
+  background: #2d341d;
+  border: 1px solid #4d5c2c;
+  margin: 10px;
+  text-align: center;
+}
+
+/* Add VGUI-style progress bar */
+.vgui-progress {
+  width: 300px;
+  height: 16px;
+  background: #1a1d12;
+  border: 2px solid #4d5c2c;
+  margin: 15px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.vgui-progress-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(
+    to right,
+    #8a9a4d 0%,
+    #6d7c3d 50%,
+    #8a9a4d 100%
+  );
+  transition: width 0.3s ease;
+  animation: progress-pulse 1.5s infinite linear;
+}
+
+@keyframes progress-pulse {
+  0% { background-position: 0 0; }
+  100% { background-position: 300px 0; }
 }
