@@ -192,7 +192,8 @@ nav .right-nav {
 .vgui-titlebar {
   background: #2d341d;
   border-bottom: 2px solid #4d5c2c;
-  padding: 6px 12px;
+  padding: 4px 12px;
+  margin-bottom: 10px;
   font-family: "Verdana", sans-serif;
   font-size: 14px;
   color: #e3e41f;
@@ -287,29 +288,32 @@ button:hover {
   justify-content: center;
   box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
   padding: 20px;
+  gap: 8px;
 }
 
 #overlayMessage {
   color: #E3E41F;
   font-family: "Verdana", sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   text-shadow: 1px 1px 2px black;
-  padding: 12px 20px;
+  padding: 8px 20px;
   background: #080808;
   border: 1px solid #323232;
-  margin: 0 0 15px 0;
+  margin: 20px 0 10px 0;
   text-align: center;
   width: auto;
   max-width: 80%;
+  letter-spacing: 0.5px;
 }
 
 /* Add VGUI-style progress bar */
 .vgui-progress {
-  width: 300px;
-  height: 12px;
   background: #080808;
-  border: 1px solid #323232;
+  border: 2px solid #323232;
+  height: 16px;
+  width: 300px;
   margin: 15px auto;
+  padding: 2px; /* Add inner spacing */
   position: relative;
   overflow: hidden;
 }
@@ -317,20 +321,28 @@ button:hover {
 .vgui-progress-bar {
   position: absolute;
   left: 0;
-  top: 0;
-  bottom: 0;
+  top: 2px;
+  bottom: 2px;
   width: 100%;
-  background: #4D5C2C;
+  background: repeating-linear-gradient(
+    90deg,
+    #96892D 0%,
+    #96892D 8px, /* 8px gold bars */
+    #080808 8px, /* Immediate transition to black */
+    #080808 12px /* 4px black spacing (12px - 8px) */
+  );
+  background-size: 12px 100%; /* Total stripe pattern width */
+  height: 12px; /* Account for container padding */
   transition: width 0.3s ease;
-  animation: none; /* Disable default animation */
+  animation: progress-scroll 1s linear infinite paused;
 }
 
 /* Only animate during countdown */
 .vgui-progress-bar.animating {
-  animation: progress-pulse 1s linear infinite;
+  animation-play-state: running;
 }
 
-@keyframes progress-pulse {
+@keyframes progress-scroll {
   0% { background-position: 0 0; }
-  100% { background-position: 30px 0; }
+  100% { background-position: 12px 0; /* Move exactly one pattern width */ }
 }
