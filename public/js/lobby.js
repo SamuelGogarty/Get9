@@ -81,7 +81,6 @@ socket.on('countdownTick', ({ time, currentTurn }) => {
   const progressBar = document.getElementById('banProgressBar');
   const countdownText = document.getElementById('banCountdown');
   
-  progressBar.classList.add('animating');
   const percent = (time / 10) * 100;
   progressBar.style.width = `${percent}%`;
   countdownText.textContent = `${time} SECONDS REMAINING`;
@@ -108,7 +107,6 @@ socket.on('mapBanned', ({ mapName }) => {
   }
 
   const progressBar = document.getElementById('banProgressBar');
-  progressBar.classList.remove('animating');
   progressBar.style.width = '100%';
   document.getElementById('banCountdown').textContent = 'TIME REMAINING';
 });

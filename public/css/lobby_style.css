@@ -200,7 +200,12 @@ nav .right-nav {
   margin: 0;
   box-sizing: border-box;
   text-align: center;
-  position: static; /* Remove absolute positioning */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1; /* Keep above other overlay content */
+  border-bottom: 1px solid #323232; /* Add separator */
   font-family: "Verdana", sans-serif;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -292,6 +297,7 @@ button:hover {
   justify-content: center;
   box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
   padding: 0; /* Remove padding */
+  padding-top: 30px; /* Make space for titlebar */
   gap: 8px;
 }
 
@@ -299,6 +305,7 @@ button:hover {
 .overlay-content {
   width: 100%;
   padding: 20px;
+  padding-top: 30px; /* Match titlebar height */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -351,15 +358,5 @@ button:hover {
   height: 100%; /* Fill container */
   border-radius: 0; /* Remove rounded corners */
   transition: width 0.3s ease;
-  animation: progress-scroll 1s linear infinite paused;
-}
-
-/* Only animate during countdown */
-.vgui-progress-bar.animating {
-  animation-play-state: running;
-}
-
-@keyframes progress-scroll {
-  0% { background-position: 0 0; }
-  100% { background-position: 12px 0; /* Move exactly one pattern width */ }
+  animation: none !important; /* Remove all animations */
 }
