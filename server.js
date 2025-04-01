@@ -343,7 +343,8 @@ async function autoBan(lobbyId, currentTurn) {
     if (!lobby.serverCreated) {
       lobby.serverCreated = true;
       const finalMap = newRemaining[0];
-      const { port } = await createOrUpdateCsServerJob(lobbyId, finalMap);
+      const { port, jobName } = await createOrUpdateCsServerJob(lobbyId, finalMap);
+      lobby.jobName = jobName;
       io.to(lobbyId).emit('lobbyCreated', {
         serverIp: '192.168.2.69',
         serverPort: port,
@@ -369,6 +370,7 @@ io.on('connection', (socket) => {
   // joinLobby
   socket.on('joinLobby', async ({ lobbyId, userId }) => {
     socket.join(lobbyId);
+    socket.lobbyId = lobbyId;
     socket.lobbyId = lobbyId;
     if (!lobbies[lobbyId]) {
       lobbies[lobbyId] = {
@@ -701,7 +703,8 @@ io.on('connection', (socket) => {
       if (!lobby.serverCreated) {
         lobby.serverCreated = true;
         const finalMap = remainingMaps[0];
-        const { port } = await createOrUpdateCsServerJob(lobbyId, finalMap);
+        const { port, jobName } = await createOrUpdateCsServerJob(lobbyId, finalMap);
+        lobby.jobName = jobName;
         io.to(lobbyId).emit('lobbyCreated', {
           serverIp: '192.168.2.69',
           serverPort: port,
@@ -721,13 +724,44 @@ io.on('connection', (socket) => {
   // Disconnection
   socket.on('disconnect', async () => {
     console.log(`Socket ${socket.id} disconnected.`);
-    const db = await mysql.createConnection(dbConfigMatchmaking);
+    const lobbyId = socket.lobbyId;
+    
     try {
+      const db = await mysql.createConnection(dbConfigMatchmaking);
       const [players] = await db.query('SELECT * FROM players WHERE socket_id = ?', [socket.id]);
+      
       if (players.length > 0) {
         const player = players[0];
         await db.query('DELETE FROM queue WHERE player_id = ?', [player.id]);
         console.log(`Player ${player.name} removed from queue.`);
+
+        // Remove player from in-memory lobby state
+        if (lobbyId && lobbies[lobbyId]) {
+          const lobby = lobbies[lobbyId];
+          lobby.players = lobby.players.filter(p => p.socket_id !== socket.id);
+          
+          // Clean up lobby if empty
+          if (lobby.players.length === 0) {
+            // Stop any active ban timer
+            if (banTimers[lobbyId]) {
+              clearTimeout(banTimers[lobbyId].timer);
+              delete banTimers[lobbyId];
+            }
+            
+            // Delete Kubernetes job if created
+            if (lobby.serverCreated && lobby.jobName) {
+              try {
+                await k8sBatchApi.deleteNamespacedJob(lobby.jobName, 'default');
+                console.log(`Deleted abandoned job: ${lobby.jobName}`);
+              } catch (error) {
+                console.error('Error deleting job:', error.body || error);
+              }
+            }
+            
+            delete lobbies[lobbyId];
+            console.log(`Lobby ${lobbyId} cleaned up due to empty players`);
+          }
+        }
       }
     } catch (error) {
       console.error('Error on disconnect:', error);
