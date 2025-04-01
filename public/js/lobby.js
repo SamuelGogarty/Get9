@@ -13,6 +13,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentUserId = user.id;
     document.getElementById('navbarUsername').textContent = user.username;
     document.getElementById('navbarProfile').src = user.profilePictureUrl;
+    
+    // Add ELO fetch
+    const eloRes = await fetch('/user/skill');
+    if (eloRes.ok) {
+      const eloData = await eloRes.json();
+      document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill}`;
+    }
   } catch (e) {
     console.error(e);
     return;
@@ -39,6 +46,7 @@ socket.on('lobbyReady', ({ teams, currentTurn, players }) => {
       row.innerHTML = `
         <img src="${player.profile_picture}" class="profile-pic" alt="Profile">
         <div class="player-name">${player.name}${player.captain ? " (Captain)" : ""}</div>
+        <div class="player-elo">${player.elo || 'N/A'}</div>
       `;
       container.appendChild(row);
 

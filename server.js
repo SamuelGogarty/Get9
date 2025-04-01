@@ -435,7 +435,8 @@ io.on('connection', (socket) => {
         profile_picture: p.profile_picture || DEFAULT_PROFILE_PICTURE,
         team: p.team,
         steam_id: p.steam_id,
-        email: p.email
+        email: p.email,
+        elo: p.elo || 1000 // Add ELO value
       }));
       socket.emit('lobbyReady', {
         lobbyId,
