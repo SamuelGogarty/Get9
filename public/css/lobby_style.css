@@ -72,6 +72,16 @@ nav .right-nav {
   gap: 8px;
 }
 
+.nav-player-name .elo-display {
+  color: #bb86fc;
+  font-size: 12px;
+  margin-left: 8px;
+  padding: 2px 6px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid #363636;
+  border-radius: 3px;
+}
+
 .nav-player-name img {
   width: 20px;
   height: 20px;
@@ -127,6 +137,20 @@ nav .right-nav {
   height: 32px;
   object-fit: contain;
   border: solid 2px #7b8484;
+  margin-right: 8px;
+}
+
+.player-elo {
+  background: #080808;
+  border: 1px solid #323232;
+  color: #bb86fc;
+  padding: 4px 8px;
+  font-size: 12px;
+  margin-left: auto;
+  min-width: 60px;
+  text-align: center;
+  font-family: 'Verdana', sans-serif;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
 .player-name {
