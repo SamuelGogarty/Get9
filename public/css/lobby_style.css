@@ -144,10 +144,10 @@ nav .right-nav {
   background: #080808;
   border: 1px solid #323232;
   color: #d8ded3; /* Changed from #bb86fc to match player names */
-  padding: 4px 8px;
-  font-size: 12px;
-  margin-left: auto;
-  min-width: 60px;
+  padding: 4px 6px; /* Reduced horizontal padding from 8px */
+  font-size: 11px; /* Slightly smaller font */
+  margin-left: 8px; /* Reduced spacing from name */
+  min-width: 50px; /* Reduced from 60px */
   text-align: center;
   font-family: 'Verdana', sans-serif;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
