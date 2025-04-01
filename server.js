@@ -725,9 +725,10 @@ io.on('connection', (socket) => {
   socket.on('disconnect', async () => {
     console.log(`Socket ${socket.id} disconnected.`);
     const lobbyId = socket.lobbyId;
+    let db = null; // Declare db outside try block
     
     try {
-      const db = await mysql.createConnection(dbConfigMatchmaking);
+      db = await mysql.createConnection(dbConfigMatchmaking);
       const [players] = await db.query('SELECT * FROM players WHERE socket_id = ?', [socket.id]);
       
       if (players.length > 0) {
@@ -766,7 +767,9 @@ io.on('connection', (socket) => {
     } catch (error) {
       console.error('Error on disconnect:', error);
     } finally {
-      await db.end();
+      if (db) { // Only end connection if it was established
+        await db.end();
+      }
     }
   });
 });
