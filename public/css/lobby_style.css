@@ -238,7 +238,7 @@ nav .right-nav {
 /* CHAT BOX */
 .window ul {
   flex: 1;
-  min-height: 140px; /* Increased space for messages */
+  min-height: 40px; /* Reduced from 140px */
   overflow-y: auto;
   padding: 0;
   margin: 0 0 10px 0;
@@ -295,6 +295,7 @@ button:hover {
 .chat-input-row {
   display: flex;
   gap: 8px;
+  height: 40px;
 }
 
 .chat-input-row input[type="text"] {
@@ -310,9 +311,9 @@ button:hover {
 .lobby-grid > .window:nth-child(4), /* Team Chat */
 .lobby-grid > .window:nth-child(6) { /* Public Chat */
   align-self: start;
-  min-height: 60px; /* Increased minimum height when empty */
-  max-height: 400px; /* Increased maximum height before scrolling */
-  height: auto; /* Let content dictate height */
+  min-height: 120px; /* Reduced from 200px */
+  max-height: 400px;
+  height: auto;
   display: flex;
   flex-direction: column;
 }
