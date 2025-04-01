@@ -15,10 +15,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('navbarProfile').src = user.profilePictureUrl;
     
     // Add ELO fetch
-    const eloRes = await fetch('/user/skill');
-    if (eloRes.ok) {
-      const eloData = await eloRes.json();
-      document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill}`;
+    try {
+      const eloRes = await fetch('/user/skill');
+      if (eloRes.ok) {
+        const eloData = await eloRes.json();
+        document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
+      } else {
+        document.getElementById('navbarElo').textContent = 'ELO: 0';
+      }
+    } catch (error) {
+      console.error('ELO fetch failed:', error);
+      document.getElementById('navbarElo').textContent = 'ELO: 0';
     }
   } catch (e) {
     console.error(e);
