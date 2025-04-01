@@ -306,9 +306,16 @@ button:hover {
 }
 
 /* Prevent one chat window from affecting the other's height */
-.lobby-grid > .window:nth-child(4),
-.lobby-grid > .window:nth-child(6) {
+.lobby-grid > .window:nth-child(4), /* Team chat */
+.lobby-grid > .window:nth-child(6) { /* Public chat */
+  align-self: stretch; /* Allow these to grow vertically */
+}
+
+/* Target server info window */
+.lobby-grid > .window:nth-child(5) {  
   align-self: start;
+  height: auto;
+  min-height: 120px; /* Match original design height */
 }
 
 /* Prevent message overflow */
