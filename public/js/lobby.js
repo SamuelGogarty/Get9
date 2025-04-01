@@ -80,10 +80,17 @@ function updateOverlayAndCountdown(currentTurn) {
 socket.on('countdownTick', ({ time, currentTurn }) => {
   const progressBar = document.getElementById('banProgressBar');
   const countdownText = document.getElementById('banCountdown');
-  const percent = (time / 10) * 100;
   
+  progressBar.classList.add('animating');
+  const percent = (time / 10) * 100;
   progressBar.style.width = `${percent}%`;
   countdownText.textContent = `${time} SECONDS REMAINING`;
+  
+  // Update overlay message based on turn
+  const message = document.getElementById('overlayMessage');
+  message.textContent = currentTurn === myTeam ?
+    "YOUR CAPTAIN IS CHOOSING A BAN" : 
+    "WAITING FOR OPPOSING CAPTAIN";
   
   if (currentTurn === myTeam && isCaptain) {
     document.getElementById('mapVoteOverlay').style.display = 'none';
@@ -100,7 +107,9 @@ socket.on('mapBanned', ({ mapName }) => {
     btn.style.opacity = '0.5';
   }
 
-  document.getElementById('banProgressBar').style.width = '100%';
+  const progressBar = document.getElementById('banProgressBar');
+  progressBar.classList.remove('animating');
+  progressBar.style.width = '100%';
   document.getElementById('banCountdown').textContent = 'TIME REMAINING';
 });
 
@@ -109,6 +118,10 @@ document.querySelectorAll('.mapvotebutton').forEach(btn => {
   btn.addEventListener('click', () => {
     if (btn.disabled) return;
     if (document.getElementById('mapVoteOverlay').style.display !== 'none') return;
+    
+    const progressBar = document.getElementById('banProgressBar');
+    progressBar.classList.remove('animating');
+    
     const mapName = btn.textContent.trim();
     const lobbyId = localStorage.getItem('currentLobbyId');
     socket.emit('mapSelected', { lobbyId, mapName });
