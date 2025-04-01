@@ -46,7 +46,7 @@ socket.on('lobbyReady', ({ teams, currentTurn, players }) => {
       row.innerHTML = `
         <img src="${player.profile_picture}" class="profile-pic" alt="Profile">
         <div class="player-name">${player.name}${player.captain ? " (Captain)" : ""}</div>
-        <div class="player-elo">${player.elo || 'N/A'}</div>
+        <div class="player-elo">${player.elo}</div>
       `;
       container.appendChild(row);
 

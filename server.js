@@ -429,23 +429,18 @@ io.on('connection', (socket) => {
     if (lobby && lobby.players) {
       // Transform player data and ensure fallback image is used if needed.
       const transformedPlayers = await Promise.all(lobby.players.map(async (p) => {
-        // Fetch fresh ELO data from stats DB for each player
+        // Fetch fresh ELO data using proper identifiers
         const dbStats = await mysql.createConnection(dbConfigStats);
         const [eloRows] = await dbStats.query(
           'SELECT skill FROM ultimate_stats WHERE steamid = ? OR name = ?',
-          [p.steam_id, p.email]
+          [p.steam_id || '', p.name || '']  // Handle potential null values
         );
         await dbStats.end();
 
         return {
-          user_id: p.user_id,
-          id: p.id,
-          name: p.name,
+          ...p,  // Spread existing player properties
           profile_picture: p.profile_picture || DEFAULT_PROFILE_PICTURE,
-          team: p.team,
-          steam_id: p.steam_id,
-          email: p.email,
-          elo: eloRows[0]?.skill || 1000 // Use actual ELO value
+          elo: eloRows[0]?.skill || 1000
         };
       }));
       socket.emit('lobbyReady', {
