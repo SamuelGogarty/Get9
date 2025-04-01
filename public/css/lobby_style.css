@@ -293,7 +293,10 @@ button {
 #sendTeamMessage, #sendPublicMessage {
   height: 28px; /* Match input field height */
   padding: 5px 15px; /* Match map button padding */
-  margin-top: 10px; /* Align with map button spacing */
+  margin-top: 0 !important; /* Remove top margin */
+  display: flex;
+  align-items: center; /* Center text vertically */
+  justify-content: center; /* Center text horizontally */
 }
 
 button:hover {
@@ -312,18 +315,20 @@ button:hover {
 .chat-input-row {
   display: flex;
   gap: 8px;
+  align-items: center; /* Vertically center items */
   height: 40px;
-  margin-top: 15px; /* Added top margin */
-  margin-bottom: 10px; /* Added bottom margin */
+  margin: 15px 0 10px 0; /* Adjusted margins */
 }
 
 .chat-input-row input[type="text"] {
+  height: 28px; /* Match button height */
+  margin-top: 0; /* Remove top margin */
+  padding: 5px 10px; /* Add vertical padding */
   flex: 1;
-  margin-top: 10px;
 }
 
 .chat-input-row button {
-  margin-top: 10px;
+  margin-top: 0; /* Remove top margin */
 }
 
 /* Change the grid alignment and height constraints */
