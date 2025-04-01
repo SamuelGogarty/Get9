@@ -143,7 +143,7 @@ nav .right-nav {
 .player-elo {
   background: #080808;
   border: 1px solid #323232;
-  color: #bb86fc;
+  color: #d8ded3; /* Changed from #bb86fc to match player names */
   padding: 4px 8px;
   font-size: 12px;
   margin-left: auto;

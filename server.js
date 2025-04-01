@@ -605,9 +605,22 @@ io.on('connection', (socket) => {
     const groupedPlayers = {};
     for (const queued of matchmakingQueue) {
       const [playerData] = await db.query('SELECT * FROM players WHERE id = ?', [queued.playerId]);
-      const groupId = playerData[0].group_id || `solo_${playerData[0].id}`;
+      
+      // Add ELO fetch from stats database
+      const dbStats = await mysql.createConnection(dbConfigStats);
+      const [eloRows] = await dbStats.query('SELECT skill FROM ultimate_stats WHERE steamid = ? OR name = ?', 
+        [playerData[0].steam_id, playerData[0].email]);
+      await dbStats.end();
+      
+      // Create player object with ELO
+      const playerWithElo = {
+        ...playerData[0],
+        elo: eloRows[0]?.skill || 1000
+      };
+      
+      const groupId = playerWithElo.group_id || `solo_${playerWithElo.id}`;
       if (!groupedPlayers[groupId]) groupedPlayers[groupId] = [];
-      groupedPlayers[groupId].push(playerData[0]);
+      groupedPlayers[groupId].push(playerWithElo); // Push the playerWithElo object instead
     }
     // For normal use, set requiredPlayers to an even number (e.g., 10)
     const requiredPlayers = 2;
