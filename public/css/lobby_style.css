@@ -242,7 +242,7 @@ nav .right-nav {
   max-height: calc(100% - 70px); /* More dynamic calculation */
   overflow-y: auto;
   padding: 0;
-  margin: 0 0 40px 0; /* Increased bottom margin for more space above input */
+  margin: 0 0 30px 0; /* Changed from 40px to 30px */
   list-style-type: disc;
   padding-left: 18px;
 }
@@ -317,7 +317,7 @@ button:hover {
   gap: 8px;
   align-items: center; /* Vertically center items */
   height: 40px;
-  margin: 15px 0 15px 0; /* Increased bottom margin */
+  margin: 15px 0 10px 0; /* Changed bottom margin from 15px to 10px */
 }
 
 .chat-input-row input[type="text"] {
