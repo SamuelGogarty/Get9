@@ -242,7 +242,7 @@ nav .right-nav {
   max-height: calc(100% - 70px); /* More dynamic calculation */
   overflow-y: auto;
   padding: 0;
-  margin: 0 0 35px 0; /* Increased bottom margin from 25px to 35px */
+  margin: 0 0 40px 0; /* Increased bottom margin for more space above input */
   list-style-type: disc;
   padding-left: 18px;
 }
@@ -317,7 +317,7 @@ button:hover {
   gap: 8px;
   align-items: center; /* Vertically center items */
   height: 40px;
-  margin: 15px 0 10px 0; /* Adjusted margins */
+  margin: 15px 0 15px 0; /* Increased bottom margin */
 }
 
 .chat-input-row input[type="text"] {
@@ -335,12 +335,12 @@ button:hover {
 .lobby-grid > .window:nth-child(4), /* Team Chat */
 .lobby-grid > .window:nth-child(6) { /* Public Chat */
   align-self: start;
-  min-height: 160px;
-  max-height: 360px; /* Increased from 270px to allow 10 messages + spacing */
+  min-height: 180px; /* Increased default height */
+  max-height: 400px; /* Increased max height */
   height: auto;
   display: flex;
   flex-direction: column;
-  padding-bottom: 15px; /* Added bottom padding */
+  padding-bottom: 20px; /* Increased bottom padding */
 }
 
 /* Ensure chat content scrolls independently */
