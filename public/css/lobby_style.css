@@ -358,7 +358,7 @@ button:hover {
 .lobby-grid > .window:nth-child(5) {  
   align-self: start;
   height: auto;
-  min-height: 150px; /* Slightly increased height */
+  min-height: 160px; /* Slightly increased height */
 }
 
 /* Prevent message overflow */
