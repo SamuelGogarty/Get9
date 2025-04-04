@@ -195,26 +195,41 @@
         document.querySelector('.loading-spinner').style.display = 'block';
         
         const response = await fetch(`/api/player/${playerId}/stats`);
+        if (!response.ok) throw new Error(`Failed to load stats: ${response.status}`);
         const data = await response.json();
 
-        // Calculate derived stats
-        data.kd_ratio = (data.kills / data.deaths).toFixed(2);
-        data.hs_percent = ((data.hs_kills / data.kills) * 100).toFixed(1);
-        data.accuracy = ((data.hits / data.shots) * 100).toFixed(1);
-        data.dpr = (data.damage / data.rounds).toFixed(0);
+        // Calculation helper with safe defaults
+        const safeCalc = (numerator, denominator, fixed = 2) => 
+          (denominator > 0 ? (numerator / denominator) : 0).toFixed(fixed);
+
+        // Derived stats
+        data.kd_ratio = safeCalc(data.kills, data.deaths);
+        data.hs_percent = safeCalc(data.hs_kills, data.kills) * 100;
+        data.accuracy = safeCalc(data.hits, data.shots) * 100;
+        data.dpr = safeCalc(data.damage, data.rounds, 0);
         data.total_wins = data.wins_ct + data.wins_t;
-        data.time_played = `${Math.floor(data.time / 3600)}h ${Math.floor((data.time % 3600) / 60)}m`;
-        data.adr = (data.damage / data.rounds).toFixed(0);
-        data.kast = ((data.kills + data.assists + data.survived + data.trade_kills) / data.rounds * 100).toFixed(1);
-        data.clutch_success = ((data.clutch_wins / data.clutch_attempts) * 100).toFixed(1) || 0;
-        data.survival_rate = ((data.survived / data.rounds) * 100).toFixed(1);
+        data.time_played = data.time ? 
+          `${Math.floor(data.time / 3600)}h ${Math.floor((data.time % 3600) / 60)}m` : 
+          '0h 0m';
+        data.adr = safeCalc(data.damage, data.rounds, 0);
+        data.kast = safeCalc(
+          data.kills + data.assists + data.survived + data.trade_kills,
+          data.rounds
+        ) * 100;
+        data.clutch_success = safeCalc(data.clutch_wins, data.clutch_attempts) * 100;
+        data.survival_rate = safeCalc(data.survived, data.rounds) * 100;
 
         const template = document.getElementById('statsTemplate').innerHTML;
         const rendered = Mustache.render(template, data);
         document.getElementById('statsContent').innerHTML = rendered;
       } catch (error) {
         console.error('Stats load error:', error);
-        document.getElementById('statsContent').innerHTML = '<p>Error loading stats</p>';
+        document.getElementById('statsContent').innerHTML = `
+          <div class="error-message">
+            ${error.message}<br>
+            <small>If this persists, check if your account has played any matches</small>
+          </div>
+        `;
       } finally {
         document.querySelector('.loading-spinner').style.display = 'none';
       }

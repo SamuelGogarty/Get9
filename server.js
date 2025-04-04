@@ -299,27 +299,62 @@ app.get('/api/player/:id/stats', ensureAuthenticated, async (req, res) => {
       [user] = await dbMatchmaking.query('SELECT * FROM users WHERE id = ?', [req.params.id]);
     }
 
-    if (!user.length) return res.status(404).json({ error: 'User not found' });
+    if (!user.length) {
+      await dbMatchmaking.end();
+      await dbStats.end();
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-    // Get stats
+    // Get proper identifier based on account type
+    const userData = user[0];
+    const identifier = userData.steam_id || userData.email;
+    const identifierType = userData.steam_id ? 'steamid' : 'email';
+
+    // Get stats with proper identifier
     const [stats] = await dbStats.query(
       `SELECT * FROM ultimate_stats 
-       WHERE steamid = ? OR name = ? 
+       WHERE ${identifierType} = ?
        ORDER BY last_visit DESC LIMIT 1`,
-      [user[0].steam_id, user[0].username]
+      [identifier]
     );
 
     await dbMatchmaking.end();
     await dbStats.end();
 
-    res.json({
-      ...user[0],
-      ...(stats[0] || {}),
-      profile_picture: user[0].profile_picture || DEFAULT_PROFILE_PICTURE
-    });
+    // Create response with safe defaults
+    const response = {
+      // User info
+      id: userData.id,
+      name: userData.username,
+      profile_picture: userData.profile_picture || DEFAULT_PROFILE_PICTURE,
+      
+      // Stats with fallbacks
+      skill: stats[0]?.skill || 0,
+      kills: stats[0]?.kills || 0,
+      deaths: stats[0]?.deaths || 1, // Prevent division by zero
+      hs_kills: stats[0]?.hs_kills || 0,
+      hits: stats[0]?.hits || 0,
+      shots: stats[0]?.shots || 1,
+      rounds: stats[0]?.rounds || 1,
+      time: stats[0]?.time || 0,
+      wins_ct: stats[0]?.wins_ct || 0,
+      wins_t: stats[0]?.wins_t || 0,
+      planted: stats[0]?.planted || 0,
+      defused: stats[0]?.defused || 0,
+      assists: stats[0]?.assists || 0,
+      revenges: stats[0]?.revenges || 0,
+      survived: stats[0]?.survived || 0,
+      trade_kills: stats[0]?.trade_kills || 0,
+      damage: stats[0]?.damage || 0
+    };
+
+    res.json(response);
   } catch (error) {
     console.error('Player stats error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ 
+      error: 'Server error',
+      details: error.message
+    });
   }
 });
 // Admin
