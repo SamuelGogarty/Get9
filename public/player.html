@@ -108,75 +108,13 @@
             </div>
             
             <!-- Stats template -->
-            <script id="statsTemplate" type="x-tmpl-mustache">
-              <div class="stats-header">
-                <img src="{{profile_picture}}" class="stats-picture">
-                <div>
-                  <h2>{{name}}</h2>
-                  <div class="elo-display">ELO: {{skill}}</div>
-                </div>
+            <div class="stats-header">
+              <img id="playerProfilePic" src="/img/fallback-pfp.png" class="stats-picture">
+              <div>
+                <h2 id="playerName"></h2>
+                <div class="elo-display" id="playerElo">ELO: 0</div>
               </div>
-              
-              <div class="stats-grid">
-                <div class="stat-group">
-                  <h3>Combat Performance</h3>
-                  <div class="stat-row">
-                    <span class="stat-label">K/D Ratio</span>
-                    <span class="stat-value">{{kd_ratio}}</span>
-                  </div>
-                  <div class="stat-row">
-                    <span class="stat-label">Headshot %</span>
-                    <span class="stat-value">{{hs_percent}}%</span>
-                  </div>
-                  <div class="stat-row">
-                    <span class="stat-label">Accuracy</span>
-                    <span class="stat-value">{{accuracy}}%</span>
-                  </div>
-                  <div class="stat-row">
-                    <span class="stat-label">Damage/Round</span>
-                    <span class="stat-value">{{dpr}}</span>
-                  </div>
-                </div>
-
-                <div class="stat-group">
-                  <h3>Match Statistics</h3>
-                  <div class="stat-row">
-                    <span class="stat-label">Total Wins</span>
-                    <span class="stat-value">{{total_wins}}</span>
-                  </div>
-                  <div class="stat-row">
-                    <span class="stat-label">Rounds Played</span>
-                    <span class="stat-value">{{rounds}}</span>
-                  </div>
-                  <div class="stat-row">
-                    <span class="stat-label">Time Played</span>
-                    <span class="stat-value">{{time_played}}</span>
-                  </div>
-                  <div class="stat-row">
-                    <span class="stat-label">Bombs Planted</span>
-                    <span class="stat-value">{{planted}}</span>
-                  </div>
-                </div>
-
-                <div class="stat-group">
-                  <h3>Advanced Metrics</h3>
-                  <div class="stat-row">
-                    <span class="stat-label">ADR</span>
-                    <span class="stat-value">{{adr}}</span>
-                  </div>
-                </div>
-                
-                <div class="stat-group">
-                  <h3>Weapon Stats</h3>
-                  {{#weapons}}
-                  <div class="stat-row">
-                    <span class="stat-label">{{weapon}}</span>
-                    <span class="stat-value">{{kills}} K / {{deaths}} D</span>
-                  </div>
-                  {{/weapons}}
-                </div>
-              </div>
-            </script>
+            </div>
           </div>
         </div>
       </div>
@@ -186,7 +124,6 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/4.2.0/mustache.min.js"></script>
   <script>
     async function loadPlayerStats(playerId) {
       try {
@@ -196,29 +133,10 @@
         if (!response.ok) throw new Error(`Failed to load stats: ${response.status}`);
         const data = await response.json();
 
-        // Calculation helper with safe defaults
-        const safeCalc = (numerator, denominator, fixed = 2) => 
-          (denominator > 0 ? (numerator / denominator) : 0).toFixed(fixed);
-
-        // Derived stats
-        data.kd_ratio = safeCalc(data.kills, data.deaths);
-        data.hs_percent = safeCalc(data.hs_kills, data.kills) * 100;
-        data.accuracy = safeCalc(data.hits, data.shots) * 100;
-        data.dpr = safeCalc(data.damage, data.rounds, 0);
-        data.total_wins = (data.wins_ct || 0) + (data.wins_t || 0);
-        data.time_played = data.time ? 
-          `${Math.floor(data.time / 3600)}h ${Math.floor((data.time % 3600) / 60)}m` : 
-          '0h 0m';
-        data.adr = safeCalc(data.damage, data.rounds, 0);
-        
-        // Remove unsupported stats
-        delete data.kast;
-        delete data.clutch_success;
-        delete data.survival_rate;
-
-        const template = document.getElementById('statsTemplate').innerHTML;
-        const rendered = Mustache.render(template, data);
-        document.getElementById('statsContent').innerHTML = rendered;
+        // Directly set values
+        document.getElementById('playerName').textContent = data.name;
+        document.getElementById('playerElo').textContent = `ELO: ${data.skill.toFixed(0)}`;
+        document.getElementById('playerProfilePic').src = data.profile_picture;
       } catch (error) {
         console.error('Stats load error:', error);
         document.getElementById('statsContent').innerHTML = `
