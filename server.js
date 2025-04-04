@@ -15,6 +15,17 @@ const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 
+// Steam ID conversion utility
+function steam64ToLegacy(steamId64) {
+  const steamId = BigInt(steamId64);
+  const universe = steamId >> 56n;
+  const base = 76561197960265728n;
+  const diff = steamId - base;
+  const y = diff % 2n;
+  const z = (diff - y) / 2n;
+  return `STEAM_${universe}:${y}:${z}`;
+}
+
 // Read captain configuration from captains.json
 let captainConfig = { steamIds: [], emails: [] };
 try {
@@ -307,8 +318,15 @@ app.get('/api/player/:id/stats', ensureAuthenticated, async (req, res) => {
 
     // Get proper identifier based on account type
     const userData = user[0];
-    const identifier = userData.steam_id || userData.username;
-    const identifierType = userData.steam_id ? 'steamid' : 'name';
+    let identifier;
+    let identifierType;
+    if (userData.steam_id) {
+      identifier = steam64ToLegacy(userData.steam_id);
+      identifierType = 'steamid';
+    } else {
+      identifier = userData.username;
+      identifierType = 'name';
+    }
 
     // Get stats with proper identifier
     const [stats] = await dbStats.query(
