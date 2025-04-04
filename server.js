@@ -356,11 +356,11 @@ app.get('/api/player/:id/stats', ensureAuthenticated, async (req, res) => {
       // Stats with fallbacks
       skill: stats[0]?.skill || 0,
       kills: stats[0]?.kills || 0,
-      deaths: stats[0]?.deaths || 1, // Prevent division by zero
+      deaths: stats[0]?.deaths || 0,
       hs_kills: stats[0]?.hs_kills || 0,
       hits: stats[0]?.hits || 0,
-      shots: stats[0]?.shots || 1,
-      rounds: stats[0]?.rounds || 1,
+      shots: stats[0]?.shots || 1, // Prevent division by zero
+      rounds: stats[0]?.rounds || 0,
       time: stats[0]?.time || 0,
       wins_ct: stats[0]?.wins_ct || 0,
       wins_t: stats[0]?.wins_t || 0,
@@ -371,6 +371,7 @@ app.get('/api/player/:id/stats', ensureAuthenticated, async (req, res) => {
       survived: stats[0]?.survived || 0,
       trade_kills: stats[0]?.trade_kills || 0,
       damage: stats[0]?.damage || 0,
+      team_kills: stats[0]?.team_kills || 0,
       
       // Weapon stats
       weapons: weapons || []
