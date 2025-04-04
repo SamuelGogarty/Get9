@@ -338,7 +338,12 @@ app.get('/api/player/:id/stats', ensureAuthenticated, async (req, res) => {
     
     // Add weapon stats if available
     const [weapons] = await dbStats.query(
-      `SELECT * FROM ultimate_stats_weapons 
+      `SELECT 
+         weapon AS weapon,
+         kills AS kills,
+         hs_kills AS hs_kills,
+         damage AS damage
+       FROM ultimate_stats_weapons 
        WHERE player_id = ?`,
       [stats[0]?.id || 0]
     );

@@ -278,19 +278,39 @@
         const hoursPlayed = Math.floor(data.time / 3600);
         document.getElementById('statTime').textContent = `${hoursPlayed}h`;
         
+        // Format weapon names for display
+        const formatWeaponName = (weaponKey) => {
+          const weaponMap = {
+            weapon_ak47: 'AK-47',
+            weapon_m4a1: 'M4A1',
+            weapon_awp: 'AWP',
+            weapon_deagle: 'Desert Eagle',
+            weapon_glock18: 'Glock 18',
+            weapon_usp: 'USP',
+            weapon_hegrenade: 'HE Grenade',
+            weapon_knife: 'Knife',
+            weapon_fiveseven: 'Five-Seven',
+            weapon_elite: 'Dual Berettas',
+            weapon_m249: 'M249',
+            weapon_galil: 'Galil',
+            weapon_famas: 'FAMAS'
+          };
+          return weaponMap[weaponKey] || weaponKey.replace('weapon_', '').toUpperCase();
+        };
+        
         // Populate weapon stats
         const weaponsGrid = document.getElementById('weaponsGrid');
         weaponsGrid.innerHTML = data.weapons.map(weapon => `
-          <div class="stat-group">
-            <div class="stat-row">
-              <span class="stat-label">${weapon.weapon_name}</span>
+          <div class="stat-group" style="padding: 10px; margin: 5px 0;">
+            <div class="stat-row" style="padding: 5px 0;">
+              <span class="stat-label">${formatWeaponName(weapon.weapon)} Kills</span>
               <span class="stat-value">${weapon.kills}</span>
             </div>
-            <div class="stat-row">
+            <div class="stat-row" style="padding: 5px 0;">
               <span class="stat-label">Headshots</span>
               <span class="stat-value">${weapon.hs_kills}</span>
             </div>
-            <div class="stat-row">
+            <div class="stat-row" style="padding: 5px 0;">
               <span class="stat-label">Damage</span>
               <span class="stat-value">${weapon.damage}</span>
             </div>
