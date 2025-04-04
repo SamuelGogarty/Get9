@@ -163,6 +163,17 @@ nav .right-nav {
   padding: 5px 8px;
 }
 
+.player-profile-link {
+  color: #E3E41F;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.player-profile-link:hover {
+  color: #FFFFFF;
+  text-decoration: underline;
+}
+
 /* MAP VOTE BUTTONS */
 .mapvotebutton,
 #connectServerBtn {
