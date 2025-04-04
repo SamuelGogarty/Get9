@@ -328,12 +328,12 @@ app.get('/api/player/:id/stats', ensureAuthenticated, async (req, res) => {
       identifierType = 'name';
     }
 
-    // Get stats with proper identifier
+    // Get stats with proper identifier - check both steamid AND name like the ELO query
     const [stats] = await dbStats.query(
       `SELECT * FROM ultimate_stats 
-       WHERE ${identifierType} = ?
+       WHERE steamid = ? OR name = ?
        ORDER BY last_visit DESC LIMIT 1`,
-      [identifier]
+      [identifier, userData.username]
     );
     
     // Add weapon stats if available
