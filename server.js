@@ -284,6 +284,44 @@ app.get('/user/skill', ensureAuthenticated, async (req, res) => {
     await db.end();
   }
 });
+
+// Player stats API endpoint
+app.get('/api/player/:id/stats', ensureAuthenticated, async (req, res) => {
+  try {
+    const dbMatchmaking = await mysql.createConnection(dbConfigMatchmaking);
+    const dbStats = await mysql.createConnection(dbConfigStats);
+
+    // Get user info
+    let user;
+    if (req.params.id === 'me') {
+      [user] = await dbMatchmaking.query('SELECT * FROM users WHERE id = ?', [req.user.id]);
+    } else {
+      [user] = await dbMatchmaking.query('SELECT * FROM users WHERE id = ?', [req.params.id]);
+    }
+
+    if (!user.length) return res.status(404).json({ error: 'User not found' });
+
+    // Get stats
+    const [stats] = await dbStats.query(
+      `SELECT * FROM ultimate_stats 
+       WHERE steamid = ? OR name = ? 
+       ORDER BY last_visit DESC LIMIT 1`,
+      [user[0].steam_id, user[0].username]
+    );
+
+    await dbMatchmaking.end();
+    await dbStats.end();
+
+    res.json({
+      ...user[0],
+      ...(stats[0] || {}),
+      profile_picture: user[0].profile_picture || DEFAULT_PROFILE_PICTURE
+    });
+  } catch (error) {
+    console.error('Player stats error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 // Admin
 app.get('/admin', ensureAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Player Stats</title>
+  <link rel="stylesheet" href="/css/lobby_style.css">
+  <style>
+    .stats-container {
+      max-width: 1000px;
+      margin: 20px auto;
+      display: grid;
+      grid-template-columns: 1fr 3fr 1fr;
+      gap: 20px;
+      padding: 0 15px;
+    }
+
+    .ad-column {
+      background: #2a2a2a;
+      min-height: 100vh;
+      border: 1px solid #404040;
+    }
+
+    .stats-main {
+      background: #1a1a1a;
+      padding: 20px;
+    }
+
+    .stats-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #E3E41F;
+    }
+
+    .stats-picture {
+      width: 100px;
+      height: 100px;
+      border: 2px solid #E3E41F;
+      border-radius: 4px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .stat-group {
+      background: #252525;
+      padding: 15px;
+      border: 1px solid #404040;
+    }
+
+    .stat-group h3 {
+      color: #E3E41F;
+      border-bottom: 1px solid #404040;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #333;
+    }
+
+    .stat-label {
+      color: #888;
+    }
+
+    .stat-value {
+      color: #fff;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/lobby.html">Lobby</a></li>
+        <li class="right-nav">
+          <div class="nav-player-name">
+            <img id="navbarProfile" src="/img/fallback-pfp.png" alt="Avatar">
+            <span id="navbarUsername">Player Name</span>
+            <span id="navbarElo" class="elo-display">ELO: 0</span>
+          </div>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="stats-container">
+      <div class="ad-column"></div>
+      
+      <div class="stats-main">
+        <div class="window">
+          <div class="vgui-titlebar">PLAYER STATISTICS</div>
+          <div id="statsContent">
+            <!-- Loading spinner -->
+            <div class="loading-spinner" style="display: none;">
+              <div class="spinner"></div>
+              Loading player stats...
+            </div>
+            
+            <!-- Stats template -->
+            <script id="statsTemplate" type="x-tmpl-mustache">
+              <div class="stats-header">
+                <img src="{{profile_picture}}" class="stats-picture">
+                <div>
+                  <h2>{{name}}</h2>
+                  <div class="elo-display">ELO: {{skill}}</div>
+                </div>
+              </div>
+              
+              <div class="stats-grid">
+                <div class="stat-group">
+                  <h3>Combat Performance</h3>
+                  <div class="stat-row">
+                    <span class="stat-label">K/D Ratio</span>
+                    <span class="stat-value">{{kd_ratio}}</span>
+                  </div>
+                  <div class="stat-row">
+                    <span class="stat-label">Headshot %</span>
+                    <span class="stat-value">{{hs_percent}}%</span>
+                  </div>
+                  <div class="stat-row">
+                    <span class="stat-label">Accuracy</span>
+                    <span class="stat-value">{{accuracy}}%</span>
+                  </div>
+                  <div class="stat-row">
+                    <span class="stat-label">Damage/Round</span>
+                    <span class="stat-value">{{dpr}}</span>
+                  </div>
+                </div>
+
+                <div class="stat-group">
+                  <h3>Match Statistics</h3>
+                  <div class="stat-row">
+                    <span class="stat-label">Total Wins</span>
+                    <span class="stat-value">{{total_wins}}</span>
+                  </div>
+                  <div class="stat-row">
+                    <span class="stat-label">Rounds Played</span>
+                    <span class="stat-value">{{rounds}}</span>
+                  </div>
+                  <div class="stat-row">
+                    <span class="stat-label">Time Played</span>
+                    <span class="stat-value">{{time_played}}</span>
+                  </div>
+                  <div class="stat-row">
+                    <span class="stat-label">Bombs Planted</span>
+                    <span class="stat-value">{{planted}}</span>
+                  </div>
+                </div>
+
+                <div class="stat-group">
+                  <h3>Advanced Metrics</h3>
+                  <div class="stat-row">
+                    <span class="stat-label">ADR</span>
+                    <span class="stat-value">{{adr}}</span>
+                  </div>
+                  <div class="stat-row">
+                    <span class="stat-label">KAST</span>
+                    <span class="stat-value">{{kast}}%</span>
+                  </div>
+                  <div class="stat-row">
+                    <span class="stat-label">Clutch Success</span>
+                    <span class="stat-value">{{clutch_success}}%</span>
+                  </div>
+                  <div class="stat-row">
+                    <span class="stat-label">Survival Rate</span>
+                    <span class="stat-value">{{survival_rate}}%</span>
+                  </div>
+                </div>
+              </div>
+            </script>
+          </div>
+        </div>
+      </div>
+      
+      <div class="ad-column"></div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/4.2.0/mustache.min.js"></script>
+  <script>
+    async function loadPlayerStats(playerId) {
+      try {
+        document.querySelector('.loading-spinner').style.display = 'block';
+        
+        const response = await fetch(`/api/player/${playerId}/stats`);
+        const data = await response.json();
+
+        // Calculate derived stats
+        data.kd_ratio = (data.kills / data.deaths).toFixed(2);
+        data.hs_percent = ((data.hs_kills / data.kills) * 100).toFixed(1);
+        data.accuracy = ((data.hits / data.shots) * 100).toFixed(1);
+        data.dpr = (data.damage / data.rounds).toFixed(0);
+        data.total_wins = data.wins_ct + data.wins_t;
+        data.time_played = `${Math.floor(data.time / 3600)}h ${Math.floor((data.time % 3600) / 60)}m`;
+        data.adr = (data.damage / data.rounds).toFixed(0);
+        data.kast = ((data.kills + data.assists + data.survived + data.trade_kills) / data.rounds * 100).toFixed(1);
+        data.clutch_success = ((data.clutch_wins / data.clutch_attempts) * 100).toFixed(1) || 0;
+        data.survival_rate = ((data.survived / data.rounds) * 100).toFixed(1);
+
+        const template = document.getElementById('statsTemplate').innerHTML;
+        const rendered = Mustache.render(template, data);
+        document.getElementById('statsContent').innerHTML = rendered;
+        
+        // Update navbar with current user info
+        const userRes = await fetch('/user/info');
+        if (userRes.ok) {
+          const user = await userRes.json();
+          document.getElementById('navbarUsername').textContent = user.username;
+          document.getElementById('navbarProfile').src = user.profilePictureUrl;
+          document.getElementById('navbarElo').textContent = `ELO: ${user.skill || 0}`;
+        }
+      } catch (error) {
+        console.error('Error loading player stats:', error);
+        document.getElementById('statsContent').innerHTML = '<p>Error loading player stats</p>';
+      } finally {
+        document.querySelector('.loading-spinner').style.display = 'none';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const playerId = urlParams.get('id') || 'me';
+      loadPlayerStats(playerId);
+    });
+  </script>
+</body>
+</html>
