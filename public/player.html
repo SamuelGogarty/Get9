@@ -164,18 +164,16 @@
                     <span class="stat-label">ADR</span>
                     <span class="stat-value">{{adr}}</span>
                   </div>
+                </div>
+                
+                <div class="stat-group">
+                  <h3>Weapon Stats</h3>
+                  {{#weapons}}
                   <div class="stat-row">
-                    <span class="stat-label">KAST</span>
-                    <span class="stat-value">{{kast}}%</span>
+                    <span class="stat-label">{{weapon}}</span>
+                    <span class="stat-value">{{kills}} K / {{deaths}} D</span>
                   </div>
-                  <div class="stat-row">
-                    <span class="stat-label">Clutch Success</span>
-                    <span class="stat-value">{{clutch_success}}%</span>
-                  </div>
-                  <div class="stat-row">
-                    <span class="stat-label">Survival Rate</span>
-                    <span class="stat-value">{{survival_rate}}%</span>
-                  </div>
+                  {{/weapons}}
                 </div>
               </div>
             </script>
@@ -207,17 +205,16 @@
         data.hs_percent = safeCalc(data.hs_kills, data.kills) * 100;
         data.accuracy = safeCalc(data.hits, data.shots) * 100;
         data.dpr = safeCalc(data.damage, data.rounds, 0);
-        data.total_wins = data.wins_ct + data.wins_t;
+        data.total_wins = (data.wins_ct || 0) + (data.wins_t || 0);
         data.time_played = data.time ? 
           `${Math.floor(data.time / 3600)}h ${Math.floor((data.time % 3600) / 60)}m` : 
           '0h 0m';
         data.adr = safeCalc(data.damage, data.rounds, 0);
-        data.kast = safeCalc(
-          data.kills + data.assists + data.survived + data.trade_kills,
-          data.rounds
-        ) * 100;
-        data.clutch_success = safeCalc(data.clutch_wins, data.clutch_attempts) * 100;
-        data.survival_rate = safeCalc(data.survived, data.rounds) * 100;
+        
+        // Remove unsupported stats
+        delete data.kast;
+        delete data.clutch_success;
+        delete data.survival_rate;
 
         const template = document.getElementById('statsTemplate').innerHTML;
         const rendered = Mustache.render(template, data);

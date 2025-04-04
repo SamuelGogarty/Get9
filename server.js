@@ -307,8 +307,8 @@ app.get('/api/player/:id/stats', ensureAuthenticated, async (req, res) => {
 
     // Get proper identifier based on account type
     const userData = user[0];
-    const identifier = userData.steam_id || userData.email;
-    const identifierType = userData.steam_id ? 'steamid' : 'email';
+    const identifier = userData.steam_id || userData.username;
+    const identifierType = userData.steam_id ? 'steamid' : 'name';
 
     // Get stats with proper identifier
     const [stats] = await dbStats.query(
@@ -316,6 +316,13 @@ app.get('/api/player/:id/stats', ensureAuthenticated, async (req, res) => {
        WHERE ${identifierType} = ?
        ORDER BY last_visit DESC LIMIT 1`,
       [identifier]
+    );
+    
+    // Add weapon stats if available
+    const [weapons] = await dbStats.query(
+      `SELECT * FROM ultimate_stats_weapons 
+       WHERE player_id = ?`,
+      [stats[0]?.id || 0]
     );
 
     await dbMatchmaking.end();
@@ -345,7 +352,10 @@ app.get('/api/player/:id/stats', ensureAuthenticated, async (req, res) => {
       revenges: stats[0]?.revenges || 0,
       survived: stats[0]?.survived || 0,
       trade_kills: stats[0]?.trade_kills || 0,
-      damage: stats[0]?.damage || 0
+      damage: stats[0]?.damage || 0,
+      
+      // Weapon stats
+      weapons: weapons || []
     };
 
     res.json(response);
