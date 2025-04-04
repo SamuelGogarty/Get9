@@ -211,18 +211,9 @@
         const template = document.getElementById('statsTemplate').innerHTML;
         const rendered = Mustache.render(template, data);
         document.getElementById('statsContent').innerHTML = rendered;
-        
-        // Update navbar with current user info
-        const userRes = await fetch('/user/info');
-        if (userRes.ok) {
-          const user = await userRes.json();
-          document.getElementById('navbarUsername').textContent = user.username;
-          document.getElementById('navbarProfile').src = user.profilePictureUrl;
-          document.getElementById('navbarElo').textContent = `ELO: ${user.skill || 0}`;
-        }
       } catch (error) {
-        console.error('Error loading player stats:', error);
-        document.getElementById('statsContent').innerHTML = '<p>Error loading player stats</p>';
+        console.error('Stats load error:', error);
+        document.getElementById('statsContent').innerHTML = '<p>Error loading stats</p>';
       } finally {
         document.querySelector('.loading-spinner').style.display = 'none';
       }
@@ -233,6 +224,29 @@
       const playerId = urlParams.get('id') || 'me';
       loadPlayerStats(playerId);
     });
+  </script>
+  
+  <script>
+    // Initialize navbar immediately
+    async function initNavbar() {
+      try {
+        const res = await fetch('/user/info');
+        if (!res.ok) return;
+        const user = await res.json();
+        document.getElementById('navbarUsername').textContent = user.username;
+        document.getElementById('navbarProfile').src = user.profilePictureUrl;
+        const eloRes = await fetch('/user/skill');
+        if (eloRes.ok) {
+          const eloData = await eloRes.json();
+          document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
+        }
+      } catch (error) {
+        console.error('Navbar init error:', error);
+      }
+    }
+    
+    // Call on page load
+    document.addEventListener('DOMContentLoaded', initNavbar);
   </script>
 </body>
 </html>
