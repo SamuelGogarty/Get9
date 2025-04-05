@@ -57,6 +57,30 @@
       padding-bottom: 8px;
       margin: 0 0 15px 0;
       font-size: 18px;
+      cursor: pointer;
+      position: relative;
+      padding-right: 30px;
+      user-select: none;
+      transition: background-color 0.2s ease;
+    }
+
+    .vgui-title:hover {
+      background-color: #333;
+    }
+
+    .vgui-title::after {
+      content: "−";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #E3E41F;
+      font-weight: bold;
+      font-size: 20px;
+    }
+
+    .vgui-panel.collapsed .vgui-title::after {
+      content: "+";
     }
 
     .stats-grid {
@@ -103,6 +127,38 @@
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 15px;
       margin-top: 15px;
+    }
+
+    .vgui-panel .stats-grid,
+    .vgui-panel .weapons-grid {
+      overflow: hidden;
+      transition: max-height 0.3s ease-out, opacity 0.2s ease;
+      max-height: 1000px;
+      opacity: 1;
+    }
+
+    .vgui-panel.collapsed .stats-grid,
+    .vgui-panel.collapsed .weapons-grid {
+      max-height: 0;
+      opacity: 0;
+    }
+
+    /* Add close button styling */
+    .vgui-closebutton {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0 5px;
+    }
+
+    .vgui-closebutton:hover {
+      color: #E3E41F;
     }
   </style>
 </head>
