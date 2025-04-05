@@ -15,36 +15,6 @@
       margin-top: 40px; /* Add space for tabs */
     }
 
-    .stats-tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .tab-button {
-      background: #2d2d2d;
-      border: 1px solid #404040;
-      color: #888;
-      padding: 10px 20px;
-      cursor: pointer;
-      font-family: 'Arial Narrow', Arial, sans-serif;
-      transition: all 0.3s ease;
-    }
-
-    .tab-button.active {
-      background: #E3E41F;
-      color: #000;
-      border-color: #E3E41F;
-      font-weight: bold;
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
 
     .no-matches {
       padding: 20px;
@@ -155,14 +125,8 @@
 
     <div class="stats-container">
       <div class="stats-main">
-        <!-- Add tabs navigation -->
-        <div class="stats-tabs">
-          <button class="tab-button active" onclick="showTab('stats')">Statistics</button>
-          <button class="tab-button" onclick="showTab('matches')">Match History</button>
-        </div>
-        
-        <!-- Wrap existing stats content in a tab container -->
-        <div id="statsContent" class="tab-content active">
+        <!-- Stats content -->
+        <div class="stats-content">
           <div class="window">
             <div class="vgui-titlebar">PLAYER STATISTICS</div>
             <!-- Loading spinner -->
@@ -267,14 +231,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Add empty match history tab (we'll populate this later) -->
-        <div id="matchHistoryContent" class="tab-content">
-          <div class="window">
-            <div class="vgui-titlebar">MATCH HISTORY</div>
-            <div class="no-matches">No matches recorded yet</div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -376,30 +332,6 @@
     });
   </script>
   
-  <script>
-    function showTab(tabName) {
-      // Hide all tab contents
-      document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-      });
-
-      // Remove active class from all buttons
-      document.querySelectorAll('.tab-button').forEach(button => {
-        button.classList.remove('active');
-      });
-
-      // Show selected tab
-      document.getElementById(`${tabName}Content`).classList.add('active');
-      
-      // Activate clicked button
-      event.currentTarget.classList.add('active');
-    }
-
-    // Show stats tab by default when page loads
-    document.addEventListener('DOMContentLoaded', () => {
-      showTab('stats');
-    });
-  </script>
   
   <script>
     // Initialize navbar immediately
