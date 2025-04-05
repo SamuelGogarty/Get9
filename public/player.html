@@ -9,15 +9,47 @@
       max-width: 1000px;
       margin: 20px auto;
       display: grid;
-      grid-template-columns: 1fr 3fr 1fr;
+      grid-template-columns: 1fr; /* Remove old 1fr 3fr 1fr */
       gap: 20px;
       padding: 0 15px;
+      margin-top: 40px; /* Add space for tabs */
     }
 
-    .ad-column {
-      background: #2a2a2a;
-      min-height: 100vh;
+    .stats-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab-button {
+      background: #2d2d2d;
       border: 1px solid #404040;
+      color: #888;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-family: 'Arial Narrow', Arial, sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    .tab-button.active {
+      background: #E3E41F;
+      color: #000;
+      border-color: #E3E41F;
+      font-weight: bold;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .no-matches {
+      padding: 20px;
+      color: #666;
+      text-align: center;
     }
 
     .stats-main {
@@ -122,12 +154,17 @@
     </nav>
 
     <div class="stats-container">
-      <div class="ad-column"></div>
-      
       <div class="stats-main">
-        <div class="window">
-          <div class="vgui-titlebar">PLAYER STATISTICS</div>
-          <div id="statsContent">
+        <!-- Add tabs navigation -->
+        <div class="stats-tabs">
+          <button class="tab-button active" onclick="showTab('stats')">Statistics</button>
+          <button class="tab-button" onclick="showTab('matches')">Match History</button>
+        </div>
+        
+        <!-- Wrap existing stats content in a tab container -->
+        <div id="statsContent" class="tab-content active">
+          <div class="window">
+            <div class="vgui-titlebar">PLAYER STATISTICS</div>
             <!-- Loading spinner -->
             <div class="loading-spinner" style="display: none;">
               <div class="spinner"></div>
@@ -230,9 +267,15 @@
             </div>
           </div>
         </div>
+
+        <!-- Add empty match history tab (we'll populate this later) -->
+        <div id="matchHistoryContent" class="tab-content">
+          <div class="window">
+            <div class="vgui-titlebar">MATCH HISTORY</div>
+            <div class="no-matches">No matches recorded yet</div>
+          </div>
+        </div>
       </div>
-      
-      <div class="ad-column"></div>
     </div>
   </div>
 
@@ -330,6 +373,31 @@
       const urlParams = new URLSearchParams(window.location.search);
       const playerId = urlParams.get('id') || 'me';
       loadPlayerStats(playerId);
+    });
+  </script>
+  
+  <script>
+    function showTab(tabName) {
+      // Hide all tab contents
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+
+      // Remove active class from all buttons
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+      });
+
+      // Show selected tab
+      document.getElementById(`${tabName}Content`).classList.add('active');
+      
+      // Activate clicked button
+      event.currentTarget.classList.add('active');
+    }
+
+    // Show stats tab by default when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      showTab('stats');
     });
   </script>
   
