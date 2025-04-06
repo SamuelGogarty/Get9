@@ -31,12 +31,28 @@
   width: 243px;
 }
 
-/* Matchmaking Section */
+/* Window Styling */
 .window {
   position: relative;
-  border: 3px solid #2d2d2d !important; /* Darker border instead of white-grey */
+  border: 3px solid #2d2d2d !important;
   margin: 10px 0;
-  background: #212121;
+  background: #181818 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.titlebar {
+  background: #212121 !important;
+  border-bottom: 3px solid #080808 !important;
+  color: #F0B43F !important;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 1px;
+  padding: 8px 12px !important;
+}
+
+.content {
+  background: #080808 !important;
+  border-top: 2px solid #2d2d2d;
+  padding: 15px !important;
 }
 
 .matchmaking-controls {
@@ -63,6 +79,9 @@
   left: 134px;
   bottom: 13px;
   margin: 38px 0 0 0;
+  background: #181818 !important;
+  border: 3px solid #2d2d2d !important;
+  padding: 15px !important;
 }
 
 .infobox.window {
@@ -85,6 +104,22 @@
   height: 129px;
   left: 342px;
   top: 436px;
+}
+
+/* Buttons */
+.greensteam-button {
+  background: #4a752c;
+  border: 2px solid #2d2d2d;
+  color: #d2e0c6;
+  padding: 8px 15px;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.greensteam-button:hover {
+  background: #5a853c;
+  border-color: #3d3d3d;
 }
 
 .stat-value {
@@ -152,16 +187,28 @@
   margin-top: 10px;
 }
 
+.chat-input input {
+  background: #080808;
+  border: 2px solid #2d2d2d;
+  color: #fff;
+  padding: 8px;
+  flex: 1;
+}
+
+#preLobbyChatMessages li {
+  padding: 8px 0;
+  border-bottom: 1px solid #2d2d2d;
+  color: #c0c0c0;
+  font-size: 13px;
+}
+
 .nav-player-name {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 5px 10px;
+  padding: 8px 15px !important;
   background: #212121;
-  border-top: solid 1px #323232;
-  border-bottom: solid 1px #080808;
-  border-left: solid 1px #323232;
-  border-right: solid 1px #080808;
+  border: 2px solid #2d2d2d !important;
 }
 
 .join-section {
@@ -188,9 +235,10 @@
   width: 768px;
   top: 5px;
   height: 20px;
-  border: 2px solid #2d2d2d;
+  border: 2px solid #2d2d2d !important;
   margin: 10px 0;
   appearance: none;
+  background: #080808 !important;
 }
 
 .que-in-progress-bar::-webkit-progress-bar {
@@ -198,21 +246,24 @@
 }
 
 .que-in-progress-bar::-webkit-progress-value {
-  background: repeating-linear-gradient(to right, #96892D, #96892D 8px, #080808 1px, #080808 12px);
+  background: repeating-linear-gradient(
+    45deg,
+    #96892D,
+    #96892D 10px,
+    #080808 10px,
+    #080808 20px
+  );
 }
 
 /* Navbar Alignment Fix */
 #in3lw {
   max-width: 976px;
-  padding: 0;
+  padding: 10px 0;
   width: 920px;
   margin: 0 0 0 35px;
   right: 301px;
-  background: #212121;
-  border-top: solid 1px #323232;
-  border-bottom: solid 1px #080808;
-  border-left: solid 1px #323232;
-  border-right: solid 1px #080808;
+  background: #181818;
+  border: 3px solid #2d2d2d;
 }
 
 #id5lb {
@@ -257,8 +308,10 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px;
-  border-bottom: 1px solid #212121;
+  padding: 10px;
+  background: #181818;
+  margin: 5px 0;
+  border: 1px solid #2d2d2d;
 }
 
 .elo-display {
