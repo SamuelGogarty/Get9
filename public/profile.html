@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="css/blacksteam.css">
     <script src="/socket.io/socket.io.js"></script>
     <style>
-      /* Profile-specific styles matching new_home layout */
+      /* Profile-specific styles matching reference image */
       .window-container {
         display: grid;
         grid-template-columns: 327px 1fr 328px;
@@ -16,112 +16,107 @@
         margin: 0 auto;
       }
 
-      .window-column {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-      }
-
-      /* Remove all absolute positioning */
-      .left-col, .center-col, .right-col {
-        position: static !important;
-        width: auto !important;
-        height: auto !important;
-        margin: 0 !important;
-      }
-
       .window {
         width: 100%;
+        min-width: 320px;
         margin-bottom: 20px;
+        background: #212121;
+        border: 3px solid #a3a3a3;
       }
 
-      /* Match lobby.html's navbar styling */
-      #in3lw {
-        width: 100%;
-        left: 0;
-        position: relative;
-        float: none;
-        margin: 0 0 20px;
+      .titlebar {
+        background: #181818;
+        padding: 6px 12px;
+        font-weight: bold;
+        color: #F0B43F;
+        text-transform: uppercase;
+        font-size: 13px;
+        border-bottom: 2px solid #080808;
       }
 
-      #id5lb {
-        padding-left: 20px;
-        margin-left: 0;
-        width: 100%;
+      .content {
+        padding: 15px;
+        background: #080808;
       }
 
-      /* Server stats alignment */
       .server-stats.inset {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
         padding: 10px;
         margin: 10px 0;
-        background: #080808;
+        background: #212121;
         border: 2px solid #2d2d2d;
       }
 
-      /* Matchmaking controls */
+      .server-stats p {
+        margin: 8px 0;
+        color: #d8ded3;
+      }
+
       .matchmaking-controls {
         display: flex;
         gap: 10px;
         align-items: center;
+        margin-top: 15px;
       }
 
       .que-in-progress-bar {
-        width: 100%;
-        margin: 10px 0;
+        flex: 1;
+        height: 20px;
+        border: 2px solid #2d2d2d;
       }
 
-      /* Discord window styling */
-      .Discord .content {
-        padding: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      .clanlist .content {
+        height: 300px;
+        overflow-y: auto;
       }
 
-      .discord-link {
+      .clan-chat {
+        height: 250px;
+      }
+
+      .clan-chat .content {
+        height: calc(100% - 40px);
         display: flex;
-        align-items: center;
+        flex-direction: column;
+      }
+
+      #preLobbyChatMessages {
+        flex: 1;
+        overflow-y: auto;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .chat-input {
+        display: flex;
         gap: 10px;
-        padding: 10px;
-        color: #5865F2;
+        margin-top: 10px;
       }
 
-      .discord-link img {
-        width: 32px;
-        height: 32px;
-      }
-
-      /* Pre-lobby section alignment */
-      .invite-section {
-        display: flex;
-        gap: 10px;
-        margin: 15px 0;
-      }
-
-      #inviteCodeInput {
+      #preLobbyChatInput {
         flex: 1;
       }
 
-      /* Player list styling */
-      .player-list.inset {
-        min-height: 150px;
-        padding: 10px;
-        margin: 10px 0;
+      .Discord .content {
+        padding: 15px;
+        text-align: center;
       }
 
-      /* Stats preview grid */
-      .stats-preview .content {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
+      .Discord img {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 10px;
       }
-      
+
+      /* Navbar fixes */
+      #in3lw {
+        max-width: 1200px;
+        margin: 0 auto 20px;
+        padding: 0 20px;
+      }
+
       .right-nav {
         margin-left: auto;
-        padding-right: 30px;
       }
     </style>
 </head>
@@ -149,7 +144,7 @@
 
   <div class="window-container">
     <!-- Left Column -->
-    <div class="window-column">
+    <div class="window-column left-col">
       <div class="window infobox">
         <div class="titlebar">Get9 Matchmaking</div>
         <div class="content">
@@ -157,21 +152,34 @@
             <p>Players waiting: <span id="playersWaiting">0</span></p>
             <p>Ongoing matches: <span id="activeMatches">0</span></p>
           </div>
-          <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
-          <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100"></progress>
+          <div class="matchmaking-controls">
+            <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
+            <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100"></progress>
+          </div>
         </div>
       </div>
 
       <div class="window clanlist">
-        <div class="titlebar">Clan Members</div>
-        <div class="content" id="friendsList"></div>
+        <div class="titlebar">Pre-Lobby Members</div>
+        <div class="content inset" id="preLobbyPlayerList"></div>
+      </div>
+      
+      <div class="window clan-chat">
+        <div class="titlebar">Pre-Lobby Chat</div>
+        <div class="content inset">
+          <ul id="preLobbyChatMessages"></ul>
+          <div class="chat-input">
+            <input type="text" id="preLobbyChatInput" placeholder="Type message...">
+            <button class="greensteam-button" id="sendPreLobbyMessage">Send</button>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Center Column -->
-    <div class="window-column">
+    <div class="window-column center-col">
       <div class="window pre-lobby">
-        <div class="titlebar">Private Lobby</div>
+        <div class="titlebar">Lobby Management</div>
         <div class="content">
           <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
           <div class="invite-section inset">
@@ -180,8 +188,6 @@
           </div>
           <div id="preLobbySection" style="display: none;">
             <p>Invite Code: <strong id="inviteCode"></strong></p>
-            <div class="titlebar">Lobby Members</div>
-            <div id="preLobbyPlayerList" class="player-list inset"></div>
             <button class="greensteam-button" id="startPreLobbyMatchmakingBtn">Start Group Queue</button>
           </div>
         </div>
@@ -189,28 +195,14 @@
     </div>
 
     <!-- Right Column -->
-    <div class="window-column">
+    <div class="window-column right-col">
       <div class="window Discord">
         <div class="titlebar">Join Our Discord</div>
-        <div class="content">
-          <a href="https://discord.gg/8m4xG8sjXm" class="discord-link" target="_blank">
+        <div class="content inset">
+          <a href="https://discord.gg/8m4xG8sjXm" target="_blank">
             <img src="/img/discord-icon.png" alt="Discord">
             <span>discord.gg/8m4xG8sjXm</span>
           </a>
-        </div>
-      </div>
-      
-      <div class="window stats-preview">
-        <div class="titlebar">Quick Stats</div>
-        <div class="content">
-          <div class="stat-item">
-            <span class="stat-label">K/D Ratio:</span>
-            <span class="stat-value" id="kdRatio">-</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Headshots:</span>
-            <span class="stat-value" id="hsPercentage">-</span>
-          </div>
         </div>
       </div>
     </div>
@@ -252,20 +244,6 @@
         })
         .catch(error => {
           console.error('Error fetching server stats:', error);
-        });
-        
-      // Fetch player stats for quick stats preview
-      fetch('/api/player/me/stats')
-        .then(response => response.json())
-        .then(data => {
-          const kdRatio = data.kills && data.deaths ? (data.kills / data.deaths).toFixed(2) : '-';
-          const hsPercentage = data.kills ? Math.round((data.hs_kills / data.kills) * 100) + '%' : '-';
-          
-          document.getElementById('kdRatio').textContent = kdRatio;
-          document.getElementById('hsPercentage').textContent = hsPercentage;
-        })
-        .catch(error => {
-          console.error('Error fetching player stats:', error);
         });
     }
 
@@ -381,6 +359,24 @@
         `;
         playerList.appendChild(playerItem);
       });
+    });
+    
+    document.getElementById('sendPreLobbyMessage').addEventListener('click', () => {
+      const msg = document.getElementById('preLobbyChatInput').value.trim();
+      if (!msg) return;
+      socket.emit('preLobbyChatMessage', { 
+        message: msg,
+        inviteCode: document.getElementById('inviteCode').textContent
+      });
+      document.getElementById('preLobbyChatInput').value = '';
+    });
+
+    socket.on('preLobbyChatMessage', ({ username, message }) => {
+      const ul = document.getElementById('preLobbyChatMessages');
+      const li = document.createElement('li');
+      li.textContent = `${username}: ${message}`;
+      ul.appendChild(li);
+      ul.scrollTop = ul.scrollHeight;
     });
 
     fetchUserInfo();
