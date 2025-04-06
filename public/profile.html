@@ -5,6 +5,82 @@
     <title>User Profile</title>
     <link rel="stylesheet" href="css/blacksteam.css">
     <script src="/socket.io/socket.io.js"></script>
+    <style>
+      /* Profile-specific styles matching reference image */
+      .lobby-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .window-column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .window {
+        background: #212121;
+        border: 3px solid;
+        border-color: #323232 #080808 #080808 #323232;
+        width: 100%;
+      }
+
+      .titlebar {
+        background: #181818;
+        border-bottom: 2px solid #080808;
+        padding: 6px 12px;
+        font-weight: bold;
+        color: #F0B43F;
+      }
+
+      .content {
+        padding: 15px;
+      }
+
+      .server-status {
+        margin-bottom: 15px;
+      }
+
+      .stat-value {
+        color: #F0B43F;
+        font-weight: bold;
+      }
+
+      .matchmaking-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-top: 15px;
+      }
+
+      .discord-btn {
+        background: #5865F2;
+        padding: 8px 15px;
+      }
+
+      .que-in-progress-bar {
+        flex: 1;
+        height: 20px;
+        display: none;
+      }
+
+      .invite-section {
+        margin: 15px 0;
+        display: flex;
+        gap: 10px;
+      }
+
+      .player-list {
+        border: 2px solid #080808;
+        padding: 10px;
+        margin: 10px 0;
+        min-height: 100px;
+      }
+    </style>
 </head>
 <body id="ifi5">
   <nav id="in3lw">
@@ -27,20 +103,18 @@
       <div class="window" name="Matchmaking">
         <div class="titlebar">Get9 Matchmaking</div>
         <div class="content">
-          <div class="flex-row server-status">
-            <div class="server-stats">
-              <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
-              <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
-            </div>
+          <div class="server-status">
+            <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
+            <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
+          </div>
+          
+          <div class="matchmaking-controls">
+            <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
             <a href="https://discord.gg/8m4xG8sjXm" 
                class="greensteam-button discord-btn" 
                target="_blank">
               Join Discord
             </a>
-          </div>
-          
-          <div class="matchmaking-controls">
-            <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
             <progress class="que-in-progress-bar" 
                       id="matchmakingProgress" 
                       value="0" 
@@ -49,7 +123,10 @@
           </div>
         </div>
       </div>
+    </div>
 
+    <!-- Right Column -->
+    <div class="window-column">
       <div class="window" name="Pre-Lobby">
         <div class="titlebar">Private Lobby</div>
         <div class="content">
@@ -58,17 +135,15 @@
           <div class="invite-section">
             <input type="text" 
                    id="inviteCodeInput" 
-                   class="inset" 
-                   placeholder="Enter invite code">
+                   placeholder="Enter invite code"
+                   style="width: 200px;">
             <button class="greensteam-button" id="joinPreLobbyBtn">Join</button>
           </div>
 
           <div id="preLobbySection" style="display: none;">
-            <div class="lobby-info">
-              <p>Invite Code: <strong id="inviteCode"></strong></p>
-              <div class="titlebar">Lobby Members</div>
-              <div id="preLobbyPlayerList" class="player-list"></div>
-            </div>
+            <p>Invite Code: <strong id="inviteCode" class="stat-value"></strong></p>
+            <div class="titlebar" style="margin: 10px 0 5px 0;">Lobby Members</div>
+            <div id="preLobbyPlayerList" class="player-list"></div>
             <button class="greensteam-button" id="startPreLobbyMatchmakingBtn">Start Group Queue</button>
           </div>
         </div>
@@ -129,7 +204,7 @@
           
           // Show progress animation
           const progress = document.getElementById('matchmakingProgress');
-          progress.style.display = 'block';
+          progress.style.display = 'flex';
           progress.value = 0;
           
           let progressValue = 0;
