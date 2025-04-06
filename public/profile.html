@@ -16,20 +16,26 @@
         margin: 0 auto;
       }
 
+      .window-column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
       .window {
         background: #212121;
         border: 3px solid #a3a3a3;
-        margin-bottom: 20px;
+        width: 100%;
       }
 
       .titlebar {
         background: #181818;
         padding: 6px 12px;
-        color: #F0B43F;
         font-weight: bold;
+        color: #F0B43F;
         text-transform: uppercase;
-        border-bottom: 2px solid #080808;
         font-size: 13px;
+        border-bottom: 2px solid #080808;
       }
 
       .content {
@@ -37,14 +43,11 @@
         background: #080808;
       }
 
-      .server-stats {
+      .server-stats.inset {
         padding: 10px;
         margin-bottom: 15px;
-      }
-
-      .server-stats p {
-        margin: 8px 0;
-        color: #d8ded3;
+        background: #212121;
+        border: 2px solid #2d2d2d;
       }
 
       .stat-value {
@@ -65,13 +68,29 @@
         border: 2px solid #2d2d2d;
       }
 
-      .clanlist .content {
+      .clanlist .content.inset {
         height: 300px;
         overflow-y: auto;
         padding: 10px;
       }
 
-      .clan-chat .content {
+      .lobby-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .invite-section.inset {
+        display: flex;
+        gap: 10px;
+        padding: 10px;
+      }
+
+      #inviteCodeInput {
+        flex: 1;
+      }
+
+      .clan-chat .content.inset {
         height: 250px;
         display: flex;
         flex-direction: column;
@@ -91,25 +110,7 @@
         margin-top: 10px;
       }
 
-      .Discord .content {
-        padding: 20px;
-        text-align: center;
-      }
-
-      .discord-link {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        color: #5865F2;
-        text-decoration: none;
-      }
-
-      .discord-icon {
-        width: 64px;
-        height: 64px;
-      }
-
-      /* Navbar alignment fixes */
+      /* Navbar fixes */
       #in3lw {
         max-width: 1200px;
         margin: 0 auto 20px;
@@ -149,7 +150,7 @@
       <div class="window infobox">
         <div class="titlebar">Get9 Matchmaking</div>
         <div class="content">
-          <div class="server-stats">
+          <div class="server-stats inset">
             <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
             <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
           </div>
@@ -162,9 +163,7 @@
 
       <div class="window clanlist">
         <div class="titlebar">Pre-Lobby Members</div>
-        <div class="content" id="preLobbyPlayerList">
-          <!-- Members will be dynamically added here -->
-        </div>
+        <div class="content inset" id="preLobbyPlayerList"></div>
       </div>
     </div>
 
@@ -173,23 +172,23 @@
       <div class="window pre-lobby">
         <div class="titlebar">Lobby Management</div>
         <div class="content">
-          <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
-          <div class="invite-section">
-            <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
-            <button class="greensteam-button" id="joinPreLobbyBtn">Join</button>
-          </div>
-          <div id="preLobbySection" style="display: none;">
-            <div class="lobby-info">
-              <p>Invite Code: <strong id="inviteCode" class="stat-value"></strong></p>
-              <button class="greensteam-button" id="startPreLobbyMatchmakingBtn">Start Group Queue</button>
+          <div class="lobby-controls">
+            <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
+            <div class="invite-section inset">
+              <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
+              <button class="greensteam-button" id="joinPreLobbyBtn">Join</button>
             </div>
+          </div>
+          <div id="preLobbySection" class="inset" style="display: none;">
+            <p>Invite Code: <strong id="inviteCode"></strong></p>
+            <button class="greensteam-button" id="startPreLobbyMatchmakingBtn">Start Group Queue</button>
           </div>
         </div>
       </div>
       
       <div class="window clan-chat">
         <div class="titlebar">Pre-Lobby Chat</div>
-        <div class="content">
+        <div class="content inset">
           <ul id="preLobbyChatMessages"></ul>
           <div class="chat-input">
             <input type="text" id="preLobbyChatInput" placeholder="Type message...">
@@ -203,10 +202,10 @@
     <div class="window-column right-col">
       <div class="window Discord">
         <div class="titlebar">Join Our Discord</div>
-        <div class="content">
+        <div class="content inset" style="text-align: center; padding: 20px;">
           <a href="https://discord.gg/8m4xG8sjXm" target="_blank" class="discord-link">
-            <img src="/img/discord-icon.png" alt="Discord" class="discord-icon">
-            <span>discord.gg/8m4xG8sjXm</span>
+            <img src="/img/discord-icon.png" alt="Discord" style="width: 64px; height: 64px; margin-bottom: 10px;">
+            <div style="font-size: 18px; color: #5865F2;">discord.gg/8m4xG8sjXm</div>
           </a>
         </div>
       </div>
