@@ -2,7 +2,8 @@
 main {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  justify-content: flex-start;
+  align-items: stretch;
   max-width: 780px;
   margin: 0 auto;
   padding: 20px;
@@ -10,8 +11,11 @@ main {
 
 .window-row {
   display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: stretch;
+  max-width: 780px;
   gap: 20px;
-  flex-wrap: wrap;
 }
 
 .window-column {
@@ -19,7 +23,7 @@ main {
   flex-direction: column;
   gap: 20px;
   flex: 1;
-  min-width: 380px;
+  min-width: 0;
 }
 
 /* Match new_home window styling */
@@ -352,4 +356,12 @@ nav li a:hover {
   .window-column {
     min-width: unset;
   }
+}
+
+/* Window sizing from new_home.css */
+.window.half,
+.window-row .window {
+  max-width: 380px;
+  width: 100%;
+  align-self: flex-start;
 }
