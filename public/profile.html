@@ -28,9 +28,8 @@
     </ul>
   </nav>
 
-  <div class="profile-container">
+  <main>
     <div class="window-row">
-      <!-- Left Column -->
       <div class="window-column">
         <div class="window" name="Matchmaking">
           <div class="content">
@@ -44,9 +43,12 @@
             </div>
           </div>
         </div>
+        
+        <div class="window" name="Pre-Lobby Members">
+          <div class="content" id="preLobbyPlayerList"></div>
+        </div>
       </div>
 
-      <!-- Center Column -->
       <div class="window-column">
         <div class="window" name="Lobby Management">
           <div class="content">
@@ -63,19 +65,7 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <div class="window-row">
-      <!-- Left Column Continued -->
-      <div class="window-column">
-        <div class="window" name="Pre-Lobby Members">
-          <div class="content" id="preLobbyPlayerList"></div>
-        </div>
-      </div>
-
-      <!-- Right Column -->
-      <div class="window-column">
+        
         <div class="window clan-chat" name="Pre-Lobby Chat">
           <div class="content">
             <ul id="preLobbyChatMessages"></ul>
@@ -96,7 +86,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </main>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>

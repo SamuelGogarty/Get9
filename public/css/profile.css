@@ -1,9 +1,9 @@
 /* profile.css - Revamped to match new_home.css style */
-.profile-container {
+main {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 1200px;
+  max-width: 780px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -11,7 +11,7 @@
 .window-row {
   display: flex;
   gap: 20px;
-  justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 .window-column {
@@ -19,6 +19,7 @@
   flex-direction: column;
   gap: 20px;
   flex: 1;
+  min-width: 380px;
 }
 
 /* Match new_home window styling */
@@ -29,6 +30,7 @@
   box-sizing: border-box;
   margin: 0 0 20px;
   max-width: 780px;
+  width: 100%;
   border-top: solid 1px #323232;
   border-bottom: solid 1px #080808;
   border-left: solid 1px #323232;
@@ -253,7 +255,7 @@ nav {
   list-style: none;
   background: #212121;
   margin-bottom: 20px;
-  max-width: 1200px;
+  max-width: 780px;
   margin: 0 auto 20px;
 }
 
@@ -339,4 +341,15 @@ nav li a:hover {
   padding: 10px;
   border: 1px solid #2d2d2d;
   margin-top: 15px;
+}
+
+/* Media query for responsive layout */
+@media (max-width: 800px) {
+  .window-row {
+    flex-direction: column;
+  }
+  
+  .window-column {
+    min-width: unset;
+  }
 }
