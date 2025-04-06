@@ -1,0 +1,205 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+.window{
+  position:relative;
+  left:-2px;
+  top:345px;
+  width:875px;
+  float:left;
+  height:175px;
+  border:3px solid #a3a3a3;
+  text-align:left;
+  display:block;
+  margin:-31px 0px 0px 17px;
+}
+.box.inset.rounded{
+  position:fixed;
+  bottom:799px;
+  width:243px;
+  right:-86px;
+  top:1px;
+  float:right;
+  left:1054px;
+}
+.box.inset{
+  width:350px;
+  float:none;
+  display:block;
+  left:134px;
+  position:relative;
+  bottom:13px;
+  padding:0px 0px 0px 0px;
+  margin:38px 0px 0px 0px;
+  top:-72px;
+}
+.window.window1{
+  left:490px;
+  height:492px;
+  top:90px;
+  width:327px;
+}
+.window.window0{
+  left:316px;
+  top:93px;
+  height:493px;
+}
+.box.inset.box1{
+  top:-29px;
+  font-family:Arial, Helvetica, sans-serif;
+  display:inline-block;
+}
+.box.inset.box0{
+  font-family:Arial, Helvetica, sans-serif;
+  top:-29px;
+  display:inline-block;
+}
+#il0q7a{
+  position:absolute;
+  float:right;
+  left:316px;
+  width:1155px;
+}
+.window.chatbox1{
+  left:-666px;
+  top:616px;
+  height:121px;
+  width:328px;
+}
+#ib20ni{
+  left:2px;
+  position:relative;
+  width:200px;
+}
+.window.chatbox2{
+  height:121px;
+  top:52px;
+}
+.window.chatbox1.chatbox{
+  left:-668px;
+}
+.window.chatbox.chatbox2{
+  left:-13px;
+  height:121px;
+  top:22px;
+  float:left;
+  width:328px;
+  display:block;
+}
+.chatbox2.chatbox{
+  position:relative;
+  margin:37px 0px 0px 0px;
+}
+.window.mapvotewindow{
+  top:88px;
+  left:408px;
+  height:497px;
+}
+.box.inset.Playername{
+  top:-74px;
+  display:block;
+}
+.box.inset.currentplayername{
+  display:inline;
+  top:-4px;
+  left:665px;
+  width:62px;
+}
+.box.currentplayername{
+  width:99px;
+}
+.box.currentplayername.inset.ELO{
+  left:564px;
+  width:60px;
+  height:55px;
+  display:inline;
+}
+.box.currentplayername.inset.header-box{
+  left:938px;
+  top:-105px;
+}
+.box.inset.currentelo{
+  left:621px;
+  top:-4px;
+  display:inline;
+}
+#in3lw{
+  max-width:976px;
+  padding:0px 0px 0px 0px;
+  position:relative;
+  float:right;
+  width:920px;
+  margin:0px 0px 0px 35px;
+  right:301px;
+}
+#id5lb{
+  margin:0px 0px 0px -24px;
+  width:961px;
+  padding:0px 0px 0px 67px;
+}
+.window.infobox{
+  margin:-481px 0px 0px 361px;
+  max-width:1017px;
+  width:1036px;
+  top:197px;
+}
+#idb8n{
+  width:192px;
+  position:relative;
+  top:11px;
+}
+.window.Clan-chat{
+  left:-2px;
+  width:577px;
+  height:356px;
+  top:381px;
+}
+.window.clanlist{
+  width:421px;
+  left:-5px;
+  height:358px;
+  top:379px;
+}
+.window.invite{
+  left:-30px;
+  top:68px;
+  height:100px;
+  width:1018px;
+  max-width:1024px;
+}
+#ittjj{
+  top:240px;
+  position:relative;
+  width:359px;
+}
+#ic653{
+  top:5px;
+  position:relative;
+  width:122px;
+  height:37px;
+}
+#iedpr{
+  padding:10px;
+}
+.startmatchmaking{
+  left:10px;
+}
+.window.Discord{
+  left:342px;
+  top:436px;
+  max-width:1020px;
+  width:1041px;
+  height:129px;
+}
+#i5zeu{
+  margin:-21px 0px 0px 0px;
+}
+.que-in-progress-bar{
+  left:211px;
+  position:relative;
+  top:5px;
+  width:768px;
+}
