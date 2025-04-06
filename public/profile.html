@@ -5,129 +5,13 @@
     <title>User Profile</title>
     <link rel="stylesheet" href="css/profile.css">
     <script src="/socket.io/socket.io.js"></script>
-    <style>
-      /* Profile-specific styles matching reference image */
-      .window-container {
-        display: grid;
-        grid-template-columns: 327px 1fr 328px;
-        gap: 20px;
-        padding: 20px;
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-
-      .window-column {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-      }
-
-      .window {
-        background: #212121;
-        border: 3px solid #a3a3a3;
-        width: 100%;
-      }
-
-      .titlebar {
-        background: #181818;
-        padding: 6px 12px;
-        font-weight: bold;
-        color: #F0B43F;
-        text-transform: uppercase;
-        font-size: 13px;
-        border-bottom: 2px solid #080808;
-      }
-
-      .content {
-        padding: 15px;
-        background: #080808;
-      }
-
-      .server-stats.inset {
-        padding: 10px;
-        margin-bottom: 15px;
-        background: #212121;
-        border: 2px solid #2d2d2d;
-      }
-
-      .stat-value {
-        color: #F0B43F;
-        font-weight: bold;
-        margin-left: 8px;
-      }
-
-      .matchmaking-controls {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-      }
-
-      .que-in-progress-bar {
-        flex: 1;
-        height: 20px;
-        border: 2px solid #2d2d2d;
-      }
-
-      .clanlist .content.inset {
-        height: 300px;
-        overflow-y: auto;
-        padding: 10px;
-      }
-
-      .lobby-controls {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-      }
-
-      .invite-section.inset {
-        display: flex;
-        gap: 10px;
-        padding: 10px;
-      }
-
-      #inviteCodeInput {
-        flex: 1;
-      }
-
-      .clan-chat .content.inset {
-        height: 250px;
-        display: flex;
-        flex-direction: column;
-      }
-
-      #preLobbyChatMessages {
-        flex: 1;
-        overflow-y: auto;
-        margin: 0;
-        padding: 0;
-        list-style: none;
-      }
-
-      .chat-input {
-        display: flex;
-        gap: 10px;
-        margin-top: 10px;
-      }
-
-      /* Navbar fixes */
-      #in3lw {
-        max-width: 1200px;
-        margin: 0 auto 20px;
-        padding: 0 20px;
-      }
-
-      .right-nav {
-        margin-left: auto;
-      }
-    </style>
 </head>
-<body id="ifi5">
-  <nav id="in3lw">
-    <ul id="id5lb">
+<body>
+  <nav>
+    <ul>
       <li><a href="/">Home</a></li>
       <li>
-        <a href="#">Services</a>
+        <a href="#">Services ▾</a>
         <ul class="dropdown">
           <li><a href="/player.html">My Stats</a></li>
           <li><a href="#">Server Browser</a></li>
@@ -145,54 +29,59 @@
   </nav>
 
   <div class="profile-container">
-    <!-- Left Column (Matchmaking) -->
-    <div class="window-column left-col">
-      <div class="window infobox">
-        <div class="titlebar">Get9 Matchmaking</div>
-        <div class="content">
-          <div class="server-stats inset">
-            <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
-            <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
-          </div>
-          <div class="matchmaking-controls">
-            <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
-            <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100"></progress>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Center Column (Lobby Management) -->
-    <div class="window-column center-col">
-      <div class="window pre-lobby" style="width: 100%;">
-        <div class="titlebar">Lobby Management</div>
-        <div class="content">
-          <div class="lobby-controls">
-            <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
-            <div class="invite-section inset">
-              <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
-              <button class="greensteam-button" id="joinPreLobbyBtn">Join</button>
+    <div class="window-row">
+      <!-- Left Column -->
+      <div class="window-column">
+        <div class="window">
+          <div class="titlebar">Matchmaking</div>
+          <div class="content">
+            <div class="server-stats">
+              <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
+              <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
+            </div>
+            <div class="matchmaking-controls">
+              <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
+              <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100"></progress>
             </div>
           </div>
-          <div id="preLobbySection" class="inset" style="display: none;">
-            <p>Invite Code: <strong id="inviteCode"></strong></p>
-            <button class="greensteam-button" id="startPreLobbyMatchmakingBtn">Start Group Queue</button>
+        </div>
+      </div>
+
+      <!-- Center Column -->
+      <div class="window-column">
+        <div class="window">
+          <div class="titlebar">Lobby Management</div>
+          <div class="content">
+            <div class="lobby-controls">
+              <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
+              <div class="invite-section">
+                <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
+                <button class="greensteam-button" id="joinPreLobbyBtn">Join</button>
+              </div>
+            </div>
+            <div id="preLobbySection" style="display: none;">
+              <p>Invite Code: <strong id="inviteCode"></strong></p>
+              <button class="greensteam-button" id="startPreLobbyMatchmakingBtn">Start Group Queue</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Left Column Continued (Pre-Lobby sections) -->
-    <div class="window-column left-col" style="top: 560px;">
-      <div style="display: flex; margin-top: 0;">
-        <div class="window clanlist">
+    <div class="window-row">
+      <!-- Left Column Continued -->
+      <div class="window-column">
+        <div class="window">
           <div class="titlebar">Pre-Lobby Members</div>
-          <div class="content inset" id="preLobbyPlayerList"></div>
+          <div class="content" id="preLobbyPlayerList"></div>
         </div>
-        
+      </div>
+
+      <!-- Right Column -->
+      <div class="window-column">
         <div class="window clan-chat">
           <div class="titlebar">Pre-Lobby Chat</div>
-          <div class="content inset">
+          <div class="content">
             <ul id="preLobbyChatMessages"></ul>
             <div class="chat-input">
               <input type="text" id="preLobbyChatInput" placeholder="Type message...">
@@ -200,18 +89,15 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Right Column -->
-    <div class="window-column right-col">
-      <div class="window Discord">
-        <div class="titlebar">Join Our Discord</div>
-        <div class="content inset" style="text-align: center; padding: 20px;">
-          <a href="https://discord.gg/8m4xG8sjXm" target="_blank" class="discord-link">
-            <img src="/img/discord-icon.png" alt="Discord" style="width: 64px; height: 64px; margin-bottom: 10px;">
-            <div style="font-size: 18px; color: #5865F2;">discord.gg/8m4xG8sjXm</div>
-          </a>
+        <div class="window">
+          <div class="titlebar">Join Our Discord</div>
+          <div class="content">
+            <a href="https://discord.gg/8m4xG8sjXm" target="_blank" class="discord-link">
+              <img src="/img/discord-icon.png" alt="Discord">
+              <div>discord.gg/8m4xG8sjXm</div>
+            </a>
+          </div>
         </div>
       </div>
     </div>
