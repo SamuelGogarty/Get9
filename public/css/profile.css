@@ -34,10 +34,10 @@
 /* Window Styling */
 .window {
   position: relative;
-  border: 3px solid #2d2d2d !important;
+  border: 2px solid #2d2d2d !important;
   margin: 10px 0;
   background: #181818 !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  box-shadow: none !important;
 }
 
 .titlebar {
@@ -46,13 +46,20 @@
   color: #F0B43F !important;
   font-family: 'Arial Narrow', Arial, sans-serif;
   letter-spacing: 1px;
-  padding: 8px 12px !important;
+  padding: 6px 10px !important;
+  font-size: 12px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .content {
   background: #080808 !important;
   border-top: 2px solid #2d2d2d;
   padding: 15px !important;
+  box-sizing: border-box;
+  max-height: calc(100% - 30px);
+  overflow: auto;
 }
 
 .matchmaking-controls {
@@ -92,9 +99,9 @@
 }
 
 .clanlist.window {
-  width: 200px;
-  height: 358px;
-  margin-right: 20px; /* Increased from 15px */
+  width: 180px !important;
+  height: 320px !important;
+  margin-right: 20px;
   top: 0;
   left: 0;
 }
@@ -137,6 +144,8 @@
 /* Adjust lobby management window */
 .window.pre-lobby {
   margin: 0 0 15px 0 !important; /* Reduce space below */
+  width: 480px !important;
+  left: 20px !important;
 }
 
 .invite-section {
@@ -167,9 +176,9 @@
 
 /* Add new style for chat window positioning */
 .window.clan-chat {
-  width: 280px !important; /* Slightly reduced width */
+  width: 260px !important;
   height: 358px !important;
-  left: 220px !important; /* Adjusted positioning */
+  left: 190px !important;
   top: 0 !important;
 }
 
@@ -205,10 +214,15 @@
 .nav-player-name {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 15px !important;
+  gap: 8px;
+  padding: 4px 10px !important;
   background: #212121;
   border: 2px solid #2d2d2d !important;
+  margin-left: auto;
+}
+
+.currentplayername {
+  order: 2;
 }
 
 .join-section {
@@ -258,19 +272,20 @@
 /* Navbar Alignment Fix */
 #in3lw {
   max-width: 976px;
-  padding: 10px 0;
+  padding: 5px 0 !important;
   width: 920px;
   margin: 0 0 0 35px;
   right: 301px;
   background: #181818;
-  border: 3px solid #2d2d2d;
+  border: 2px solid #2d2d2d !important;
+  height: 40px;
 }
 
 #id5lb {
   list-style: none;
   margin: 0 0 0 -24px;
   width: 961px;
-  padding: 0 0 0 67px;
+  padding: 0 0 0 20px;
   display: flex;
   gap: 20px;
 }
@@ -296,6 +311,22 @@
   width: 40px;
   height: 40px;
   border: 2px solid #323232;
+}
+
+#navbarProfile {
+  width: 28px !important;
+  height: 28px !important;
+  order: 1;
+}
+
+#navbarUsername {
+  order: 2;
+  margin-right: 10px;
+}
+
+#navbarElo {
+  order: 3;
+  font-size: 0.9em;
 }
 
 #preLobbyPlayerList {
