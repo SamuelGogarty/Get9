@@ -24,7 +24,6 @@ main {
   gap: 20px;
   flex: 1;
   min-width: 380px;
-  width: 100%;
 }
 
 /* Match new_home window styling */
@@ -154,14 +153,11 @@ main {
 }
 
 /* Chat section styling matching new_home */
+.window[name="Pre-Lobby Members"] .content,
 .clan-chat .content {
+  height: 400px;
   display: flex;
   flex-direction: column;
-  height: 300px;
-}
-
-#preLobbyPlayerList .content {
-  min-height: 300px;
 }
 
 #preLobbyChatMessages {
@@ -204,6 +200,7 @@ main {
 
 .window[name="Join Our Discord"] {
   width: 100%;
+  max-width: none;
 }
 
 /* Player list styling */
@@ -266,28 +263,22 @@ main {
 
 /* Navbar styling */
 nav {
-  border-top: solid 1px #323232;
-  border-bottom: solid 1px #080808;
-  border-left: solid 1px #323232;
-  border-right: solid 1px #080808;
-  padding: 0;
-  list-style: none;
+  border-top: 1px solid #323232;
+  border-bottom: 1px solid #080808;
+  border-left: 1px solid #323232;
+  border-right: 1px solid #080808;
   background: #212121;
-  margin-bottom: 20px;
-  max-width: 780px;
   margin: 0 auto 20px;
+  max-width: 780px;
 }
 
 nav ul {
-  list-style: none;
   display: flex;
   align-items: center;
-  gap: 15px;
   height: 40px;
   padding: 0 20px;
   margin: 0;
-  background: #212121;
-  border-bottom: 2px solid #080808;
+  list-style: none;
 }
 
 nav li {
@@ -296,10 +287,11 @@ nav li {
 }
 
 nav li a {
-  padding: 8px 15px;
+  padding: 8px 25px;
   color: #F0B43F;
   text-decoration: none;
   font-size: 13px;
+  display: block;
 }
 
 nav li a:hover {
@@ -309,18 +301,16 @@ nav li a:hover {
 
 .right-nav {
   margin-left: auto;
-  display: flex;
-  gap: 10px;
 }
 
 .nav-player-name {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 10px;
+  padding: 0 15px;
+  height: 32px;
   background: #181818;
   border: 1px solid #2d2d2d;
-  height: 32px;
 }
 
 #navbarProfile {
@@ -329,32 +319,30 @@ nav li a:hover {
   border: 1px solid #4a752c;
 }
 
-#navbarUsername {
-  max-width: 140px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 #navbarElo {
   color: #F0B43F;
   font-size: 12px;
   margin-left: 8px;
 }
 
-/* Invite section */
+/* Fix lobby controls layout */
+.lobby-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
 .invite-section {
   display: flex;
   gap: 10px;
-  margin: 15px 0;
+  width: 100%;
 }
 
-/* Lobby section */
 #preLobbySection {
-  background: #181818;
-  padding: 10px;
-  border: 1px solid #2d2d2d;
   margin-top: 15px;
+  padding: 15px;
+  background: #181818;
+  border: 1px solid #2d2d2d;
 }
 
 /* Media query for responsive layout */
