@@ -44,6 +44,45 @@ body {
   color: #F0B43F;
 }
 
+.server-stats {
+  padding: 10px;
+  background: #080808;
+  border: 1px solid #2d2d2d;
+}
+
+.server-stats p {
+  margin: 8px 0;
+  color: #d8ded3;
+}
+
+.stat-value {
+  color: #F0B43F;
+  font-weight: bold;
+  padding-left: 8px;
+}
+
+.matchmaking-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.greensteam-button {
+  text-align: center !important;
+}
+
+.currentplayername {
+  color: #d8ded3;
+  padding: 0 5px;
+}
+
+.currentelo {
+  background: #080808;
+  padding: 2px 5px;
+  border: 1px solid #2d2d2d;
+}
+
 .player-card {
   display: flex;
   align-items: center;

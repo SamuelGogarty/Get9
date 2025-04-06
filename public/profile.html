@@ -12,29 +12,42 @@
       <li><a href="/">Home</a></li>
       <li><a href="/player.html">My Stats</a></li>
       <li class="right-nav">
-        <div class="nav-player-name inset">
-          <img id="profilePicture" src="/img/fallback-pfp.png" alt="Avatar" class="currentplayername">
-          <span id="username" class="inset currentplayername">Player Name</span>
-          <span id="skill" class="inset currentelo">ELO: 0</span>
+        <div class="nav-player-name">
+          <img id="navbarProfile" src="/img/fallback-pfp.png" alt="Avatar" class="currentplayername">
+          <span id="navbarUsername" class="currentplayername">Player Name</span>
+          <span id="navbarElo" class="currentelo">ELO: 0</span>
         </div>
       </li>
     </ul>
   </nav>
 
   <div class="lobby-grid">
-    <!-- Left Column -->
+    <!-- Window Column -->
     <div class="window-column">
       <div class="window" name="Matchmaking">
         <div class="titlebar">Get9 Matchmaking</div>
         <div class="content">
-          <div class="inset" style="padding: 10px; margin-bottom: 15px;">
-            <p>Players waiting: <span id="playersWaiting" class="inset" style="padding: 2px 5px;">0</span></p>
-            <p>Active matches: <span id="activeMatches" class="inset" style="padding: 2px 5px;">0</span></p>
+          <div class="flex-row" style="gap: 15px; margin-bottom: 15px;">
+            <div class="server-stats">
+              <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
+              <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
+            </div>
+            <a href="https://discord.gg/8m4xG8sjXm" 
+               class="greensteam-button" 
+               target="_blank"
+               style="height: auto; padding: 10px 15px;">
+              Join Our Discord
+            </a>
           </div>
-          <button class="greensteam-button" id="startMatchmakingBtn" style="width: 100%; margin-bottom: 10px;">
-            Start Matchmaking
-          </button>
-          <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100"></progress>
+          
+          <div class="matchmaking-controls">
+            <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
+            <progress class="que-in-progress-bar" 
+                      id="matchmakingProgress" 
+                      value="0" 
+                      max="100"
+                      style="display: none;"></progress>
+          </div>
         </div>
       </div>
 
@@ -66,36 +79,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Right Column -->
-    <div class="window-column">
-      <div class="window" name="Quick Stats">
-        <div class="titlebar">Combat Statistics</div>
-        <div class="content">
-          <div class="stats-grid">
-            <div class="stat-item inset">
-              <span class="stat-label">K/D Ratio:</span>
-              <span class="stat-value" id="kdRatio">-</span>
-            </div>
-            <div class="stat-item inset">
-              <span class="stat-label">Headshots:</span>
-              <span class="stat-value" id="hsPercentage">-</span>
-            </div>
-            <div class="stat-item inset">
-              <span class="stat-label">Matches Won:</span>
-              <span class="stat-value" id="wins">-</span>
-            </div>
-            <div class="stat-item inset">
-              <span class="stat-label">Damage Avg:</span>
-              <span class="stat-value" id="damage">-</span>
-            </div>
-          </div>
-          <a href="/player.html" class="greensteam-button" style="width: 100%; margin-top: 15px; text-align: center;">
-            View Full Statistics
-          </a>
-        </div>
-      </div>
-    </div>
   </div>
 
   <script>
@@ -119,30 +102,13 @@
       fetch('/user/skill')
         .then(response => response.json())
         .then(data => {
-          document.getElementById('skill').textContent = `ELO: ${data.skill || 0}`;
+          document.getElementById('navbarElo').textContent = `ELO: ${data.skill || 0}`;
         })
         .catch(error => {
           console.error('Error fetching player skill:', error);
           document.getElementById('skill').textContent = 'ELO: 0';
         });
         
-      // Fetch quick stats for the stats preview
-      fetch('/api/player/me/stats')
-        .then(response => response.json())
-        .then(data => {
-          const kdRatio = data.kills && data.deaths ? (data.kills / Math.max(data.deaths, 1)).toFixed(2) : '-';
-          const hsPercent = data.hs_kills && data.kills ? Math.round((data.hs_kills / data.kills) * 100) + '%' : '-';
-          const wins = data.wins_ct + data.wins_t || '-';
-          const damageAvg = data.damage && data.rounds ? Math.round(data.damage / data.rounds) : '-';
-          
-          document.getElementById('kdRatio').textContent = kdRatio;
-          document.getElementById('hsPercentage').textContent = hsPercent;
-          document.getElementById('wins').textContent = wins;
-          document.getElementById('damage').textContent = damageAvg;
-        })
-        .catch(error => {
-          console.error('Error fetching player stats:', error);
-        });
         
       // Fetch server stats
       fetch('/api/server/stats')
@@ -171,6 +137,7 @@
           
           // Show progress animation
           const progress = document.getElementById('matchmakingProgress');
+          progress.style.display = 'block';
           progress.value = 0;
           
           let progressValue = 0;
@@ -192,6 +159,7 @@
       if (window.matchmakingInterval) {
         clearInterval(window.matchmakingInterval);
       }
+      document.getElementById('matchmakingProgress').style.display = 'none';
       window.location.href = url;
     });
 
@@ -199,6 +167,7 @@
       if (window.matchmakingInterval) {
         clearInterval(window.matchmakingInterval);
       }
+      document.getElementById('matchmakingProgress').style.display = 'none';
       alert('Error: ' + message);
     });
 
