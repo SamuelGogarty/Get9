@@ -161,15 +161,28 @@
         </div>
       </div>
 
-      <div class="window clanlist">
-        <div class="titlebar">Pre-Lobby Members</div>
-        <div class="content inset" id="preLobbyPlayerList"></div>
+      <div style="display: flex; margin-top: 20px;">
+        <div class="window clanlist">
+          <div class="titlebar">Pre-Lobby Members</div>
+          <div class="content inset" id="preLobbyPlayerList"></div>
+        </div>
+        
+        <div class="window clan-chat">
+          <div class="titlebar">Pre-Lobby Chat</div>
+          <div class="content inset">
+            <ul id="preLobbyChatMessages"></ul>
+            <div class="chat-input">
+              <input type="text" id="preLobbyChatInput" placeholder="Type message...">
+              <button class="greensteam-button" id="sendPreLobbyMessage">Send</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Center Column -->
     <div class="window-column center-col">
-      <div class="window pre-lobby" style="width: 875px;">
+      <div class="window pre-lobby" style="width: 100%;">
         <div class="titlebar">Lobby Management</div>
         <div class="content">
           <div class="lobby-controls">
@@ -182,17 +195,6 @@
           <div id="preLobbySection" class="inset" style="display: none;">
             <p>Invite Code: <strong id="inviteCode"></strong></p>
             <button class="greensteam-button" id="startPreLobbyMatchmakingBtn">Start Group Queue</button>
-          </div>
-        </div>
-      </div>
-      
-      <div class="window clan-chat" style="height: 358px;">
-        <div class="titlebar">Pre-Lobby Chat</div>
-        <div class="content inset">
-          <ul id="preLobbyChatMessages"></ul>
-          <div class="chat-input">
-            <input type="text" id="preLobbyChatInput" placeholder="Type message...">
-            <button class="greensteam-button" id="sendPreLobbyMessage">Send</button>
           </div>
         </div>
       </div>
