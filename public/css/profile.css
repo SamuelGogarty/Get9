@@ -11,19 +11,20 @@ main {
 
 .window-row {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: stretch;
-  max-width: 780px;
+  flex-wrap: wrap;
   gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .window-column {
-  display: flex;
-  flex-direction: column;
-  gap: 15px; /* Reduced from 20px */
   flex: 1;
   min-width: 380px;
+  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 /* Match new_home window styling */
@@ -33,8 +34,9 @@ main {
   padding: 10px;
   box-sizing: border-box;
   margin: 0 0 20px;
-  max-width: 780px;
   width: 100%;
+  max-width: 580px;
+  min-height: 200px;
   border-top: solid 1px #323232;
   border-bottom: solid 1px #080808;
   border-left: solid 1px #323232;
@@ -53,6 +55,7 @@ main {
   background-image: url("steamico.png"), url("minimize.png"), url("close.png");
   background-repeat: no-repeat;
   background-position: top left, top right 20px, top right;
+  background-size: 16px 16px, 16px 16px, 16px 16px;
   text-transform: uppercase;
   letter-spacing: 2px;
   font-size: 12px;
@@ -71,6 +74,7 @@ main {
   cursor: nwse-resize;
   content: '';
   background-image: url("resize.png");
+  background-size: 12px 12px;
 }
 
 /* For backward compatibility with existing titlebar divs */
@@ -155,7 +159,7 @@ main {
 /* Chat section styling matching new_home */
 .window[name="Pre-Lobby Members"] .content,
 .clan-chat .content {
-  height: 420px; /* Increased from 400px */
+  height: 400px;
   display: flex;
   flex-direction: column;
 }
@@ -179,7 +183,9 @@ main {
   background: #080808;
   border: 1px solid #2d2d2d;
   color: #fff;
-  padding: 6px;
+  height: 28px;
+  font-size: 13px;
+  padding: 4px 8px;
 }
 
 /* Discord window styling */
@@ -187,20 +193,22 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 10px;
-  padding: 15px;
+  padding: 20px;
   text-decoration: none;
   width: 100%;
 }
 
 .discord-link img {
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 10px;
 }
 
 .window[name="Join Our Discord"] {
+  max-width: 580px;
   width: 100%;
-  max-width: none;
 }
 
 /* Player list styling */
@@ -214,7 +222,8 @@ main {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px;
+  padding: 6px 10px;
+  margin: 2px 0;
   background: #181818;
   border: 1px solid #2d2d2d;
 }
@@ -341,7 +350,8 @@ nav li a:hover {
 
 /* Update lobby management window */
 .window[name="Lobby Management"] {
-  min-height: auto;
+  height: 180px;
+  min-height: 180px;
   flex-shrink: 0;
 }
 
@@ -371,6 +381,6 @@ nav li a:hover {
 .window.half,
 .window-row .window {
   width: 100%;
-  max-width: unset;
+  max-width: 580px;
   align-self: flex-start;
 }
