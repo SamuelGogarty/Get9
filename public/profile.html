@@ -6,118 +6,109 @@
     <link rel="stylesheet" href="css/blacksteam.css">
     <script src="/socket.io/socket.io.js"></script>
     <style>
-      /* Profile-specific styles matching reference image */
-      .lobby-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        padding: 20px;
-        max-width: 1200px;
-        margin: 0 auto;
+      /* Profile-specific styles matching new_home layout */
+      .window-container {
+        position: relative;
+        margin: 20px;
+        padding: 15px;
       }
 
       .window-column {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
+        position: absolute;
+        width: 327px;
+      }
+
+      .left-col {
+        left: 17px;
+        top: 90px;
+      }
+
+      .center-col {
+        left: 408px;
+        top: 93px;
+      }
+
+      .right-col {
+        left: 1054px;
+        top: 1px;
       }
 
       .window {
+        border: 3px solid #a3a3a3;
         background: #212121;
-        border: 3px solid;
-        border-color: #323232 #080808 #080808 #323232;
-        width: 100%;
-        margin: 0;
+        margin-bottom: 20px;
       }
 
-      .titlebar {
-        background: #181818;
-        border-bottom: 2px solid #080808;
-        padding: 6px 12px;
-        font-weight: bold;
-        color: #F0B43F;
-        text-transform: uppercase;
-        font-size: 13px;
-        letter-spacing: 1px;
+      .infobox {
+        width: 875px;
+        height: 175px;
+        margin-left: 361px;
+        top: 197px;
       }
 
-      .content {
-        padding: 15px;
+      .clanlist {
+        width: 421px;
+        height: 358px;
+        top: 379px;
+      }
+
+      .pre-lobby {
+        height: 493px;
+      }
+
+      .Discord {
+        width: 1041px;
+        height: 129px;
+        top: 436px;
+      }
+
+      .stats-preview {
+        width: 328px;
+        height: 121px;
+        top: 616px;
+      }
+
+      .server-stats.inset {
+        padding: 10px;
+        margin: 10px 0;
         background: #080808;
         border: 2px solid #2d2d2d;
-      }
-
-      .server-status {
-        background: #212121;
-        border: 2px solid #2d2d2d;
-        padding: 10px;
-        margin-bottom: 15px;
-      }
-
-      .server-status p {
-        margin: 8px 0;
-        color: #d8ded3;
-        font-size: 14px;
-      }
-
-      .stat-value {
-        color: #F0B43F;
-        font-weight: bold;
-        float: right;
-      }
-
-      .matchmaking-controls {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        background: #212121;
-        padding: 10px;
-        border: 2px solid #2d2d2d;
-      }
-
-      .discord-btn {
-        background: #5865F2 !important;
-        padding: 8px 15px;
-        border-color: #7983f5 #4752c4 #4752c4 #7983f5 !important;
       }
 
       .que-in-progress-bar {
-        flex: 1;
-        height: 20px;
-        border-color: #080808 #323232 #323232 #080808 !important;
-      }
-
-      .invite-section {
-        margin: 15px 0;
-        display: flex;
-        gap: 10px;
-      }
-
-      .player-list {
-        border: 2px solid #2d2d2d;
-        padding: 10px;
+        width: 768px;
         margin: 10px 0;
-        min-height: 100px;
-        background: #080808;
       }
 
-      .nav-player-name {
+      .discord-link {
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 5px 10px;
-        background: #212121;
-        border: 2px solid #2d2d2d;
+        padding: 8px;
+        color: #5865F2;
       }
 
-      .currentplayername {
-        color: #d8ded3 !important;
+      .discord-link img {
+        width: 32px;
+        height: 32px;
       }
 
-      .currentelo {
-        background: #080808;
-        padding: 2px 5px;
-        border: 2px solid #2d2d2d;
+      /* Override blacksteam.css navbar styles */
+      #in3lw {
+        width: 1155px;
+        left: 316px;
+        position: absolute;
+        float: right;
+      }
+
+      #id5lb {
+        padding-left: 67px;
+        margin-left: -24px;
+      }
+
+      .right-nav {
+        margin-left: auto;
+        padding-right: 30px;
       }
     </style>
 </head>
@@ -125,65 +116,87 @@
   <nav id="in3lw">
     <ul id="id5lb">
       <li><a href="/">Home</a></li>
-      <li><a href="/player.html">My Stats</a></li>
+      <li>
+        <a href="#">Services</a>
+        <ul class="dropdown">
+          <li><a href="/player.html">My Stats</a></li>
+          <li><a href="#">Server Browser</a></li>
+        </ul>
+      </li>
+      <li><a href="#">Contact</a></li>
       <li class="right-nav">
-        <div class="nav-player-name">
+        <div class="nav-player-name inset">
           <img id="navbarProfile" src="/img/fallback-pfp.png" alt="Avatar" class="currentplayername">
           <span id="navbarUsername" class="currentplayername">Player Name</span>
-          <span id="navbarElo" class="currentelo">ELO: 0</span>
+          <span id="navbarElo" class="currentelo inset">ELO: 0</span>
         </div>
       </li>
     </ul>
   </nav>
 
-  <div class="lobby-grid">
+  <div class="window-container">
     <!-- Left Column -->
-    <div class="window-column">
-      <div class="window" name="Matchmaking">
+    <div class="window-column left-col">
+      <div class="window infobox">
         <div class="titlebar">Get9 Matchmaking</div>
         <div class="content">
-          <div class="server-status">
-            <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
-            <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
+          <div class="server-stats inset">
+            <p>Players waiting: <span id="playersWaiting">0</span></p>
+            <p>Ongoing matches: <span id="activeMatches">0</span></p>
           </div>
-          
-          <div class="matchmaking-controls">
-            <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
-            <a href="https://discord.gg/8m4xG8sjXm" 
-               class="greensteam-button discord-btn" 
-               target="_blank">
-              Join Discord
-            </a>
-            <progress class="que-in-progress-bar" 
-                      id="matchmakingProgress" 
-                      value="0" 
-                      max="100"
-                      style="display: none;"></progress>
+          <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
+          <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100"></progress>
+        </div>
+      </div>
+
+      <div class="window clanlist">
+        <div class="titlebar">Clan Members</div>
+        <div class="content" id="friendsList"></div>
+      </div>
+    </div>
+
+    <!-- Center Column -->
+    <div class="window-column center-col">
+      <div class="window pre-lobby">
+        <div class="titlebar">Private Lobby</div>
+        <div class="content">
+          <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
+          <div class="invite-section inset">
+            <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
+            <button class="greensteam-button" id="joinPreLobbyBtn">Join</button>
+          </div>
+          <div id="preLobbySection" style="display: none;">
+            <p>Invite Code: <strong id="inviteCode"></strong></p>
+            <div class="titlebar">Lobby Members</div>
+            <div id="preLobbyPlayerList" class="player-list inset"></div>
+            <button class="greensteam-button" id="startPreLobbyMatchmakingBtn">Start Group Queue</button>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Right Column -->
-    <div class="window-column">
-      <div class="window" name="Pre-Lobby">
-        <div class="titlebar">Private Lobby</div>
+    <div class="window-column right-col">
+      <div class="window Discord">
+        <div class="titlebar">Join Our Discord</div>
         <div class="content">
-          <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
-          
-          <div class="invite-section">
-            <input type="text" 
-                   id="inviteCodeInput" 
-                   placeholder="Enter invite code"
-                   style="width: 200px;">
-            <button class="greensteam-button" id="joinPreLobbyBtn">Join</button>
+          <a href="https://discord.gg/8m4xG8sjXm" class="discord-link" target="_blank">
+            <img src="/img/discord-icon.png" alt="Discord">
+            <span>discord.gg/8m4xG8sjXm</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="window stats-preview">
+        <div class="titlebar">Quick Stats</div>
+        <div class="content">
+          <div class="stat-item">
+            <span class="stat-label">K/D Ratio:</span>
+            <span class="stat-value" id="kdRatio">-</span>
           </div>
-
-          <div id="preLobbySection" style="display: none;">
-            <p>Invite Code: <strong id="inviteCode" class="stat-value"></strong></p>
-            <div class="titlebar" style="margin: 10px 0 5px 0;">Lobby Members</div>
-            <div id="preLobbyPlayerList" class="player-list"></div>
-            <button class="greensteam-button" id="startPreLobbyMatchmakingBtn">Start Group Queue</button>
+          <div class="stat-item">
+            <span class="stat-label">Headshots:</span>
+            <span class="stat-value" id="hsPercentage">-</span>
           </div>
         </div>
       </div>
@@ -227,6 +240,20 @@
         .catch(error => {
           console.error('Error fetching server stats:', error);
         });
+        
+      // Fetch player stats for quick stats preview
+      fetch('/api/player/me/stats')
+        .then(response => response.json())
+        .then(data => {
+          const kdRatio = data.kills && data.deaths ? (data.kills / data.deaths).toFixed(2) : '-';
+          const hsPercentage = data.kills ? Math.round((data.hs_kills / data.kills) * 100) + '%' : '-';
+          
+          document.getElementById('kdRatio').textContent = kdRatio;
+          document.getElementById('hsPercentage').textContent = hsPercentage;
+        })
+        .catch(error => {
+          console.error('Error fetching player stats:', error);
+        });
     }
 
     document.getElementById('startMatchmakingBtn').addEventListener('click', () => {
@@ -243,7 +270,7 @@
           
           // Show progress animation
           const progress = document.getElementById('matchmakingProgress');
-          progress.style.display = 'flex';
+          progress.style.display = 'block';
           progress.value = 0;
           
           let progressValue = 0;
