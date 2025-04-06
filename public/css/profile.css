@@ -21,7 +21,7 @@ main {
 .window-column {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px; /* Reduced from 20px */
   flex: 1;
   min-width: 380px;
 }
@@ -155,7 +155,7 @@ main {
 /* Chat section styling matching new_home */
 .window[name="Pre-Lobby Members"] .content,
 .clan-chat .content {
-  height: 400px;
+  height: 420px; /* Increased from 400px */
   display: flex;
   flex-direction: column;
 }
@@ -329,13 +329,24 @@ nav li a:hover {
 .lobby-controls {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 10px;
 }
 
 .invite-section {
   display: flex;
   gap: 10px;
   width: 100%;
+  margin: 10px 0;
+}
+
+/* Update lobby management window */
+.window[name="Lobby Management"] {
+  min-height: auto;
+  flex-shrink: 0;
+}
+
+.window[name="Lobby Management"] .content {
+  padding: 10px;
 }
 
 #preLobbySection {
