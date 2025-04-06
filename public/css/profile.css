@@ -13,14 +13,14 @@
 /* Left Column */
 .window-column.left-col {
   left: 17px;
-  top: 200px; /* Move down to make space for lobby management */
+  top: 430px; /* Move down to make space for lobby management */
   width: 500px; /* Increased from 327px */
 }
 
 /* Center Column */
 .window-column.center-col {
   left: 17px; /* Move to left side */
-  top: 197px;
+  top: 385px; /* Position between matchmaking and pre-lobby sections */
   width: 500px; /* Match left column width */
 }
 
@@ -69,7 +69,7 @@
   position: static !important; /* Use normal flow */
   width: 100% !important;
   height: 175px;
-  margin: 0 0 20px 0 !important; /* Add spacing below */
+  margin: 0 0 15px 0 !important; /* Add space below matchmaking window */
 }
 
 .clanlist.window {
@@ -101,7 +101,7 @@
 
 /* Adjust lobby management window */
 .window.pre-lobby {
-  margin-bottom: 20px; /* Add space above members/chat */
+  margin: 0 0 15px 0 !important; /* Reduce space below */
 }
 
 .invite-section {

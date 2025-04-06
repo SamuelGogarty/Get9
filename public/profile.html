@@ -145,7 +145,24 @@
   </nav>
 
   <div class="profile-container">
-    <!-- Center Column (now moved up) -->
+    <!-- Left Column (Matchmaking) -->
+    <div class="window-column left-col">
+      <div class="window infobox">
+        <div class="titlebar">Get9 Matchmaking</div>
+        <div class="content">
+          <div class="server-stats inset">
+            <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
+            <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
+          </div>
+          <div class="matchmaking-controls">
+            <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
+            <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100"></progress>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center Column (Lobby Management) -->
     <div class="window-column center-col">
       <div class="window pre-lobby" style="width: 100%;">
         <div class="titlebar">Lobby Management</div>
@@ -165,22 +182,8 @@
       </div>
     </div>
 
-    <!-- Left Column -->
-    <div class="window-column left-col">
-      <div class="window infobox">
-        <div class="titlebar">Get9 Matchmaking</div>
-        <div class="content">
-          <div class="server-stats inset">
-            <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
-            <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
-          </div>
-          <div class="matchmaking-controls">
-            <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
-            <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100"></progress>
-          </div>
-        </div>
-      </div>
-
+    <!-- Left Column Continued (Pre-Lobby sections) -->
+    <div class="window-column left-col" style="top: 560px;">
       <div style="display: flex; margin-top: 0;">
         <div class="window clanlist">
           <div class="titlebar">Pre-Lobby Members</div>
