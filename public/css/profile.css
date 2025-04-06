@@ -1,0 +1,179 @@
+/* Profile Page Specific Styles */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+.window-container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.window-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.window {
+  background: #1a1a1a;
+  border: 2px solid #2d2d2d;
+  border-radius: 4px;
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+.titlebar {
+  background: #2d2d2d;
+  padding: 10px;
+  font-weight: bold;
+  border-bottom: 2px solid #3d3d3d;
+}
+
+.content {
+  padding: 15px;
+}
+
+.nav-player-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  background: #2d2d2d;
+  border-radius: 4px;
+}
+
+.join-section {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #2d2d2d;
+}
+
+.stat-label {
+  color: #888;
+}
+
+.stat-value {
+  font-weight: bold;
+}
+
+.btn-primary {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+  display: inline-block;
+  text-decoration: none;
+  margin: 10px 0;
+}
+
+.btn-primary:hover {
+  background: #45a049;
+}
+
+.que-in-progress-bar {
+  width: 100%;
+  height: 8px;
+  margin: 10px 0;
+  appearance: none;
+}
+
+.que-in-progress-bar::-webkit-progress-bar {
+  background: #2d2d2d;
+}
+
+.que-in-progress-bar::-webkit-progress-value {
+  background: #4CAF50;
+}
+
+#in3lw {
+  background: #1a1a1a;
+  padding: 10px 20px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #2d2d2d;
+}
+
+#id5lb {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 20px;
+}
+
+#id5lb li {
+  padding: 10px;
+}
+
+#id5lb a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.right-nav {
+  margin-left: auto;
+}
+
+#profilePicture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #4CAF50;
+}
+
+#preLobbyPlayerList {
+  margin-top: 15px;
+}
+
+#preLobbyPlayerList .player-card {
+  background: #29293d;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  color: #e0e0e0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s, background 0.3s;
+}
+
+#preLobbyPlayerList .player-card:hover {
+  transform: translateY(-2px);
+  background: #333347;
+}
+
+input[type="text"] {
+  padding: 10px;
+  border: 1px solid #29293d;
+  border-radius: 4px;
+  background: #1e1e2d;
+  color: #e0e0e0;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 5px #4CAF50;
+}
+
+.elo-display {
+  background: #333;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+}

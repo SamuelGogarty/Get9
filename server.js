@@ -391,6 +391,36 @@ app.get('/api/player/:id/stats', ensureAuthenticated, async (req, res) => {
     });
   }
 });
+
+// Server stats API endpoint
+app.get('/api/server/stats', ensureAuthenticated, async (req, res) => {
+  try {
+    const db = await mysql.createConnection(dbConfigMatchmaking);
+    
+    // Get queue count
+    const [queueResult] = await db.query('SELECT COUNT(*) as count FROM queue');
+    const queuedPlayers = queueResult[0].count;
+    
+    // Get active matches count (count unique lobby_ids where lobby_id is not null)
+    const [matchesResult] = await db.query(
+      'SELECT COUNT(DISTINCT lobby_id) as count FROM players WHERE lobby_id IS NOT NULL'
+    );
+    const activeMatches = matchesResult[0].count;
+    
+    await db.end();
+    
+    res.json({
+      queuedPlayers,
+      activeMatches
+    });
+  } catch (error) {
+    console.error('Server stats error:', error);
+    res.status(500).json({ 
+      error: 'Server error',
+      details: error.message
+    });
+  }
+});
 // Admin
 app.get('/admin', ensureAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
