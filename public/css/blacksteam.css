@@ -328,6 +328,92 @@ input[type=range].ticks::after {
   margin: 0 0 20px;
   max-width: 780px;
 }
+
+/* Profile Page Specific Styles */
+.lobby-grid {
+  display: grid;
+  grid-template-columns: minmax(400px, 1fr);
+  gap: 20px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.window-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.server-status {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.server-stats p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.stat-value {
+  color: #F0B43F;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.matchmaking-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.discord-btn {
+  padding: 8px 15px;
+  text-align: center;
+  height: auto;
+}
+
+.invite-section {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.invite-section input {
+  flex: 1;
+}
+
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 8px;
+  background: #080808;
+  border: 1px solid #2d2d2d;
+}
+
+.player-list div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+}
+
+.lobby-info {
+  margin: 15px 0;
+}
+
+/* Progress bar matches lobby styling */
+.que-in-progress-bar {
+  height: 20px;
+  flex: 1;
+}
+
+.que-in-progress-bar::-webkit-progress-value {
+  background: repeating-linear-gradient(to right, #96892D, #96892D 8px, #080808 1px, #080808 12px);
+}
 .titlebar,
 .window:not(.headless)::before {
   display: block;

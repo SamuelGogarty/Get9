@@ -22,21 +22,20 @@
   </nav>
 
   <div class="lobby-grid">
-    <!-- Window Column -->
+    <!-- Left Column -->
     <div class="window-column">
       <div class="window" name="Matchmaking">
         <div class="titlebar">Get9 Matchmaking</div>
         <div class="content">
-          <div class="flex-row" style="gap: 15px; margin-bottom: 15px;">
+          <div class="flex-row server-status">
             <div class="server-stats">
               <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
               <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
             </div>
             <a href="https://discord.gg/8m4xG8sjXm" 
-               class="greensteam-button" 
-               target="_blank"
-               style="height: auto; padding: 10px 15px;">
-              Join Our Discord
+               class="greensteam-button discord-btn" 
+               target="_blank">
+              Join Discord
             </a>
           </div>
           
@@ -52,35 +51,32 @@
       </div>
 
       <div class="window" name="Pre-Lobby">
-        <div class="titlebar">Pre-Lobby</div>
+        <div class="titlebar">Private Lobby</div>
         <div class="content">
-          <div class="inset" style="padding: 10px;">
-            <button class="greensteam-button" id="createPreLobbyBtn" style="width: 100%; margin-bottom: 10px;">
-              Create Private Lobby
-            </button>
-            
-            <div class="inset" style="padding: 10px; margin: 10px 0;">
-              <input type="text" id="inviteCodeInput" class="inset" placeholder="Enter invite code" 
-                     style="width: calc(100% - 90px); margin-right: 5px;">
-              <button class="greensteam-button" id="joinPreLobbyBtn" style="width: 80px;">Join</button>
-            </div>
+          <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
+          
+          <div class="invite-section">
+            <input type="text" 
+                   id="inviteCodeInput" 
+                   class="inset" 
+                   placeholder="Enter invite code">
+            <button class="greensteam-button" id="joinPreLobbyBtn">Join</button>
+          </div>
 
-            <div id="preLobbySection" style="display: none;">
-              <div class="inset" style="padding: 10px; margin: 10px 0;">
-                <p>Invite Code: <strong id="inviteCode" class="inset" style="padding: 2px 5px;"></strong></p>
-                <div class="titlebar" style="margin: 10px 0 5px 0;">Lobby Members</div>
-                <div id="preLobbyPlayerList" class="inset" style="padding: 5px; min-height: 80px;"></div>
-              </div>
-              <button class="greensteam-button" id="startPreLobbyMatchmakingBtn" style="width: 100%;">
-                Start Group Matchmaking
-              </button>
+          <div id="preLobbySection" style="display: none;">
+            <div class="lobby-info">
+              <p>Invite Code: <strong id="inviteCode"></strong></p>
+              <div class="titlebar">Lobby Members</div>
+              <div id="preLobbyPlayerList" class="player-list"></div>
             </div>
+            <button class="greensteam-button" id="startPreLobbyMatchmakingBtn">Start Group Queue</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
+  <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
 
@@ -89,10 +85,9 @@
       fetch('/user/info')
         .then(response => response.json())
         .then(data => {
-          document.getElementById('username').textContent = data.username || 'Unknown user';
+          document.getElementById('navbarUsername').textContent = data.username || 'Unknown user';
           if (data.profilePictureUrl) {
-            const profilePicture = document.getElementById('profilePicture');
-            profilePicture.src = data.profilePictureUrl;
+            document.getElementById('navbarProfile').src = data.profilePictureUrl;
           }
         })
         .catch(error => {
@@ -106,9 +101,7 @@
         })
         .catch(error => {
           console.error('Error fetching player skill:', error);
-          document.getElementById('skill').textContent = 'ELO: 0';
         });
-        
         
       // Fetch server stats
       fetch('/api/server/stats')
@@ -123,17 +116,16 @@
     }
 
     document.getElementById('startMatchmakingBtn').addEventListener('click', () => {
-      const username = document.getElementById('username').textContent;
-      const profilePictureUrl = document.getElementById('profilePicture').src;
-
       // Get user info from server instead of relying on DOM
       fetch('/user/info')
         .then(response => response.json())
         .then(data => {
-          const steamId = data.steamId;
-          const email = data.email;
-
-          socket.emit('startMatchmaking', { username, steamId, email, profilePictureUrl });
+          socket.emit('startMatchmaking', { 
+            username: data.username,
+            steamId: data.steamId,
+            email: data.email,
+            profilePictureUrl: data.profilePictureUrl
+          });
           
           // Show progress animation
           const progress = document.getElementById('matchmakingProgress');
@@ -192,7 +184,6 @@
     socket.on('preLobbyCreated', ({ inviteCode }) => {
       document.getElementById('inviteCode').textContent = inviteCode;
       document.getElementById('preLobbySection').style.display = 'block';
-      document.getElementById('startPreLobbyMatchmakingBtn').style.display = 'block';
     });
 
     document.getElementById('joinPreLobbyBtn').addEventListener('click', () => {
@@ -230,9 +221,8 @@
       playerList.innerHTML = '';
       players.forEach((player) => {
         const playerItem = document.createElement('div');
-        playerItem.classList.add('player-card');
         playerItem.innerHTML = `
-          <img src="${player.profilePictureUrl}" alt="${player.username}" style="width: 24px; height: 24px; margin-right: 5px;">
+          <img src="${player.profilePictureUrl}" alt="${player.username}" style="width: 24px; height: 24px;">
           <span>${player.username}</span>
         `;
         playerList.appendChild(playerItem);
