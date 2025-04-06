@@ -73,10 +73,11 @@
 }
 
 .clanlist.window {
-  width: 421px;
+  width: 200px;  /* Reduced from 421px */
   height: 358px;
   top: 379px;
-  left: -5px;
+  left: 0;       /* Remove negative offset */
+  margin-right: 15px; /* Add spacing between windows */
 }
 
 .Discord.window {
@@ -122,6 +123,14 @@
 .discord-link img {
   width: 64px;
   height: 64px;
+}
+
+/* Add new style for chat window positioning */
+.window.clan-chat {
+  left: 215px !important; /* Position next to player list */
+  top: 379px !important;  /* Align with clanlist top position */
+  width: 250px !important; /* Increased from 121px */
+  height: 358px !important; /* Match clanlist height */
 }
 
 /* Chat and Player List */
