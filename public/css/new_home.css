@@ -4,6 +4,53 @@
 body {
   margin: 0;
 }
+
+/* Lobby grid layout */
+.lobby-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.window-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.stat-item {
+  padding: 8px;
+  border: 1px solid #2d2d2d;
+}
+
+.stat-label {
+  color: #888;
+  font-size: 0.9em;
+}
+
+.stat-value {
+  float: right;
+  font-weight: bold;
+  color: #F0B43F;
+}
+
+.player-card {
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  margin-bottom: 5px;
+  background-color: #181818;
+}
 .window{
   position:relative;
   left:-2px;

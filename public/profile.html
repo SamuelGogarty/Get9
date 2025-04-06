@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>User Profile</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="css/blacksteam.css">
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body id="ifi5">
@@ -13,207 +12,265 @@
       <li><a href="/">Home</a></li>
       <li><a href="/player.html">My Stats</a></li>
       <li class="right-nav">
-        <div class="nav-player-name">
-          <img id="profilePicture" src="/img/fallback-pfp.png" alt="Avatar">
-          <span id="username">Player Name</span>
-          <span id="skill" class="elo-display">ELO: 0</span>
+        <div class="nav-player-name inset">
+          <img id="profilePicture" src="/img/fallback-pfp.png" alt="Avatar" class="currentplayername">
+          <span id="username" class="inset currentplayername">Player Name</span>
+          <span id="skill" class="inset currentelo">ELO: 0</span>
         </div>
       </li>
     </ul>
   </nav>
 
-  <div class="window-container">
+  <div class="lobby-grid">
     <!-- Left Column -->
     <div class="window-column">
-      <div class="window infobox">
-        <div class="titlebar">Welcome to Get9!</div>
+      <div class="window" name="Matchmaking">
+        <div class="titlebar">Get9 Matchmaking</div>
         <div class="content">
-          <p>Your Steam ID / Email: <span id="identifier">loading...</span></p>
-          <p>Players waiting: <span id="playersWaiting">0</span></p>
-          <p>Ongoing matches: <span id="activeMatches">0</span></p>
-          <button class="startmatchmaking" id="startMatchmakingBtn">Start Matchmaking</button>
+          <div class="inset" style="padding: 10px; margin-bottom: 15px;">
+            <p>Players waiting: <span id="playersWaiting" class="inset" style="padding: 2px 5px;">0</span></p>
+            <p>Active matches: <span id="activeMatches" class="inset" style="padding: 2px 5px;">0</span></p>
+          </div>
+          <button class="greensteam-button" id="startMatchmakingBtn" style="width: 100%; margin-bottom: 10px;">
+            Start Matchmaking
+          </button>
           <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100"></progress>
         </div>
       </div>
 
-      <div class="window clanlist">
-        <div class="titlebar">Friends Online</div>
-        <div class="content" id="friendsList">
-          <!-- Dynamically populated -->
+      <div class="window" name="Pre-Lobby">
+        <div class="titlebar">Pre-Lobby</div>
+        <div class="content">
+          <div class="inset" style="padding: 10px;">
+            <button class="greensteam-button" id="createPreLobbyBtn" style="width: 100%; margin-bottom: 10px;">
+              Create Private Lobby
+            </button>
+            
+            <div class="inset" style="padding: 10px; margin: 10px 0;">
+              <input type="text" id="inviteCodeInput" class="inset" placeholder="Enter invite code" 
+                     style="width: calc(100% - 90px); margin-right: 5px;">
+              <button class="greensteam-button" id="joinPreLobbyBtn" style="width: 80px;">Join</button>
+            </div>
+
+            <div id="preLobbySection" style="display: none;">
+              <div class="inset" style="padding: 10px; margin: 10px 0;">
+                <p>Invite Code: <strong id="inviteCode" class="inset" style="padding: 2px 5px;"></strong></p>
+                <div class="titlebar" style="margin: 10px 0 5px 0;">Lobby Members</div>
+                <div id="preLobbyPlayerList" class="inset" style="padding: 5px; min-height: 80px;"></div>
+              </div>
+              <button class="greensteam-button" id="startPreLobbyMatchmakingBtn" style="width: 100%;">
+                Start Group Matchmaking
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Right Column -->
     <div class="window-column">
-      <div class="window pre-lobby">
-        <div class="titlebar">Pre-Lobby Controls</div>
+      <div class="window" name="Quick Stats">
+        <div class="titlebar">Combat Statistics</div>
         <div class="content">
-          <button id="createPreLobbyBtn" class="btn-primary">Create Pre-Lobby</button>
-          <div class="join-section">
-            <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
-            <button id="joinPreLobbyBtn" class="btn-primary">Join</button>
+          <div class="stats-grid">
+            <div class="stat-item inset">
+              <span class="stat-label">K/D Ratio:</span>
+              <span class="stat-value" id="kdRatio">-</span>
+            </div>
+            <div class="stat-item inset">
+              <span class="stat-label">Headshots:</span>
+              <span class="stat-value" id="hsPercentage">-</span>
+            </div>
+            <div class="stat-item inset">
+              <span class="stat-label">Matches Won:</span>
+              <span class="stat-value" id="wins">-</span>
+            </div>
+            <div class="stat-item inset">
+              <span class="stat-label">Damage Avg:</span>
+              <span class="stat-value" id="damage">-</span>
+            </div>
           </div>
-          <div id="preLobbySection" style="display: none;">
-            <p>Your Invite Code: <strong id="inviteCode"></strong></p>
-            <div id="preLobbyPlayerList"></div>
-            <button id="startPreLobbyMatchmakingBtn" class="btn-primary" style="display: none;">Start Matchmaking</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="window stats-preview">
-        <div class="titlebar">Quick Stats</div>
-        <div class="content">
-          <div class="stat-item">
-            <span class="stat-label">K/D Ratio:</span>
-            <span class="stat-value" id="kdRatio">-</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Headshots:</span>
-            <span class="stat-value" id="hsPercentage">-</span>
-          </div>
-          <a href="/player.html" class="btn-primary">View Full Stats</a>
+          <a href="/player.html" class="greensteam-button" style="width: 100%; margin-top: 15px; text-align: center;">
+            View Full Statistics
+          </a>
         </div>
       </div>
     </div>
   </div>
 
-    <script>
-        const socket = io();
+  <script>
+    const socket = io();
 
-        // Fetch and populate user data
-        function fetchUserInfo() {
-            fetch('/user/info')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('username').textContent = data.username || 'Unknown user';
-                    document.getElementById('identifier').textContent = data.steamId || data.email || 'No Steam ID or Email';
-                    if (data.profilePictureUrl) {
-                        const profilePicture = document.getElementById('profilePicture');
-                        profilePicture.src = data.profilePictureUrl;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching user info:', error);
-                });
-
-            fetch('/user/skill')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('skill').textContent = `ELO: ${data.skill || 0}`;
-                })
-                .catch(error => {
-                    console.error('Error fetching player skill:', error);
-                    document.getElementById('skill').textContent = 'ELO: 0';
-                });
-                
-            // Fetch quick stats for the stats preview
-            fetch('/api/player/me/stats')
-                .then(response => response.json())
-                .then(data => {
-                    const kdRatio = data.kills && data.deaths ? (data.kills / Math.max(data.deaths, 1)).toFixed(2) : '-';
-                    const hsPercent = data.hs_kills && data.kills ? Math.round((data.hs_kills / data.kills) * 100) + '%' : '-';
-                    
-                    document.getElementById('kdRatio').textContent = kdRatio;
-                    document.getElementById('hsPercentage').textContent = hsPercent;
-                })
-                .catch(error => {
-                    console.error('Error fetching player stats:', error);
-                });
-                
-            // Fetch server stats
-            fetch('/api/server/stats')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('playersWaiting').textContent = data.queuedPlayers || 0;
-                    document.getElementById('activeMatches').textContent = data.activeMatches || 0;
-                })
-                .catch(error => {
-                    console.error('Error fetching server stats:', error);
-                });
-        }
-
-        document.getElementById('startMatchmakingBtn').addEventListener('click', () => {
-            const username = document.getElementById('username').textContent;
-            const identifier = document.getElementById('identifier').textContent;
-            const profilePictureUrl = document.getElementById('profilePicture').src;
-
-            const isSteamUser = identifier.startsWith('7656');
-
-            const steamId = isSteamUser ? identifier : null;
-            const email = isSteamUser ? null : identifier;
-
-            socket.emit('startMatchmaking', { username, steamId, email, profilePictureUrl });
-            
-            // Show progress animation
-            const progress = document.getElementById('matchmakingProgress');
-            progress.value = 0;
-            
-            let progressValue = 0;
-            const progressInterval = setInterval(() => {
-                progressValue = (progressValue + 1) % 100;
-                progress.value = progressValue;
-            }, 100);
-            
-            // Store interval ID to clear it when matchmaking completes
-            window.matchmakingInterval = progressInterval;
+    // Fetch and populate user data
+    function fetchUserInfo() {
+      fetch('/user/info')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('username').textContent = data.username || 'Unknown user';
+          if (data.profilePictureUrl) {
+            const profilePicture = document.getElementById('profilePicture');
+            profilePicture.src = data.profilePictureUrl;
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching user info:', error);
         });
 
-        socket.on('redirect', (url) => {
-            if (window.matchmakingInterval) {
-                clearInterval(window.matchmakingInterval);
-            }
-            window.location.href = url;
+      fetch('/user/skill')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('skill').textContent = `ELO: ${data.skill || 0}`;
+        })
+        .catch(error => {
+          console.error('Error fetching player skill:', error);
+          document.getElementById('skill').textContent = 'ELO: 0';
         });
-
-        socket.on('error', (message) => {
-            if (window.matchmakingInterval) {
-                clearInterval(window.matchmakingInterval);
-            }
-            alert('Error: ' + message);
+        
+      // Fetch quick stats for the stats preview
+      fetch('/api/player/me/stats')
+        .then(response => response.json())
+        .then(data => {
+          const kdRatio = data.kills && data.deaths ? (data.kills / Math.max(data.deaths, 1)).toFixed(2) : '-';
+          const hsPercent = data.hs_kills && data.kills ? Math.round((data.hs_kills / data.kills) * 100) + '%' : '-';
+          const wins = data.wins_ct + data.wins_t || '-';
+          const damageAvg = data.damage && data.rounds ? Math.round(data.damage / data.rounds) : '-';
+          
+          document.getElementById('kdRatio').textContent = kdRatio;
+          document.getElementById('hsPercentage').textContent = hsPercent;
+          document.getElementById('wins').textContent = wins;
+          document.getElementById('damage').textContent = damageAvg;
+        })
+        .catch(error => {
+          console.error('Error fetching player stats:', error);
         });
-
-        document.getElementById('createPreLobbyBtn').addEventListener('click', () => {
-            const user = {
-                username: document.getElementById('username').textContent,
-                steamId: null,
-                email: document.getElementById('identifier').textContent,
-                profilePictureUrl: document.getElementById('profilePicture').src,
-            };
-            socket.emit('createPreLobby', user);
+        
+      // Fetch server stats
+      fetch('/api/server/stats')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('playersWaiting').textContent = data.queuedPlayers || 0;
+          document.getElementById('activeMatches').textContent = data.activeMatches || 0;
+        })
+        .catch(error => {
+          console.error('Error fetching server stats:', error);
         });
+    }
 
-        socket.on('preLobbyCreated', ({ inviteCode }) => {
-            document.getElementById('inviteCode').textContent = inviteCode;
-            document.getElementById('preLobbySection').style.display = 'block';
-            document.getElementById('startPreLobbyMatchmakingBtn').style.display = 'block';
+    document.getElementById('startMatchmakingBtn').addEventListener('click', () => {
+      const username = document.getElementById('username').textContent;
+      const profilePictureUrl = document.getElementById('profilePicture').src;
+
+      // Get user info from server instead of relying on DOM
+      fetch('/user/info')
+        .then(response => response.json())
+        .then(data => {
+          const steamId = data.steamId;
+          const email = data.email;
+
+          socket.emit('startMatchmaking', { username, steamId, email, profilePictureUrl });
+          
+          // Show progress animation
+          const progress = document.getElementById('matchmakingProgress');
+          progress.value = 0;
+          
+          let progressValue = 0;
+          const progressInterval = setInterval(() => {
+            progressValue = (progressValue + 1) % 100;
+            progress.value = progressValue;
+          }, 100);
+          
+          // Store interval ID to clear it when matchmaking completes
+          window.matchmakingInterval = progressInterval;
+        })
+        .catch(error => {
+          console.error('Error fetching user info for matchmaking:', error);
+          alert('Error starting matchmaking. Please try again.');
         });
+    });
 
-        document.getElementById('joinPreLobbyBtn').addEventListener('click', () => {
-            const inviteCode = document.getElementById('inviteCodeInput').value;
-            const user = {
-                username: document.getElementById('username').textContent,
-                steamId: null,
-                email: document.getElementById('identifier').textContent,
-                profilePictureUrl: document.getElementById('profilePicture').src,
-            };
-            socket.emit('joinPreLobby', { inviteCode, user });
-            document.getElementById('preLobbySection').style.display = 'block';
+    socket.on('redirect', (url) => {
+      if (window.matchmakingInterval) {
+        clearInterval(window.matchmakingInterval);
+      }
+      window.location.href = url;
+    });
+
+    socket.on('error', (message) => {
+      if (window.matchmakingInterval) {
+        clearInterval(window.matchmakingInterval);
+      }
+      alert('Error: ' + message);
+    });
+
+    document.getElementById('createPreLobbyBtn').addEventListener('click', () => {
+      fetch('/user/info')
+        .then(response => response.json())
+        .then(data => {
+          const user = {
+            username: data.username,
+            steamId: data.steamId,
+            email: data.email,
+            profilePictureUrl: data.profilePictureUrl,
+          };
+          socket.emit('createPreLobby', user);
+        })
+        .catch(error => {
+          console.error('Error fetching user info for pre-lobby:', error);
+          alert('Error creating pre-lobby. Please try again.');
         });
+    });
 
-        socket.on('preLobbyUpdated', ({ players }) => {
-            const playerList = document.getElementById('preLobbyPlayerList');
-            playerList.innerHTML = '';
-            players.forEach((player) => {
-                const playerItem = document.createElement('div');
-                playerItem.classList.add('player-card');
-                playerItem.textContent = player.username;
-                playerList.appendChild(playerItem);
-            });
+    socket.on('preLobbyCreated', ({ inviteCode }) => {
+      document.getElementById('inviteCode').textContent = inviteCode;
+      document.getElementById('preLobbySection').style.display = 'block';
+      document.getElementById('startPreLobbyMatchmakingBtn').style.display = 'block';
+    });
+
+    document.getElementById('joinPreLobbyBtn').addEventListener('click', () => {
+      const inviteCode = document.getElementById('inviteCodeInput').value;
+      if (!inviteCode) {
+        alert('Please enter an invite code');
+        return;
+      }
+      
+      fetch('/user/info')
+        .then(response => response.json())
+        .then(data => {
+          const user = {
+            username: data.username,
+            steamId: data.steamId,
+            email: data.email,
+            profilePictureUrl: data.profilePictureUrl,
+          };
+          socket.emit('joinPreLobby', { inviteCode, user });
+          document.getElementById('preLobbySection').style.display = 'block';
+        })
+        .catch(error => {
+          console.error('Error fetching user info for joining pre-lobby:', error);
+          alert('Error joining pre-lobby. Please try again.');
         });
+    });
 
-        fetchUserInfo();
-    </script>
+    document.getElementById('startPreLobbyMatchmakingBtn').addEventListener('click', () => {
+      const inviteCode = document.getElementById('inviteCode').textContent;
+      socket.emit('startPreLobbyMatchmaking', { inviteCode });
+    });
+
+    socket.on('preLobbyUpdated', ({ players }) => {
+      const playerList = document.getElementById('preLobbyPlayerList');
+      playerList.innerHTML = '';
+      players.forEach((player) => {
+        const playerItem = document.createElement('div');
+        playerItem.classList.add('player-card');
+        playerItem.innerHTML = `
+          <img src="${player.profilePictureUrl}" alt="${player.username}" style="width: 24px; height: 24px; margin-right: 5px;">
+          <span>${player.username}</span>
+        `;
+        playerList.appendChild(playerItem);
+      });
+    });
+
+    fetchUserInfo();
+  </script>
 </body>
 </html>
