@@ -395,14 +395,16 @@ nav li a:hover {
 /* Fix lobby controls layout */
 .lobby-controls {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .invite-section {
+  flex: 1;
   display: flex;
   gap: 10px;
-  width: 100%;
+  min-width: 300px;
   margin: 10px 0;
 }
 
