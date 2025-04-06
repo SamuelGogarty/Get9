@@ -23,64 +23,64 @@
     </ul>
   </nav>
 
-  <main>
-    <div class="window-row">
-      <!-- Left Column -->
-      <div class="window-column">
-        <div class="window" name="Matchmaking">
-          <div class="content">
-            <div class="server-stats">
-              <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
-              <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
-            </div>
-            <div class="matchmaking-controls">
-              <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
-              <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100"></progress>
-            </div>
-          </div>
+  <main class="main-grid">
+    <!-- Top Matchmaking Window -->
+    <div class="window matchmaking-header" name="Matchmaking">
+      <div class="content">
+        <div class="server-stats">
+          <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
+          <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
         </div>
-        
-        <div class="window" name="Lobby Management">
-          <div class="content">
-            <div class="lobby-controls">
-              <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
-              <div class="invite-section">
-                <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
-                <button class="greensteam-button" id="joinPreLobbyBtn">Join</button>
-              </div>
-            </div>
-            <div id="preLobbySection" style="display: none;">
-              <p>Invite Code: <strong id="inviteCode"></strong></p>
-              <button class="greensteam-button" id="startPreLobbyMatchmakingBtn">Start Group Queue</button>
-            </div>
+        <div class="matchmaking-controls">
+          <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
+          <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100"></progress>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thin Lobby Management Bar -->
+    <div class="window lobby-management-bar" name="Lobby Management">
+      <div class="content">
+        <div class="lobby-controls">
+          <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
+          <div class="invite-section">
+            <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
+            <button class="greensteam-button" id="joinPreLobbyBtn">Join</button>
+          </div>
+          <div id="preLobbySection" style="display: none;">
+            <span>Invite Code: <strong id="inviteCode"></strong></span>
+            <button class="greensteam-button" id="startPreLobbyMatchmakingBtn">Start Group Queue</button>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Right Column -->
-      <div class="window-column">
-        <div class="window" name="Pre-Lobby Members">
-          <div class="content" id="preLobbyPlayerList"></div>
-        </div>
-        
-        <div class="window clan-chat" name="Pre-Lobby Chat">
-          <div class="content">
-            <ul id="preLobbyChatMessages"></ul>
-            <div class="chat-input">
-              <input type="text" id="preLobbyChatInput" placeholder="Type message...">
-              <button class="greensteam-button" id="sendPreLobbyMessage">Send</button>
-            </div>
+    <!-- Side-by-Side Sections -->
+    <div class="lobby-sections">
+      <!-- Pre-Lobby Members -->
+      <div class="window member-list-container" name="Pre-Lobby Members">
+        <div class="content" id="preLobbyPlayerList"></div>
+      </div>
+
+      <!-- Pre-Lobby Chat -->
+      <div class="window chat-container clan-chat" name="Pre-Lobby Chat">
+        <div class="content">
+          <ul id="preLobbyChatMessages"></ul>
+          <div class="chat-input">
+            <input type="text" id="preLobbyChatInput" placeholder="Type message...">
+            <button class="greensteam-button" id="sendPreLobbyMessage">Send</button>
           </div>
         </div>
+      </div>
+    </div>
 
-        <div class="window" name="Join Our Discord">
-          <div class="content">
-            <a href="https://discord.gg/8m4xG8sjXm" target="_blank" class="discord-link">
-              <img src="/img/discord-icon.png" alt="Discord">
-              <div>discord.gg/8m4xG8sjXm</div>
-            </a>
-          </div>
-        </div>
+    <!-- Discord Section -->
+    <div class="window" name="Join Our Discord" style="grid-column: 1 / -1">
+      <div class="content">
+        <a href="https://discord.gg/8m4xG8sjXm" target="_blank" class="discord-link">
+          <img src="/img/discord-icon.png" alt="Discord">
+          <div>discord.gg/8m4xG8sjXm</div>
+        </a>
       </div>
     </div>
   </main>

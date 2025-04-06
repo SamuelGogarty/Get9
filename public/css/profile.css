@@ -1,30 +1,42 @@
 /* profile.css - Revamped to match new_home.css style */
 main {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: stretch;
-  max-width: 780px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
 }
 
-.window-row {
-  display: flex;
-  flex-wrap: wrap;
+/* Main grid layout */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 20px;
-  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.window-column {
-  flex: 1;
-  min-width: 380px;
-  max-width: 580px;
-  display: flex;
-  flex-direction: column;
+/* Matchmaking header */
+.matchmaking-header {
+  grid-column: 1 / -1;
+}
+
+/* Lobby sections container */
+.lobby-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 20px;
+}
+
+/* Thin lobby management bar */
+.lobby-management-bar {
+  grid-column: 1 / -1;
+  height: 60px;
+  margin-bottom: 0;
+}
+
+/* Member list and chat windows */
+.member-list-container,
+.chat-container {
+  height: 400px;
 }
 
 /* Match new_home window styling */
