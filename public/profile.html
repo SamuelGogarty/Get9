@@ -8,83 +8,84 @@
     <style>
       /* Profile-specific styles matching new_home layout */
       .window-container {
-        position: relative;
-        margin: 20px;
-        padding: 15px;
+        display: grid;
+        grid-template-columns: 327px 1fr 328px;
+        gap: 20px;
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
       }
 
       .window-column {
-        position: absolute;
-        width: 327px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
       }
 
-      .left-col {
-        left: 17px;
-        top: 90px;
-      }
-
-      .center-col {
-        left: 408px;
-        top: 93px;
-      }
-
-      .right-col {
-        left: 1054px;
-        top: 1px;
+      /* Remove all absolute positioning */
+      .left-col, .center-col, .right-col {
+        position: static !important;
+        width: auto !important;
+        height: auto !important;
+        margin: 0 !important;
       }
 
       .window {
-        border: 3px solid #a3a3a3;
-        background: #212121;
+        width: 100%;
         margin-bottom: 20px;
       }
 
-      .infobox {
-        width: 875px;
-        height: 175px;
-        margin-left: 361px;
-        top: 197px;
+      /* Match lobby.html's navbar styling */
+      #in3lw {
+        width: 100%;
+        left: 0;
+        position: relative;
+        float: none;
+        margin: 0 0 20px;
       }
 
-      .clanlist {
-        width: 421px;
-        height: 358px;
-        top: 379px;
+      #id5lb {
+        padding-left: 20px;
+        margin-left: 0;
+        width: 100%;
       }
 
-      .pre-lobby {
-        height: 493px;
-      }
-
-      .Discord {
-        width: 1041px;
-        height: 129px;
-        top: 436px;
-      }
-
-      .stats-preview {
-        width: 328px;
-        height: 121px;
-        top: 616px;
-      }
-
+      /* Server stats alignment */
       .server-stats.inset {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
         padding: 10px;
         margin: 10px 0;
         background: #080808;
         border: 2px solid #2d2d2d;
       }
 
+      /* Matchmaking controls */
+      .matchmaking-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
       .que-in-progress-bar {
-        width: 768px;
+        width: 100%;
         margin: 10px 0;
+      }
+
+      /* Discord window styling */
+      .Discord .content {
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .discord-link {
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 8px;
+        padding: 10px;
         color: #5865F2;
       }
 
@@ -93,19 +94,31 @@
         height: 32px;
       }
 
-      /* Override blacksteam.css navbar styles */
-      #in3lw {
-        width: 1155px;
-        left: 316px;
-        position: absolute;
-        float: right;
+      /* Pre-lobby section alignment */
+      .invite-section {
+        display: flex;
+        gap: 10px;
+        margin: 15px 0;
       }
 
-      #id5lb {
-        padding-left: 67px;
-        margin-left: -24px;
+      #inviteCodeInput {
+        flex: 1;
       }
 
+      /* Player list styling */
+      .player-list.inset {
+        min-height: 150px;
+        padding: 10px;
+        margin: 10px 0;
+      }
+
+      /* Stats preview grid */
+      .stats-preview .content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+      
       .right-nav {
         margin-left: auto;
         padding-right: 30px;
@@ -136,7 +149,7 @@
 
   <div class="window-container">
     <!-- Left Column -->
-    <div class="window-column left-col">
+    <div class="window-column">
       <div class="window infobox">
         <div class="titlebar">Get9 Matchmaking</div>
         <div class="content">
@@ -156,7 +169,7 @@
     </div>
 
     <!-- Center Column -->
-    <div class="window-column center-col">
+    <div class="window-column">
       <div class="window pre-lobby">
         <div class="titlebar">Private Lobby</div>
         <div class="content">
@@ -176,7 +189,7 @@
     </div>
 
     <!-- Right Column -->
-    <div class="window-column right-col">
+    <div class="window-column">
       <div class="window Discord">
         <div class="titlebar">Join Our Discord</div>
         <div class="content">
