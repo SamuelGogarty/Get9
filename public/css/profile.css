@@ -13,15 +13,15 @@
 /* Left Column */
 .window-column.left-col {
   left: 17px;
-  top: 345px;
+  top: 200px; /* Move down to make space for lobby management */
   width: 500px; /* Increased from 327px */
 }
 
 /* Center Column */
 .window-column.center-col {
-  left: 534px; /* 17 + 500 + 17 */
+  left: 17px; /* Move to left side */
   top: 197px;
-  width: 700px; /* Reduced from 875px */
+  width: 500px; /* Match left column width */
 }
 
 /* Right Column */
@@ -34,7 +34,7 @@
 /* Matchmaking Section */
 .window {
   position: relative;
-  border: 3px solid #a3a3a3;
+  border: 3px solid #2d2d2d !important; /* Darker border instead of white-grey */
   margin: 10px 0;
   background: #212121;
 }
@@ -66,16 +66,16 @@
 }
 
 .infobox.window {
-  width: 1036px;
+  position: static !important; /* Use normal flow */
+  width: 100% !important;
   height: 175px;
-  top: 197px;
-  left: 361px;
+  margin: 0 0 20px 0 !important; /* Add spacing below */
 }
 
 .clanlist.window {
   width: 200px;
   height: 358px;
-  margin-right: 15px;
+  margin-right: 20px; /* Increased from 15px */
   top: 0;
   left: 0;
 }
@@ -97,6 +97,11 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
+}
+
+/* Adjust lobby management window */
+.window.pre-lobby {
+  margin-bottom: 20px; /* Add space above members/chat */
 }
 
 .invite-section {
@@ -127,9 +132,9 @@
 
 /* Add new style for chat window positioning */
 .window.clan-chat {
-  width: 285px !important; /* 500 - 200 - 15 margin = 285 */
+  width: 280px !important; /* Slightly reduced width */
   height: 358px !important;
-  left: 215px !important;
+  left: 220px !important; /* Adjusted positioning */
   top: 0 !important;
 }
 
