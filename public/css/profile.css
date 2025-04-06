@@ -1,74 +1,58 @@
 /* Profile Page Specific Styles */
 .profile-container {
-  position: relative;
-  margin: 0 auto;
-  padding: 20px;
+  display: grid;
+  grid-template-columns: 500px 1fr 243px;
+  gap: 20px;
+  padding: 0 20px;
   max-width: 1200px;
+  margin: 0 auto;
 }
 
 .window-column {
-  position: absolute;
-}
-
-/* Left Column */
-.window-column.left-col {
-  left: 17px;
-  top: 430px; /* Move down to make space for lobby management */
-  width: 500px; /* Increased from 327px */
-}
-
-/* Center Column */
-.window-column.center-col {
-  left: 17px; /* Move to left side */
-  top: 385px; /* Position between matchmaking and pre-lobby sections */
-  width: 500px; /* Match left column width */
-}
-
-/* Right Column */
-.window-column.right-col {
-  left: 1054px;
-  top: 1px;
-  width: 243px;
+  position: static !important;
+  display: flex !important;
+  flex-direction: column;
+  gap: 15px;
 }
 
 /* Window Styling */
 .window {
-  position: relative;
   border: 2px solid #2d2d2d !important;
-  margin: 10px 0;
   background: #181818 !important;
   box-shadow: none !important;
+  overflow: hidden !important;
+  margin: 0 0 15px 0;
 }
 
 .titlebar {
   background: #212121 !important;
-  border-bottom: 3px solid #080808 !important;
-  color: #F0B43F !important;
-  font-family: 'Arial Narrow', Arial, sans-serif;
-  letter-spacing: 1px;
-  padding: 6px 10px !important;
+  border-bottom: 2px solid #080808 !important;
+  padding: 4px 8px !important;
   font-size: 12px !important;
+  height: 24px !important;
+  line-height: 16px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  color: #F0B43F !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .content {
+  padding: 12px !important;
   background: #080808 !important;
-  border-top: 2px solid #2d2d2d;
-  padding: 15px !important;
+  border: none !important;
+  overflow: auto !important;
+  max-height: calc(100% - 28px) !important;
   box-sizing: border-box;
-  max-height: calc(100% - 30px);
-  overflow: auto;
 }
 
 .matchmaking-controls {
-  position: relative;
-  top: 11px;
-  left: 10px;
   display: flex;
   gap: 10px;
   align-items: center;
+  margin: 10px 0;
 }
 
 .server-stats {
@@ -78,17 +62,16 @@
   padding: 10px;
   background: #080808;
   border: 2px solid #2d2d2d;
+  margin-bottom: 15px;
 }
 
 .server-stats.inset {
-  width: 350px;
-  position: relative;
-  left: 134px;
-  bottom: 13px;
-  margin: 38px 0 0 0;
   background: #181818 !important;
-  border: 3px solid #2d2d2d !important;
-  padding: 15px !important;
+  border: 2px solid #2d2d2d !important;
+  padding: 10px !important;
+  width: 100%;
+  position: static;
+  margin: 0 0 15px 0;
 }
 
 .infobox.window {
@@ -115,13 +98,15 @@
 
 /* Buttons */
 .greensteam-button {
-  background: #4a752c;
-  border: 2px solid #2d2d2d;
-  color: #d2e0c6;
-  padding: 8px 15px;
+  background: #4a752c !important;
+  border: 2px solid #2d2d2d !important;
+  color: #d2e0c6 !important;
+  padding: 6px 12px !important;
+  height: auto !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
   font-weight: bold;
-  text-transform: uppercase;
-  font-size: 12px;
 }
 
 .greensteam-button:hover {
@@ -244,15 +229,13 @@
 
 /* Progress Bar */
 .que-in-progress-bar {
-  position: relative;
-  left: 211px;
-  width: 768px;
-  top: 5px;
-  height: 20px;
-  border: 2px solid #2d2d2d !important;
-  margin: 10px 0;
-  appearance: none;
   background: #080808 !important;
+  border: 2px solid #2d2d2d !important;
+  height: 16px !important;
+  margin: 0 !important;
+  position: static !important;
+  width: 100% !important;
+  appearance: none;
 }
 
 .que-in-progress-bar::-webkit-progress-bar {
@@ -261,37 +244,39 @@
 
 .que-in-progress-bar::-webkit-progress-value {
   background: repeating-linear-gradient(
-    45deg,
+    to right,
     #96892D,
-    #96892D 10px,
-    #080808 10px,
-    #080808 20px
+    #96892D 8px,
+    #080808 1px,
+    #080808 12px
   );
 }
 
 /* Navbar Alignment Fix */
 #in3lw {
-  max-width: 976px;
-  padding: 5px 0 !important;
-  width: 920px;
-  margin: 0 0 0 35px;
-  right: 301px;
-  background: #181818;
+  height: 32px !important; /* Reduced from 40px */
   border: 2px solid #2d2d2d !important;
-  height: 40px;
+  background: #181818 !important;
+  margin: 0 auto 20px !important;
+  max-width: 1200px;
+  padding: 0 15px !important;
+  width: auto;
+  position: relative;
 }
 
 #id5lb {
   list-style: none;
-  margin: 0 0 0 -24px;
-  width: 961px;
-  padding: 0 0 0 20px;
   display: flex;
-  gap: 20px;
+  align-items: center;
+  gap: 25px;
+  height: 100%;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: auto !important;
 }
 
 #id5lb li {
-  padding: 10px;
+  padding: 5px;
 }
 
 #id5lb a {
@@ -304,7 +289,10 @@
 }
 
 .right-nav {
-  margin-left: auto;
+  margin-left: auto !important;
+  display: flex !important;
+  align-items: center;
+  gap: 15px;
 }
 
 #profilePicture {
@@ -313,20 +301,35 @@
   border: 2px solid #323232;
 }
 
-#navbarProfile {
-  width: 28px !important;
+.nav-player-name {
+  padding: 2px 8px !important;
+  background: #212121 !important;
+  border: 2px solid #2d2d2d !important;
   height: 28px !important;
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+}
+
+#navbarProfile {
+  width: 24px !important;
+  height: 24px !important;
   order: 1;
+  border: 1px solid #4a752c !important;
 }
 
 #navbarUsername {
   order: 2;
-  margin-right: 10px;
+  max-width: 140px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #navbarElo {
   order: 3;
-  font-size: 0.9em;
+  color: #F0B43F !important;
+  font-size: 0.85em !important;
 }
 
 #preLobbyPlayerList {
