@@ -23,7 +23,8 @@ main {
   flex-direction: column;
   gap: 20px;
   flex: 1;
-  min-width: 0;
+  min-width: 380px;
+  width: 100%;
 }
 
 /* Match new_home window styling */
@@ -159,6 +160,10 @@ main {
   height: 300px;
 }
 
+#preLobbyPlayerList .content {
+  min-height: 300px;
+}
+
 #preLobbyChatMessages {
   flex: 1;
   overflow-y: auto;
@@ -187,8 +192,18 @@ main {
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding: 20px;
+  padding: 15px;
   text-decoration: none;
+  width: 100%;
+}
+
+.discord-link img {
+  width: 64px;
+  height: 64px;
+}
+
+.window[name="Join Our Discord"] {
+  width: 100%;
 }
 
 /* Player list styling */
@@ -267,26 +282,24 @@ nav ul {
   list-style: none;
   display: flex;
   align-items: center;
-  gap: 25px;
-  height: 100%;
-  padding: 0;
+  gap: 15px;
+  height: 40px;
+  padding: 0 20px;
   margin: 0;
+  background: #212121;
+  border-bottom: 2px solid #080808;
 }
 
 nav li {
-  display: inline-block;
   position: relative;
-  line-height: 21px;
-  text-align: left;
-  cursor: pointer;
-  padding: 5px;
+  line-height: 40px;
 }
 
 nav li a {
-  display: block;
-  padding: 8px 25px;
+  padding: 8px 15px;
   color: #F0B43F;
   text-decoration: none;
+  font-size: 13px;
 }
 
 nav li a:hover {
@@ -297,29 +310,26 @@ nav li a:hover {
 .right-nav {
   margin-left: auto;
   display: flex;
-  align-items: center;
-  gap: 15px;
+  gap: 10px;
 }
 
 .nav-player-name {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 10px;
-  background: #212121;
-  border: 2px solid #2d2d2d;
-  margin-left: auto;
+  padding: 0 10px;
+  background: #181818;
+  border: 1px solid #2d2d2d;
+  height: 32px;
 }
 
 #navbarProfile {
-  width: 24px;
-  height: 24px;
-  order: 1;
+  width: 28px;
+  height: 28px;
   border: 1px solid #4a752c;
 }
 
 #navbarUsername {
-  order: 2;
   max-width: 140px;
   white-space: nowrap;
   overflow: hidden;
@@ -327,9 +337,9 @@ nav li a:hover {
 }
 
 #navbarElo {
-  order: 3;
   color: #F0B43F;
-  font-size: 0.85em;
+  font-size: 12px;
+  margin-left: 8px;
 }
 
 /* Invite section */
@@ -361,7 +371,7 @@ nav li a:hover {
 /* Window sizing from new_home.css */
 .window.half,
 .window-row .window {
-  max-width: 380px;
   width: 100%;
+  max-width: unset;
   align-self: flex-start;
 }
