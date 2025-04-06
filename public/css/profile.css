@@ -12,31 +12,36 @@ main {
   gap: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
 }
 
 /* Matchmaking header */
 .matchmaking-header {
   grid-column: 1 / -1;
+  max-width: 100%;
 }
 
 /* Lobby sections container */
 .lobby-sections {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
+  align-items: stretch;
 }
 
 /* Thin lobby management bar */
 .lobby-management-bar {
   grid-column: 1 / -1;
-  height: 60px;
-  margin-bottom: 0;
+  height: auto;
+  min-height: 60px;
+  margin: 10px 0;
 }
 
 /* Member list and chat windows */
 .member-list-container,
 .chat-container {
   height: 400px;
+  max-width: 100%;
 }
 
 /* Match new_home window styling */
@@ -47,7 +52,7 @@ main {
   box-sizing: border-box;
   margin: 0 0 20px;
   width: 100%;
-  max-width: 580px;
+  max-width: 100%;
   min-height: 200px;
   border-top: solid 1px #323232;
   border-bottom: solid 1px #080808;
@@ -223,7 +228,7 @@ main {
 .chat-input {
   display: flex;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: auto;
 }
 
 .chat-input input {
@@ -246,6 +251,7 @@ main {
   padding: 20px;
   text-decoration: none;
   width: 100%;
+  text-align: center;
 }
 
 .discord-link img {
@@ -255,7 +261,8 @@ main {
 }
 
 .window[name="Join Our Discord"] {
-  max-width: 580px;
+  grid-column: 1 / -1;
+  max-width: 100%;
   width: 100%;
 }
 
@@ -264,6 +271,8 @@ main {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow-y: auto;
+  height: calc(100% - 20px);
 }
 
 .player-item {
@@ -282,6 +291,7 @@ main {
   appearance: none;
   height: 20px;
   flex: 1;
+  min-width: 200px;
   border-top: solid 1px #080808;
   border-bottom: solid 1px #323232;
   border-left: solid 1px #080808;
@@ -416,6 +426,22 @@ nav li a:hover {
 
 /* Media query for responsive layout */
 @media (max-width: 800px) {
+  .lobby-sections {
+    grid-template-columns: 1fr;
+  }
+  
+  .invite-section {
+    min-width: unset;
+  }
+  
+  .lobby-controls {
+    flex-direction: column;
+  }
+  
+  .que-in-progress-bar {
+    width: 100%;
+  }
+  
   .window-row {
     flex-direction: column;
   }
