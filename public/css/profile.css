@@ -137,6 +137,42 @@ main {
   align-items: center;
 }
 
+/* Thin bar adjustments */
+.lobby-management-bar .content {
+  padding: 8px 15px;
+}
+
+.lobby-management-bar .lobby-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  height: 100%;
+}
+
+#preLobbySection {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Matchmaking header proportions */
+.matchmaking-header .content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 80px;
+}
+
+/* Grid element spacing */
+.main-grid > .window {
+  margin-bottom: 0;
+}
+
+.lobby-sections {
+  margin-top: 10px;
+}
+
 .greensteam-button {
   color: white;
   background-color: #212121 !important;
