@@ -442,18 +442,11 @@ nav li a:hover {
   margin-left: 8px;
 }
 
-/* Adjust lobby controls layout */
+/* Update lobby controls layout */
 .lobby-controls {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Create button and invite code row */
-.lobby-controls > :first-child,
-.lobby-controls > #preLobbySection {
-  display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 10px;
   align-items: center;
 }
 
@@ -467,12 +460,25 @@ nav li a:hover {
 
 /* Adjust invite code display */
 #preLobbySection {
+  display: none; /* Hidden by default */
   background: #080808;
   border: 1px solid #323232;
-  padding: 4px 8px;
+  padding: 6px 10px;
   height: 28px;
-  display: none; /* Hidden by default */
   align-items: center;
+  gap: 8px;
+  margin-left: 10px;
+}
+
+/* Show invite code section when active */
+#preLobbySection.active {
+  display: flex;
+}
+
+/* Adjust create button spacing */
+#createPreLobbyBtn {
+  order: 1;
+  margin: 0;
 }
 
 #inviteCodeInput {

@@ -193,7 +193,7 @@
 
     socket.on('preLobbyCreated', ({ inviteCode }) => {
       document.getElementById('inviteCode').textContent = inviteCode;
-      document.getElementById('preLobbySection').style.display = 'block';
+      document.getElementById('preLobbySection').classList.add('active'); // Add active class
     });
 
     document.getElementById('joinPreLobbyBtn').addEventListener('click', () => {
@@ -213,7 +213,7 @@
             profilePictureUrl: data.profilePictureUrl,
           };
           socket.emit('joinPreLobby', { inviteCode, user });
-          document.getElementById('preLobbySection').style.display = 'block';
+          document.getElementById('preLobbySection').classList.add('active');
         })
         .catch(error => {
           console.error('Error fetching user info for joining pre-lobby:', error);
