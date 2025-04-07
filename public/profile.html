@@ -47,7 +47,7 @@
           <div class="create-container">
             <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
             <div id="preLobbySection" class="invite-code-box">
-              <span>Invite Code: <strong id="inviteCode"></strong></span>
+              <!-- Empty by default, content added via JS -->
             </div>
           </div>
           
@@ -197,8 +197,9 @@
     });
 
     socket.on('preLobbyCreated', ({ inviteCode }) => {
-      document.getElementById('inviteCode').textContent = inviteCode;
-      document.getElementById('preLobbySection').classList.add('active');
+      const codeSection = document.getElementById('preLobbySection');
+      codeSection.innerHTML = `<strong id="inviteCode">${inviteCode}</strong>`;
+      codeSection.classList.add('active');
     });
 
     document.getElementById('joinPreLobbyBtn').addEventListener('click', () => {

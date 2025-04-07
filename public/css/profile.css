@@ -486,13 +486,24 @@ nav li a:hover {
 .invite-code-box.active {
   order: 1;
   display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
   background: #080808;
   border: 1px solid #323232;
-  padding: 4px 8px;
-  height: 32px; /* Match input height */
-  align-items: center;
-  margin-left: 0; /* Remove previous margin */
-  margin-bottom: 2px; /* Add bottom margin */
+  margin-left: 10px;
+}
+
+.invite-code-box.active::before {
+  content: "Invite Code:";
+  color: #d8ded3;
+}
+
+.invite-code-box.active strong {
+  color: #F0B43F;
+  font-weight: bold;
+  font-family: monospace;
+  letter-spacing: 1px;
 }
 
 /* Input field sizing */
