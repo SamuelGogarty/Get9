@@ -130,6 +130,8 @@ main {
   padding: 15px;
   background: #080808;
   border: 1px solid #2d2d2d;
+  height: calc(100% - 30px);
+  overflow: auto;
 }
 
 .inset, .box.inset {
