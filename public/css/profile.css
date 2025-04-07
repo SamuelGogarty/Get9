@@ -445,41 +445,34 @@ nav li a:hover {
 /* Adjust lobby controls layout */
 .lobby-controls {
   display: flex;
-  flex-direction: row; /* Changed from column */
-  align-items: center;
-  gap: 10px;
-  height: 100%;
-  flex-wrap: nowrap;
-  position: relative;
-}
-
-#createPreLobbyBtn {
-  order: 1;
-  margin: 0;
-  flex-shrink: 0; /* Prevent button from shrinking */
-}
-
-#preLobbySection {
-  order: 2;
-  display: none;
-  background: #080808;
-  border: 1px solid #323232;
-  padding: 4px 8px; /* Tighter padding */
-  height: 28px; /* Match button height */
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
-  flex-shrink: 0; /* Prevent shrinking */
 }
 
-.invite-section {
-  order: 3;
+/* Create button and invite code row */
+.lobby-controls > :first-child,
+.lobby-controls > #preLobbySection {
   display: flex;
   gap: 8px;
-  flex-direction: row; /* Changed from row-reverse */
   align-items: center;
-  margin-left: auto; /* Push to far right */
-  flex-grow: 1;
-  justify-content: flex-end;
+}
+
+/* Invite section positioning */
+.invite-section {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* Adjust invite code display */
+#preLobbySection {
+  background: #080808;
+  border: 1px solid #323232;
+  padding: 4px 8px;
+  height: 28px;
+  display: none; /* Hidden by default */
+  align-items: center;
 }
 
 #inviteCodeInput {
