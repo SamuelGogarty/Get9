@@ -442,58 +442,59 @@ nav li a:hover {
   margin-left: 8px;
 }
 
-/* Update lobby controls layout */
+/* Lobby controls layout */
 .lobby-controls {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* Invite section positioning */
-.invite-section {
+.create-container {
   display: flex;
-  gap: 8px;
-  width: 100%;
-  margin-top: 4px;
+  align-items: center;
+  gap: 10px;
 }
 
-/* Adjust invite code display */
-#preLobbySection {
-  display: none; /* Hidden by default */
+.join-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Invite code box styling */
+.invite-code-box {
+  display: none;
   background: #080808;
   border: 1px solid #323232;
-  padding: 6px 10px;
+  padding: 6px 12px;
   height: 28px;
   align-items: center;
-  gap: 8px;
-  margin-left: 10px;
 }
 
-/* Show invite code section when active */
-#preLobbySection.active {
+.invite-code-box.active {
   display: flex;
 }
 
-/* Adjust create button spacing */
-#createPreLobbyBtn {
-  order: 1;
-  margin: 0;
-}
-
+/* Input field sizing */
 #inviteCodeInput {
-  max-width: none;
-  order: 2; /* Input comes after button */
+  width: 200px;
+  max-width: 300px;
+  flex: 1;
   background: #080808;
   border: 1px solid #323232;
   color: white;
   padding: 4px 8px;
   height: 28px; /* Match button height */
-  flex: 1;
+}
+
+/* Button consistency */
+#createPreLobbyBtn {
+  order: 1;
+  margin: 0;
 }
 
 #joinPreLobbyBtn {
-  order: 1; /* Button comes first in reverse flow */
+  order: 1;
 }
 
 /* Update lobby management window */

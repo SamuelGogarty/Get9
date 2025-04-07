@@ -43,11 +43,13 @@
     <div class="window lobby-management-bar" name="Lobby Management">
       <div class="content">
         <div class="lobby-controls">
-          <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
-          <div id="preLobbySection">
-            <span>Invite Code: <strong id="inviteCode"></strong></span>
+          <div class="create-container">
+            <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
+            <div id="preLobbySection" class="invite-code-box">
+              <span>Invite Code: <strong id="inviteCode"></strong></span>
+            </div>
           </div>
-          <div class="invite-section">
+          <div class="join-container">
             <button class="greensteam-button" id="joinPreLobbyBtn">Join</button>
             <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
           </div>
@@ -193,7 +195,7 @@
 
     socket.on('preLobbyCreated', ({ inviteCode }) => {
       document.getElementById('inviteCode').textContent = inviteCode;
-      document.getElementById('preLobbySection').classList.add('active'); // Add active class
+      document.getElementById('preLobbySection').classList.add('active');
     });
 
     document.getElementById('joinPreLobbyBtn').addEventListener('click', () => {
