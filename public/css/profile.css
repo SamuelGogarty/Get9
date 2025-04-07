@@ -405,12 +405,12 @@ main {
   margin-left: 4px;
 }
 
-/* Navbar styling */
+/* NAVBAR */
 nav {
   border: solid 1px #323232;
   background: #212121;
   padding: 0;
-  margin: 0 auto 30px;
+  margin-bottom: 30px;
   width: 1040px;
 }
 
@@ -421,15 +421,14 @@ nav ul {
   padding: 0;
   margin: 0;
   list-style: none;
-  height: 40px;
 }
 
 nav li {
-  position: relative;
-  line-height: 40px;
+  display: inline-block;
 }
 
 nav li a {
+  display: block;
   padding: 8px 20px;
   color: #F0B43F;
   text-decoration: none;
@@ -462,8 +461,8 @@ nav li a:hover {
 }
 
 #navbarProfile {
-  width: 20px !important;
-  height: 20px !important;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
   border: 1px solid #323232;
 }

@@ -16,8 +16,8 @@
       <li class="right-nav">
         <div class="nav-player-name">
           <img id="navbarProfile" src="/img/fallback-pfp.png" alt="Avatar">
-          <span id="navbarUsername"></span>
-          <span id="navbarElo" class="elo-display"></span>
+          <span id="navbarUsername">Player Name</span>
+          <span id="navbarElo" class="elo-display">ELO: 0</span>
         </div>
       </li>
     </ul>
@@ -97,10 +97,8 @@
       fetch('/user/info')
         .then(response => response.json())
         .then(data => {
-          document.getElementById('navbarUsername').textContent = data.username || 'Unknown user';
-          if (data.profilePictureUrl) {
-            document.getElementById('navbarProfile').src = data.profilePictureUrl;
-          }
+          document.getElementById('navbarUsername').textContent = data.username;
+          document.getElementById('navbarProfile').src = data.profilePictureUrl || '/img/fallback-pfp.png';
         })
         .catch(error => {
           console.error('Error fetching user info:', error);
