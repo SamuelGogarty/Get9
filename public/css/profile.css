@@ -441,32 +441,53 @@ nav li a:hover {
   margin-left: 8px;
 }
 
-/* Fix lobby controls layout */
+/* Adjust lobby controls layout */
 .lobby-controls {
   display: flex;
-  gap: 10px; /* Reduce spacing between items */
+  gap: 10px;
   align-items: center;
   flex-wrap: wrap;
-  padding: 4px 0; /* Add vertical padding */
+  position: relative;
+}
+
+#createPreLobbyBtn {
+  order: 1;
+  margin-right: 10px;
+}
+
+#preLobbySection {
+  order: 2;
+  display: none;
+  background: #080808;
+  border: 1px solid #323232;
+  padding: 6px 10px;
+  margin-left: 10px;
 }
 
 .invite-section {
+  order: 3;
   flex: 1;
   display: flex;
-  gap: 10px;
-  min-width: 300px;
-  margin: 0;
-  height: 100%;
+  gap: 8px;
+  flex-direction: row-reverse; /* Reverse order for left-aligned button */
+  justify-content: flex-end;
+  margin-top: 8px;
+  width: 100%;
 }
 
 #inviteCodeInput {
+  max-width: 200px;
+  order: 2; /* Input comes after button in reverse flow */
   background: #080808;
   border: 1px solid #323232;
   color: white;
-  max-width: 200px; /* Make shorter */
   padding: 4px 8px;
   height: 28px; /* Match button height */
   flex: 1;
+}
+
+#joinPreLobbyBtn {
+  order: 1; /* Button comes first in reverse flow */
 }
 
 /* Update lobby management window */
