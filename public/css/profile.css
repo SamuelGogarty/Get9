@@ -202,13 +202,24 @@ main {
 }
 
 /* Matchmaking header proportions */
-.matchmaking-header .content {
+.window.matchmaking-header .content {
+  background: transparent; /* Remove dark inner background */
+  border: none; /* Remove inner border */
+  padding: 0; /* Remove extra padding */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  min-height: 80px;
-  max-height: 100px; /* Add max-height constraint */
-  overflow: hidden; /* Prevent content spill */
+  min-height: auto;
+  max-height: none;
+}
+
+.server-stats {
+  display: flex;
+  gap: 25px;
+  padding: 4px 0;
+  height: auto;
+  min-height: 60px;
+  background: transparent; /* Ensure stats background is transparent */
 }
 
 /* Grid element spacing */
