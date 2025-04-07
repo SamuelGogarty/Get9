@@ -150,13 +150,9 @@ main {
 
 /* Server stats grid from new_home */
 .server-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto; /* Remove fixed row sizes */
-  gap: 15px;
-  padding: 6px 8px; /* Reduce padding */
-  background: #080808;
-  border: 2px solid #2d2d2d;
+  display: flex;
+  gap: 25px;
+  padding: 4px 0;
   height: auto;
   min-height: 60px; /* Add minimum height */
 }
