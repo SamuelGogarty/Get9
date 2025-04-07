@@ -430,11 +430,11 @@ nav li {
 }
 
 nav li a {
-  padding: 8px 25px;
+  padding: 8px 20px;
   color: #F0B43F;
   text-decoration: none;
-  font-size: 13px;
-  display: block;
+  font-size: 14px;
+  line-height: 18px;
 }
 
 nav li a:hover {
@@ -444,6 +444,7 @@ nav li a:hover {
 
 .right-nav {
   margin-left: auto;
+  padding-right: 10px;
 }
 
 .nav-player-name {
@@ -453,37 +454,35 @@ nav li a:hover {
   border-left: solid 1px #080808;
   border-right: solid 1px #323232;
   color: white;
-  padding: 2px 6px; /* Tighter padding like lobby */
+  padding: 5px 8px;
   font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 6px; /* Reduced from 8px */
-  height: 28px; /* Match lobby's navbar height */
+  gap: 8px;
 }
 
 #navbarProfile {
-  width: 20px !important; /* Match lobby size */
+  width: 20px !important;
   height: 20px !important;
-  border: 1px solid #323232; /* Same border as lobby */
-  object-fit: cover; /* Ensure image fills space */
+  object-fit: contain;
+  border: 1px solid #323232;
 }
 
 #navbarUsername {
-  font-size: 13px; /* Match lobby's font size */
-  max-width: 160px; /* Prevent overflow */
+  max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 #navbarElo {
-  color: #8a9a4d !important; /* Match lobby's ELO color */
+  color: #ffffff;
+  font-size: 12px;
+  margin-left: 8px;
+  padding: 2px 6px;
   background: rgba(0,0,0,0.3);
   border: 1px solid #363636;
   border-radius: 3px;
-  padding: 1px 4px;
-  margin-left: 4px; /* Reduced spacing */
-  font-size: 11px !important; /* Match lobby's size */
 }
 
 /* Lobby controls layout */
