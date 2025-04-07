@@ -442,6 +442,8 @@ nav li a:hover {
 }
 
 .right-nav {
+  display: flex;
+  align-items: center;
   margin-left: auto;
   padding-right: 10px;
 }
@@ -463,7 +465,7 @@ nav li a:hover {
 #navbarProfile {
   width: 20px;
   height: 20px;
-  object-fit: contain;
+  object-fit: cover;
   border: 1px solid #323232;
 }
 
@@ -474,7 +476,7 @@ nav li a:hover {
   white-space: nowrap;
 }
 
-#navbarElo {
+#navbarElo.elo-display {
   color: #ffffff;
   font-size: 12px;
   margin-left: 8px;

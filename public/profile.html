@@ -93,55 +93,57 @@
     const socket = io();
 
     // Fetch and populate user data
-    function fetchUserInfo() {
-      // Match lobby's user info endpoint and structure
-      fetch('/api/user/current', { credentials: 'include' })
-        .then(response => response.json())
-        .then(user => {
-          // Match lobby's DOM update pattern
-          const profileImg = document.getElementById('navbarProfile');
-          profileImg.src = user.avatarUrl || '/img/fallback-pfp.png';
-          profileImg.onerror = () => {
-            profileImg.src = '/img/fallback-pfp.png';
-          };
-
-          document.getElementById('navbarUsername').textContent = user.displayName || 'Player';
-          document.getElementById('navbarElo').textContent = `ELO: ${user.skillRating || 0}`;
-        })
-        .catch(error => {
-          console.error('Error fetching user:', error);
-          document.getElementById('navbarProfile').src = '/img/fallback-pfp.png';
-        });
+    async function fetchUserInfo() {
+      try {
+        const [userRes, eloRes] = await Promise.all([
+          fetch('/user/info', { credentials: 'include' }),
+          fetch('/user/skill', { credentials: 'include' })
+        ]);
         
-      // Fetch server stats
-      fetch('/api/server/stats')
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById('playersWaiting').textContent = data.queuedPlayers || 0;
-          document.getElementById('activeMatches').textContent = data.activeMatches || 0;
-        })
-        .catch(error => {
-          console.error('Error fetching server stats:', error);
-        });
+        const user = await userRes.json();
+        const eloData = await eloRes.json();
+
+        // Update profile elements
+        const profileImg = document.getElementById('navbarProfile');
+        profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
+        profileImg.onerror = () => profileImg.src = '/img/fallback-pfp.png';
+        
+        document.getElementById('navbarUsername').textContent = user.username || 'Player';
+        document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
+        
+        // Fetch server stats
+        fetch('/api/server/stats')
+          .then(response => response.json())
+          .then(data => {
+            document.getElementById('playersWaiting').textContent = data.queuedPlayers || 0;
+            document.getElementById('activeMatches').textContent = data.activeMatches || 0;
+          })
+          .catch(error => {
+            console.error('Error fetching server stats:', error);
+          });
+      } catch (error) {
+        console.error('Error loading user info:', error);
+        document.getElementById('navbarProfile').src = '/img/fallback-pfp.png';
+      }
     }
     
     // Add the same socket handler as lobby
-    socket.on('userUpdate', (updatedUser) => {
-      document.getElementById('navbarProfile').src = updatedUser.avatarUrl;
-      document.getElementById('navbarUsername').textContent = updatedUser.displayName;
-      document.getElementById('navbarElo').textContent = `ELO: ${updatedUser.skillRating}`;
+    socket.on('userUpdate', ({ username, profilePictureUrl, skill }) => {
+      document.getElementById('navbarProfile').src = profilePictureUrl;
+      document.getElementById('navbarUsername').textContent = username;
+      document.getElementById('navbarElo').textContent = `ELO: ${skill}`;
     });
 
     document.getElementById('startMatchmakingBtn').addEventListener('click', () => {
       // Get user info from server instead of relying on DOM
-      fetch('/api/user/current')
+      fetch('/user/info', { credentials: 'include' })
         .then(response => response.json())
         .then(user => {
           socket.emit('startMatchmaking', { 
-            username: user.displayName,
+            username: user.username,
             steamId: user.steamId,
             email: user.email,
-            profilePictureUrl: user.avatarUrl
+            profilePictureUrl: user.profilePictureUrl
           });
           
           // Show progress animation
@@ -181,14 +183,14 @@
     });
 
     document.getElementById('createPreLobbyBtn').addEventListener('click', () => {
-      fetch('/api/user/current')
+      fetch('/user/info', { credentials: 'include' })
         .then(response => response.json())
         .then(user => {
           const userData = {
-            username: user.displayName,
+            username: user.username,
             steamId: user.steamId,
             email: user.email,
-            profilePictureUrl: user.avatarUrl,
+            profilePictureUrl: user.profilePictureUrl,
           };
           socket.emit('createPreLobby', userData);
         })
@@ -232,14 +234,14 @@
         return;
       }
       
-      fetch('/api/user/current')
+      fetch('/user/info', { credentials: 'include' })
         .then(response => response.json())
         .then(user => {
           const userData = {
-            username: user.displayName,
+            username: user.username,
             steamId: user.steamId,
             email: user.email,
-            profilePictureUrl: user.avatarUrl,
+            profilePictureUrl: user.profilePictureUrl,
           };
           socket.emit('joinPreLobby', { inviteCode, user: userData });
           document.getElementById('preLobbySection').classList.add('active');
