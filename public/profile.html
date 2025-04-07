@@ -94,26 +94,23 @@
 
     // Fetch and populate user data
     function fetchUserInfo() {
-      // Add credentials include for auth
-      fetch('/user/info', { credentials: 'include' })
+      // Match lobby's user info endpoint and structure
+      fetch('/api/user/current', { credentials: 'include' })
         .then(response => response.json())
-        .then(data => {
-          document.getElementById('navbarUsername').textContent = data.username;
-          // Use steamPfpUrl field instead of profilePictureUrl
-          document.getElementById('navbarProfile').src = data.steamPfpUrl || '/img/fallback-pfp.png';
-        })
-        .catch(error => {
-          console.error('Error fetching user info:', error);
-        });
+        .then(user => {
+          // Match lobby's DOM update pattern
+          const profileImg = document.getElementById('navbarProfile');
+          profileImg.src = user.avatarUrl || '/img/fallback-pfp.png';
+          profileImg.onerror = () => {
+            profileImg.src = '/img/fallback-pfp.png';
+          };
 
-      // Add credentials include for ELO fetch
-      fetch('/user/skill', { credentials: 'include' })
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById('navbarElo').textContent = `ELO: ${data.skill || 0}`;
+          document.getElementById('navbarUsername').textContent = user.displayName || 'Player';
+          document.getElementById('navbarElo').textContent = `ELO: ${user.skillRating || 0}`;
         })
         .catch(error => {
-          console.error('Error fetching player skill:', error);
+          console.error('Error fetching user:', error);
+          document.getElementById('navbarProfile').src = '/img/fallback-pfp.png';
         });
         
       // Fetch server stats
@@ -127,17 +124,24 @@
           console.error('Error fetching server stats:', error);
         });
     }
+    
+    // Add the same socket handler as lobby
+    socket.on('userUpdate', (updatedUser) => {
+      document.getElementById('navbarProfile').src = updatedUser.avatarUrl;
+      document.getElementById('navbarUsername').textContent = updatedUser.displayName;
+      document.getElementById('navbarElo').textContent = `ELO: ${updatedUser.skillRating}`;
+    });
 
     document.getElementById('startMatchmakingBtn').addEventListener('click', () => {
       // Get user info from server instead of relying on DOM
-      fetch('/user/info')
+      fetch('/api/user/current')
         .then(response => response.json())
-        .then(data => {
+        .then(user => {
           socket.emit('startMatchmaking', { 
-            username: data.username,
-            steamId: data.steamId,
-            email: data.email,
-            profilePictureUrl: data.profilePictureUrl
+            username: user.displayName,
+            steamId: user.steamId,
+            email: user.email,
+            profilePictureUrl: user.avatarUrl
           });
           
           // Show progress animation
@@ -177,16 +181,16 @@
     });
 
     document.getElementById('createPreLobbyBtn').addEventListener('click', () => {
-      fetch('/user/info')
+      fetch('/api/user/current')
         .then(response => response.json())
-        .then(data => {
-          const user = {
-            username: data.username,
-            steamId: data.steamId,
-            email: data.email,
-            profilePictureUrl: data.profilePictureUrl,
+        .then(user => {
+          const userData = {
+            username: user.displayName,
+            steamId: user.steamId,
+            email: user.email,
+            profilePictureUrl: user.avatarUrl,
           };
-          socket.emit('createPreLobby', user);
+          socket.emit('createPreLobby', userData);
         })
         .catch(error => {
           console.error('Error fetching user info for pre-lobby:', error);
@@ -228,16 +232,16 @@
         return;
       }
       
-      fetch('/user/info')
+      fetch('/api/user/current')
         .then(response => response.json())
-        .then(data => {
-          const user = {
-            username: data.username,
-            steamId: data.steamId,
-            email: data.email,
-            profilePictureUrl: data.profilePictureUrl,
+        .then(user => {
+          const userData = {
+            username: user.displayName,
+            steamId: user.steamId,
+            email: user.email,
+            profilePictureUrl: user.avatarUrl,
           };
-          socket.emit('joinPreLobby', { inviteCode, user });
+          socket.emit('joinPreLobby', { inviteCode, user: userData });
           document.getElementById('preLobbySection').classList.add('active');
         })
         .catch(error => {
