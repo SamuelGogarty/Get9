@@ -515,10 +515,11 @@ nav li a:hover {
   background: #080808;
   border: 1px solid #323232;
   color: white;
-  padding: 3px 6px; /* Reduced vertical padding */
-  height: 28px; /* Reduced from 32px */
+  padding: 2px 6px; /* Reduced vertical padding from 3px */
+  height: 24px; /* Reduced from 28px */
   margin-left: 0;
   margin-top: 2px; /* Add top margin */
+  font-size: 13px; /* Added explicit font-size for better control */
 }
 
 /* Center align join button text */
