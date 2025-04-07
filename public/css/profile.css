@@ -445,17 +445,18 @@ nav li a:hover {
 /* Adjust lobby controls layout */
 .lobby-controls {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row; /* Changed from column */
   align-items: center;
-  flex-wrap: wrap;
+  gap: 10px;
+  height: 100%;
+  flex-wrap: nowrap;
   position: relative;
 }
 
 #createPreLobbyBtn {
   order: 1;
-  margin: 0 0 8px 0; /* Add bottom margin */
-  align-self: flex-start; /* Keep button at top */
+  margin: 0;
+  flex-shrink: 0; /* Prevent button from shrinking */
 }
 
 #preLobbySection {
@@ -464,19 +465,21 @@ nav li a:hover {
   background: #080808;
   border: 1px solid #323232;
   padding: 4px 8px; /* Tighter padding */
-  margin-left: 8px; /* Reduce spacing from button */
+  height: 28px; /* Match button height */
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .invite-section {
   order: 3;
-  flex: 1;
   display: flex;
   gap: 8px;
   flex-direction: row; /* Changed from row-reverse */
   align-items: center;
-  margin-top: 4px; /* Reduce top margin */
-  width: 100%;
-  margin-left: 0;
+  margin-left: auto; /* Push to far right */
+  flex-grow: 1;
+  justify-content: flex-end;
 }
 
 #inviteCodeInput {
