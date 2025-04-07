@@ -465,8 +465,9 @@ nav li a:hover {
   display: flex;
   flex-direction: row; /* Explicit row direction */
   align-items: center;
-  gap: 8px;
+  gap: 6px; /* Reduced from 8px */
   width: 100%;
+  max-width: 400px; /* Add max-width constraint */
   margin-top: 8px; /* Increased from 4px */
   padding-bottom: 4px; /* Add bottom padding */
 }
@@ -497,13 +498,13 @@ nav li a:hover {
 /* Input field sizing */
 #inviteCodeInput {
   order: 1;
-  width: 200px;
-  max-width: 300px;
-  flex: 1;
+  width: 150px; /* Reduced from 200px */
+  max-width: 200px; /* Reduced from 300px */
+  flex: 0; /* Changed from 1 to prevent expansion */
   background: #080808;
   border: 1px solid #323232;
   color: white;
-  padding: 4px 8px;
+  padding: 4px 6px; /* Tighter padding */
   height: 32px; /* Increased from 28px */
   margin-left: 0;
   margin-top: 2px; /* Add top margin */
