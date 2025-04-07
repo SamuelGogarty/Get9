@@ -207,10 +207,21 @@ main {
   border: none; /* Remove inner border */
   padding: 0; /* Remove extra padding */
   display: flex;
+  flex-direction: row-reverse; /* Reverse the order */
   justify-content: space-between;
   align-items: center;
   min-height: auto;
   max-height: none;
+}
+
+.server-stats {
+  order: 2; /* Move stats to right side */
+  margin-left: auto; /* Push to far right */
+}
+
+.matchmaking-controls {
+  order: 1; /* Move controls to left side */
+  margin-right: auto; /* Push to far left */
 }
 
 .server-stats {
