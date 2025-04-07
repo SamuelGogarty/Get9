@@ -538,10 +538,10 @@ nav li a:hover {
   height: 100%;
   background: repeating-linear-gradient(
     to right,
-    #080808 0px,
-    #080808 2px,
-    #323232 2px,
-    #323232 4px
+    #000 0px,    /* Solid black stripes */
+    #000 3px,    /* Wider dark part */
+    #212121 3px, /* Matching container background */
+    #212121 6px  /* Same width as dark stripe */
   );
   pointer-events: none;
   display: block;
@@ -549,6 +549,7 @@ nav li a:hover {
   border-bottom: solid 1px #323232;
   border-left: solid 1px #080808;
   border-right: solid 1px #323232;
+  z-index: 2; /* Ensure overlay is above text */
 }
 
 .code-container.revealed .mask-overlay {
@@ -556,11 +557,11 @@ nav li a:hover {
 }
 
 #inviteCode {
-  /* Add these properties */
   position: relative;
   z-index: 1;
   line-height: 24px;
   padding: 0 4px;
+  user-select: none; /* Prevent text selection */
 }
 
 #toggleCodeVisibility {
