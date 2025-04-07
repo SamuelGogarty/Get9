@@ -509,8 +509,8 @@ nav li a:hover {
 /* Input field sizing */
 #inviteCodeInput {
   order: 1;
-  width: 150px; /* Reduced from 200px */
-  max-width: 200px; /* Reduced from 300px */
+  width: 120px; /* Reduced from 150px */
+  max-width: 150px; /* Reduced from 200px */
   flex: 0; /* Changed from 1 to prevent expansion */
   background: #080808;
   border: 1px solid #323232;
@@ -519,6 +519,12 @@ nav li a:hover {
   height: 28px; /* Reduced from 32px */
   margin-left: 0;
   margin-top: 2px; /* Add top margin */
+}
+
+/* Center align join button text */
+#joinPreLobbyBtn.greensteam-button {
+  text-align: center; /* Add centered text alignment */
+  padding: 6px 12px !important; /* Maintain padding for proper centering */
 }
 
 /* Position create button first */
