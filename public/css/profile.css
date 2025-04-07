@@ -449,16 +449,20 @@ nav li a:hover {
   gap: 12px;
 }
 
+/* Create container layout */
 .create-container {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-bottom: 8px;
 }
 
+/* Join section layout */
 .join-container {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  width: 100%;
 }
 
 /* Invite code box styling */
@@ -471,8 +475,14 @@ nav li a:hover {
   align-items: center;
 }
 
+/* Inset styling for invite code */
 .invite-code-box.active {
   display: flex;
+  background: #080808;
+  border: 1px solid #323232;
+  padding: 4px 8px;
+  align-items: center;
+  height: 28px; /* Match button height */
 }
 
 /* Input field sizing */
@@ -485,16 +495,19 @@ nav li a:hover {
   color: white;
   padding: 4px 8px;
   height: 28px; /* Match button height */
+  margin-left: 0;
 }
 
 /* Button consistency */
 #createPreLobbyBtn {
   order: 1;
   margin: 0;
+  flex-shrink: 0;
 }
 
 #joinPreLobbyBtn {
   order: 1;
+  flex-shrink: 0;
 }
 
 /* Update lobby management window */
