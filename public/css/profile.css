@@ -150,21 +150,35 @@ main {
 
 /* Server stats grid from new_home */
 .server-stats {
+  background: #080808; /* Inset background */
+  border-top: solid 1px #080808;
+  border-bottom: solid 1px #323232;
+  border-left: solid 1px #080808;
+  border-right: solid 1px #323232;
+  padding: 8px 12px; /* Increased padding */
+  gap: 6px; /* Reduced gap */
+  margin-right: 20px; /* Add spacing from window edge */
   display: flex;
   flex-direction: column; /* Stack vertically */
-  gap: 8px; /* Reduce gap between items */
-  padding: 4px 0;
   height: auto;
   min-height: 0; /* Remove fixed minimum height */
   text-align: left; /* Change from right to left alignment */
-  margin-right: 30px; /* Add right margin to pull container left */
   align-items: flex-start; /* Add left alignment for flex items */
+}
+
+.server-stats p {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  white-space: nowrap;
+  margin: 0; /* Remove default paragraph margins */
 }
 
 .stat-value {
   color: #F0B43F;
   font-weight: bold;
-  margin-left: 8px; /* Add space between label and number */
+  margin-left: 0; /* Remove left margin since we're using flex gap */
+  font-family: monospace; /* Add monospace for number alignment */
 }
 
 /* Matchmaking controls from new_home form styling */
