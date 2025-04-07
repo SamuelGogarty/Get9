@@ -175,7 +175,9 @@ main {
 
 /* Thin bar adjustments */
 .lobby-management-bar .content {
-  padding: 8px 10px;
+  background: none; /* Remove dark background */
+  border: none; /* Remove border */
+  padding: 8px 0; /* Adjust padding */
   height: calc(100% - 16px); /* Account for padding */
   display: flex;
   flex-direction: column;
@@ -194,7 +196,7 @@ main {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px; /* Reduce gap since we're removing a button */
   margin: 0;
   padding: 0 8px;
   height: 100%;
@@ -458,8 +460,12 @@ nav li a:hover {
 }
 
 #inviteCodeInput {
-  height: 28px; /* Match button height */
+  background: #080808;
+  border: 1px solid #323232;
+  color: white;
+  max-width: 200px; /* Make shorter */
   padding: 4px 8px;
+  height: 28px; /* Match button height */
   flex: 1;
 }
 
