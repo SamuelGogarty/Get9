@@ -151,10 +151,12 @@ main {
 /* Server stats grid from new_home */
 .server-stats {
   display: flex;
-  gap: 25px;
+  flex-direction: column; /* Stack vertically */
+  gap: 8px; /* Reduce gap between items */
   padding: 4px 0;
   height: auto;
-  min-height: 60px; /* Add minimum height */
+  min-height: 0; /* Remove fixed minimum height */
+  text-align: right; /* Align numbers to right */
 }
 
 .stat-value {
@@ -224,14 +226,7 @@ main {
   margin-right: 0; /* Remove previous auto margin */
 }
 
-.server-stats {
-  display: flex;
-  gap: 25px;
-  padding: 4px 0;
-  height: auto;
-  min-height: 60px;
-  background: transparent; /* Ensure stats background is transparent */
-}
+/* Remove duplicate server-stats rule */
 
 /* Grid element spacing */
 .main-grid > .window {
