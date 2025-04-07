@@ -550,6 +550,7 @@ nav li a:hover {
   border-left: solid 1px #080808;
   border-right: solid 1px #323232;
   z-index: 2; /* Ensure overlay is above text */
+  user-select: none; /* Prevent selection of the mask */
 }
 
 .code-container.revealed .mask-overlay {
@@ -561,7 +562,11 @@ nav li a:hover {
   z-index: 1;
   line-height: 24px;
   padding: 0 4px;
-  user-select: none; /* Prevent text selection */
+  /* Removed: user-select: none */
+}
+
+.code-container.revealed {
+  user-select: text; /* Enable text selection when revealed */
 }
 
 #toggleCodeVisibility {
