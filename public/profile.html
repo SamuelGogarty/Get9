@@ -199,7 +199,7 @@
     socket.on('preLobbyCreated', ({ inviteCode }) => {
       const codeSection = document.getElementById('preLobbySection');
       codeSection.innerHTML = `<strong id="inviteCode">${inviteCode}</strong>`;
-      codeSection.classList.add('active');
+      codeSection.classList.add('active', 'inset'); // Add inset class here
     });
 
     document.getElementById('joinPreLobbyBtn').addEventListener('click', () => {

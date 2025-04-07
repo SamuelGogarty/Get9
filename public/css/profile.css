@@ -489,9 +489,17 @@ nav li a:hover {
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
-  background: #080808;
-  border: 1px solid #323232;
+  background-color: #080808; /* Match inset background */
+  border-top: solid 1px #080808; /* Inset-style borders */
+  border-bottom: solid 1px #323232;
+  border-left: solid 1px #080808;
+  border-right: solid 1px #323232;
   margin-left: 10px;
+}
+
+/* Optional: Add hover effect to match other inset elements */
+.invite-code-box.active:hover {
+  background-color: #101010;
 }
 
 .invite-code-box.active::before {
