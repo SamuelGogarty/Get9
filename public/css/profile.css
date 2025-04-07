@@ -514,6 +514,44 @@ nav li a:hover {
   letter-spacing: 1px;
 }
 
+/* Add to invite code box styling */
+.code-container {
+  position: relative;
+  min-width: 120px;
+}
+
+.mask-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    to right,
+    #080808 0px,
+    #080808 2px,
+    #323232 2px,
+    #323232 4px
+  );
+  pointer-events: none;
+  display: block;
+}
+
+.code-container.revealed .mask-overlay {
+  display: none;
+}
+
+#toggleCodeVisibility {
+  padding: 0 6px !important;
+  min-width: 28px;
+  height: 24px;
+  margin-left: 4px;
+}
+
+#toggleCodeVisibility.revealed {
+  background-color: #323232 !important;
+}
+
 /* Input field sizing */
 #inviteCodeInput {
   order: 1;
