@@ -100,15 +100,19 @@
           fetch('/user/skill', { credentials: 'include' })
         ]);
         
+        // Handle HTTP errors
+        if (!userRes.ok) throw new Error('User info fetch failed');
+        if (!eloRes.ok) throw new Error('ELO fetch failed');
+
         const user = await userRes.json();
         const eloData = await eloRes.json();
 
-        // Update profile elements
+        // Update navbar elements with CORRECT field names from server response
         const profileImg = document.getElementById('navbarProfile');
         profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
         profileImg.onerror = () => profileImg.src = '/img/fallback-pfp.png';
         
-        document.getElementById('navbarUsername').textContent = user.username || 'Player';
+        document.getElementById('navbarUsername').textContent = user.username;
         document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
         
         // Fetch server stats
@@ -123,7 +127,10 @@
           });
       } catch (error) {
         console.error('Error loading user info:', error);
+        // Set explicit fallbacks
         document.getElementById('navbarProfile').src = '/img/fallback-pfp.png';
+        document.getElementById('navbarUsername').textContent = 'Player';
+        document.getElementById('navbarElo').textContent = 'ELO: 0';
       }
     }
     
@@ -288,7 +295,11 @@
       ul.scrollTop = ul.scrollHeight;
     });
 
-    fetchUserInfo();
+    // Add DOMContentLoaded handler
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initial load
+      fetchUserInfo();
+    });
   </script>
 </body>
 </html>
