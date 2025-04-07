@@ -25,10 +25,12 @@ main {
 .main-grid {
   display: grid;
   grid-template-columns: 1fr;
+  grid-template-rows: auto auto minmax(0, 1fr) auto; /* Better row distribution */
   gap: 20px;
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  min-height: calc(100vh - 150px); /* Prevent vertical overflow */
 }
 
 /* Matchmaking header */
@@ -44,7 +46,8 @@ main {
   grid-template-rows: minmax(0, 1fr);
   gap: 20px;
   align-items: stretch;
-  height: 400px;
+  height: calc(100% - 60px); /* Account for header elements */
+  min-height: 300px; /* Add minimum height */
 }
 
 /* Thin lobby management bar */
@@ -52,6 +55,7 @@ main {
   grid-column: 1 / -1;
   height: auto;
   min-height: 40px;
+  max-height: 60px; /* Add max-height limit */
   margin: 10px 0;
 }
 
@@ -132,6 +136,7 @@ main {
   border: 1px solid #2d2d2d;
   height: calc(100% - 30px);
   overflow: auto;
+  max-height: calc(100vh - 200px); /* Add viewport-based limit */
 }
 
 .inset, .box.inset {
@@ -146,11 +151,13 @@ main {
 .server-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto; /* Remove fixed row sizes */
   gap: 15px;
-  padding: 8px;
+  padding: 6px 8px; /* Reduce padding */
   background: #080808;
   border: 2px solid #2d2d2d;
   height: auto;
+  min-height: 60px; /* Add minimum height */
 }
 
 .stat-value {
@@ -190,6 +197,8 @@ main {
   justify-content: space-between;
   align-items: center;
   min-height: 80px;
+  max-height: 100px; /* Add max-height constraint */
+  overflow: hidden; /* Prevent content spill */
 }
 
 /* Grid element spacing */
@@ -422,9 +431,10 @@ nav li a:hover {
 /* Fix lobby controls layout */
 .lobby-controls {
   display: flex;
-  gap: 15px;
+  gap: 10px; /* Reduce spacing between items */
   align-items: center;
   flex-wrap: wrap;
+  padding: 4px 0; /* Add vertical padding */
 }
 
 .invite-section {
