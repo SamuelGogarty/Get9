@@ -156,12 +156,15 @@ main {
   padding: 4px 0;
   height: auto;
   min-height: 0; /* Remove fixed minimum height */
-  text-align: right; /* Align numbers to right */
+  text-align: left; /* Change from right to left alignment */
+  margin-right: 30px; /* Add right margin to pull container left */
+  align-items: flex-start; /* Add left alignment for flex items */
 }
 
 .stat-value {
   color: #F0B43F;
   font-weight: bold;
+  margin-left: 8px; /* Add space between label and number */
 }
 
 /* Matchmaking controls from new_home form styling */
