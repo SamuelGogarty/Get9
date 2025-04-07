@@ -452,14 +452,17 @@ nav li a:hover {
 /* Create container layout */
 .create-container {
   display: flex;
+  flex-direction: row; /* Explicit row direction */
   align-items: center;
   gap: 10px;
   margin-bottom: 8px;
+  width: 100%;
 }
 
-/* Join section layout */
+/* Fix join section layout */
 .join-container {
   display: flex;
+  flex-direction: row; /* Explicit row direction */
   align-items: center;
   gap: 8px;
   width: 100%;
@@ -475,18 +478,21 @@ nav li a:hover {
   align-items: center;
 }
 
-/* Inset styling for invite code */
+/* Style invite code box to appear immediately after button */
 .invite-code-box.active {
+  order: 1;
   display: flex;
   background: #080808;
   border: 1px solid #323232;
   padding: 4px 8px;
+  height: 28px;
   align-items: center;
-  height: 28px; /* Match button height */
+  margin-left: 0; /* Remove previous margin */
 }
 
 /* Input field sizing */
 #inviteCodeInput {
+  order: 1;
   width: 200px;
   max-width: 300px;
   flex: 1;
@@ -498,15 +504,15 @@ nav li a:hover {
   margin-left: 0;
 }
 
-/* Button consistency */
+/* Position create button first */
 #createPreLobbyBtn {
-  order: 1;
-  margin: 0;
+  order: 0 !important; /* Force first position */
   flex-shrink: 0;
+  margin: 0;
 }
 
 #joinPreLobbyBtn {
-  order: 1;
+  order: 0 !important; /* Force button first */
   flex-shrink: 0;
 }
 
