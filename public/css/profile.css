@@ -445,6 +445,7 @@ nav li a:hover {
 /* Adjust lobby controls layout */
 .lobby-controls {
   display: flex;
+  flex-direction: column;
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
@@ -453,7 +454,7 @@ nav li a:hover {
 
 #createPreLobbyBtn {
   order: 1;
-  margin: 0; /* Remove previous margin */
+  margin: 0 0 8px 0; /* Add bottom margin */
   align-self: flex-start; /* Keep button at top */
 }
 
@@ -471,15 +472,16 @@ nav li a:hover {
   flex: 1;
   display: flex;
   gap: 8px;
-  flex-direction: row-reverse; /* Reverse order for left-aligned button */
-  justify-content: flex-end;
+  flex-direction: row; /* Changed from row-reverse */
+  align-items: center;
   margin-top: 4px; /* Reduce top margin */
   width: 100%;
+  margin-left: 0;
 }
 
 #inviteCodeInput {
-  max-width: 200px;
-  order: 2; /* Input comes after button in reverse flow */
+  max-width: none;
+  order: 2; /* Input comes after button */
   background: #080808;
   border: 1px solid #323232;
   color: white;
