@@ -453,23 +453,37 @@ nav li a:hover {
   border-left: solid 1px #080808;
   border-right: solid 1px #323232;
   color: white;
-  padding: 5px 8px;
+  padding: 2px 6px; /* Tighter padding like lobby */
   font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px; /* Reduced from 8px */
+  height: 28px; /* Match lobby's navbar height */
 }
 
 #navbarProfile {
-  width: 28px;
-  height: 28px;
-  border: 1px solid #4a752c;
+  width: 20px !important; /* Match lobby size */
+  height: 20px !important;
+  border: 1px solid #323232; /* Same border as lobby */
+  object-fit: cover; /* Ensure image fills space */
+}
+
+#navbarUsername {
+  font-size: 13px; /* Match lobby's font size */
+  max-width: 160px; /* Prevent overflow */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #navbarElo {
-  color: #F0B43F;
-  font-size: 12px;
-  margin-left: 8px;
+  color: #8a9a4d !important; /* Match lobby's ELO color */
+  background: rgba(0,0,0,0.3);
+  border: 1px solid #363636;
+  border-radius: 3px;
+  padding: 1px 4px;
+  margin-left: 4px; /* Reduced spacing */
+  font-size: 11px !important; /* Match lobby's size */
 }
 
 /* Lobby controls layout */
