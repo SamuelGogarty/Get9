@@ -177,8 +177,8 @@ main {
 .lobby-management-bar .content {
   background: none; /* Remove dark background */
   border: none; /* Remove border */
-  padding: 8px 0; /* Adjust padding */
-  height: calc(100% - 16px); /* Account for padding */
+  padding: 4px 0; /* Reduce vertical padding */
+  height: calc(100% - 8px); /* Account for padding */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -186,10 +186,11 @@ main {
 
 .lobby-management-bar .lobby-controls {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start; /* Align items to top */
+  gap: 8px; /* Reduce gap between items */
   height: 100%;
   flex-wrap: nowrap; /* Prevent wrapping */
+  padding-top: 2px; /* Remove extra spacing */
 }
 
 #preLobbySection {
@@ -452,7 +453,8 @@ nav li a:hover {
 
 #createPreLobbyBtn {
   order: 1;
-  margin-right: 10px;
+  margin: 0; /* Remove previous margin */
+  align-self: flex-start; /* Keep button at top */
 }
 
 #preLobbySection {
@@ -460,8 +462,8 @@ nav li a:hover {
   display: none;
   background: #080808;
   border: 1px solid #323232;
-  padding: 6px 10px;
-  margin-left: 10px;
+  padding: 4px 8px; /* Tighter padding */
+  margin-left: 8px; /* Reduce spacing from button */
 }
 
 .invite-section {
@@ -471,7 +473,7 @@ nav li a:hover {
   gap: 8px;
   flex-direction: row-reverse; /* Reverse order for left-aligned button */
   justify-content: flex-end;
-  margin-top: 8px;
+  margin-top: 4px; /* Reduce top margin */
   width: 100%;
 }
 
