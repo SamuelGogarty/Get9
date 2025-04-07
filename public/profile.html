@@ -46,13 +46,6 @@
           <!-- Create Section -->
           <div class="create-container">
             <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
-            <div id="preLobbySection" class="invite-code-box">
-              <div class="code-container">
-                <strong id="inviteCode"></strong>
-                <div class="mask-overlay"></div>
-              </div>
-              <button class="greensteam-button" id="toggleCodeVisibility" title="Show/Hide Code">👁</button>
-            </div>
           </div>
           
           <!-- Join Section -->
@@ -201,16 +194,30 @@
     });
 
     socket.on('preLobbyCreated', ({ inviteCode }) => {
-      const codeSection = document.getElementById('preLobbySection');
-      document.getElementById('inviteCode').textContent = inviteCode;
-      codeSection.classList.add('active', 'inset'); // Add inset class here
-    });
-    
-    document.getElementById('toggleCodeVisibility').addEventListener('click', function() {
-      const container = document.querySelector('.code-container');
-      this.classList.toggle('revealed');
-      container.classList.toggle('revealed');
-      this.title = container.classList.contains('revealed') ? 'Hide Code' : 'Show Code';
+      const createContainer = document.querySelector('.create-container');
+      
+      // Create code box elements
+      const codeBox = document.createElement('div');
+      codeBox.id = 'preLobbySection';
+      codeBox.className = 'invite-code-box inset active';
+      codeBox.innerHTML = `
+        <div class="code-container">
+          <strong id="inviteCode">${inviteCode}</strong>
+          <div class="mask-overlay"></div>
+        </div>
+        <button class="greensteam-button" id="toggleCodeVisibility" title="Show Code">👁</button>
+      `;
+
+      // Insert after create button
+      document.getElementById('createPreLobbyBtn').insertAdjacentElement('afterend', codeBox);
+
+      // Add toggle handler
+      document.getElementById('toggleCodeVisibility').addEventListener('click', function() {
+        const container = this.closest('.invite-code-box').querySelector('.code-container');
+        this.classList.toggle('revealed');
+        container.classList.toggle('revealed');
+        this.title = container.classList.contains('revealed') ? 'Hide Code' : 'Show Code';
+      });
     });
 
     document.getElementById('joinPreLobbyBtn').addEventListener('click', () => {

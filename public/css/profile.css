@@ -483,9 +483,9 @@ nav li a:hover {
 }
 
 /* Style invite code box to appear immediately after button */
-.invite-code-box.active {
+.invite-code-box {
+  display: flex !important; /* Force display when inserted */
   order: 1;
-  display: flex;
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
