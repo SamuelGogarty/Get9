@@ -446,7 +446,8 @@ nav li a:hover {
 .lobby-controls {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 12px; /* Increased from 8px */
+  padding: 6px 0; /* Added vertical padding */
 }
 
 /* Create container layout */
@@ -466,6 +467,8 @@ nav li a:hover {
   align-items: center;
   gap: 8px;
   width: 100%;
+  margin-top: 8px; /* Increased from 4px */
+  padding-bottom: 4px; /* Add bottom padding */
 }
 
 /* Invite code box styling */
@@ -485,9 +488,10 @@ nav li a:hover {
   background: #080808;
   border: 1px solid #323232;
   padding: 4px 8px;
-  height: 28px;
+  height: 32px; /* Match input height */
   align-items: center;
   margin-left: 0; /* Remove previous margin */
+  margin-bottom: 2px; /* Add bottom margin */
 }
 
 /* Input field sizing */
@@ -500,8 +504,9 @@ nav li a:hover {
   border: 1px solid #323232;
   color: white;
   padding: 4px 8px;
-  height: 28px; /* Match button height */
+  height: 32px; /* Increased from 28px */
   margin-left: 0;
+  margin-top: 2px; /* Add top margin */
 }
 
 /* Position create button first */
@@ -518,8 +523,8 @@ nav li a:hover {
 
 /* Update lobby management window */
 .window[name="Lobby Management"] {
-  height: 180px;
-  min-height: 180px;
+  height: 160px; /* Reduced from 180px */
+  min-height: 160px;
   flex-shrink: 0;
 }
 
