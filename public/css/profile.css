@@ -517,7 +517,17 @@ nav li a:hover {
 /* Add to invite code box styling */
 .code-container {
   position: relative;
-  min-width: 120px;
+  width: 120px; /* Fixed width */
+  height: 24px; /* Match input field height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #080808;
+  border-top: solid 1px #080808;
+  border-bottom: solid 1px #323232;
+  border-left: solid 1px #080808;
+  border-right: solid 1px #323232;
+  padding: 0 6px;
 }
 
 .mask-overlay {
@@ -535,10 +545,22 @@ nav li a:hover {
   );
   pointer-events: none;
   display: block;
+  border-top: solid 1px #080808;
+  border-bottom: solid 1px #323232;
+  border-left: solid 1px #080808;
+  border-right: solid 1px #323232;
 }
 
 .code-container.revealed .mask-overlay {
   display: none;
+}
+
+#inviteCode {
+  /* Add these properties */
+  position: relative;
+  z-index: 1;
+  line-height: 24px;
+  padding: 0 4px;
 }
 
 #toggleCodeVisibility {
