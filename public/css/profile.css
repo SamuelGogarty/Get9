@@ -207,7 +207,7 @@ main {
   border: none; /* Remove inner border */
   padding: 0; /* Remove extra padding */
   display: flex;
-  flex-direction: row-reverse; /* Reverse the order */
+  flex-direction: row; /* Changed from row-reverse */
   justify-content: space-between;
   align-items: center;
   min-height: auto;
@@ -215,13 +215,13 @@ main {
 }
 
 .server-stats {
-  order: 2; /* Move stats to right side */
-  margin-left: auto; /* Push to far right */
+  order: 2; /* Keep on right side but with normal flow */
+  margin-left: 0; /* Remove previous auto margin */
 }
 
 .matchmaking-controls {
-  order: 1; /* Move controls to left side */
-  margin-right: auto; /* Push to far left */
+  order: 1; /* Keep on left side but with normal flow */
+  margin-right: 0; /* Remove previous auto margin */
 }
 
 .server-stats {
