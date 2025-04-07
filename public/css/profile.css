@@ -515,8 +515,8 @@ nav li a:hover {
   background: #080808;
   border: 1px solid #323232;
   color: white;
-  padding: 4px 6px; /* Tighter padding */
-  height: 32px; /* Increased from 28px */
+  padding: 3px 6px; /* Reduced vertical padding */
+  height: 28px; /* Reduced from 32px */
   margin-left: 0;
   margin-top: 2px; /* Add top margin */
 }
