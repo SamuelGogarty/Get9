@@ -91,28 +91,26 @@
   <script>
     const socket = io();
 
-    // Fetch and populate user data
-    async function fetchUserInfo() {
+    // Initialize navbar with user data
+    async function initNavbar() {
       try {
         const [userRes, eloRes] = await Promise.all([
           fetch('/user/info', { credentials: 'include' }),
           fetch('/user/skill', { credentials: 'include' })
         ]);
         
-        // Handle HTTP errors
-        if (!userRes.ok) throw new Error('User info fetch failed');
-        if (!eloRes.ok) throw new Error('ELO fetch failed');
+        if (!userRes.ok || !eloRes.ok) throw new Error('Failed to fetch user data');
 
         const user = await userRes.json();
         const eloData = await eloRes.json();
 
-        // Update navbar elements with CORRECT field names from server response
+        // Update navbar elements
         const profileImg = document.getElementById('navbarProfile');
-        profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
+        profileImg.src = user.profilePictureUrl;
         profileImg.onerror = () => profileImg.src = '/img/fallback-pfp.png';
         
         document.getElementById('navbarUsername').textContent = user.username;
-        document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
+        document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill}`;
         
         // Fetch server stats
         fetch('/api/server/stats')
@@ -125,7 +123,7 @@
             console.error('Error fetching server stats:', error);
           });
       } catch (error) {
-        console.error('Error loading user info:', error);
+        console.error('Navbar initialization error:', error);
         // Set explicit fallbacks
         document.getElementById('navbarProfile').src = '/img/fallback-pfp.png';
         document.getElementById('navbarUsername').textContent = 'Player';
@@ -133,7 +131,7 @@
       }
     }
     
-    // Add the same socket handler as lobby
+    // Real-time updates
     socket.on('userUpdate', ({ username, profilePictureUrl, skill }) => {
       document.getElementById('navbarProfile').src = profilePictureUrl;
       document.getElementById('navbarUsername').textContent = username;
@@ -296,8 +294,8 @@
 
     // Add DOMContentLoaded handler
     document.addEventListener('DOMContentLoaded', () => {
-      // Initial load
-      fetchUserInfo();
+      // Initialize navbar
+      initNavbar();
     });
   </script>
 </body>
