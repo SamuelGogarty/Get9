@@ -91,55 +91,69 @@
   <script>
     const socket = io();
 
-    // Initialize navbar with user data
+    // Initialize navbar
     async function initNavbar() {
       try {
-        // Handle user info first
-        const userRes = await fetch('/user/info');
-        if (userRes.ok) {
-          const user = await userRes.json();
-          const profileImg = document.getElementById('navbarProfile');
-          profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
-          profileImg.onerror = () => profileImg.src = '/img/fallback-pfp.png';
-          document.getElementById('navbarUsername').textContent = user.username || 'Player';
+        // Use the same initialization pattern as lobby.js
+        const [userRes, eloRes] = await Promise.all([
+          fetch('/user/info', { credentials: 'include' }),
+          fetch('/user/skill', { credentials: 'include' })
+        ]);
+
+        // Handle failed responses first
+        if (!userRes.ok || !eloRes.ok) {
+          throw new Error(`User data fetch failed: ${userRes.status}, ${eloRes.status}`);
         }
 
-        // Handle ELO separately
-        const eloRes = await fetch('/user/skill');
-        if (eloRes.ok) {
-          const eloData = await eloRes.json();
-          document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
-        }
+        const [user, eloData] = await Promise.all([
+          userRes.json(),
+          eloRes.json()
+        ]);
 
-        // Handle server stats separately
-        fetch('/api/server/stats')
-          .then(response => response.json())
-          .then(data => {
-            document.getElementById('playersWaiting').textContent = data.queuedPlayers ?? 0;
-            document.getElementById('activeMatches').textContent = data.activeMatches ?? 0;
-          })
-          .catch(error => {
-            console.error('Error fetching server stats:', error);
-          });
-      } catch (error) {
-        console.error('Navbar initialization error:', error);
-        // Only reset elements that failed to load
+        // Update elements using same logic as lobby.js
         const profileImg = document.getElementById('navbarProfile');
-        if (!profileImg.src.includes('fallback')) {
-          profileImg.src = '/img/fallback-pfp.png';
+        profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
+        profileImg.onerror = () => profileImg.src = '/img/fallback-pfp.png';
+        
+        document.getElementById('navbarUsername').textContent = user.username || 'Player';
+        document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
+
+        // Add server stats fetch from lobby.js pattern
+        const statsRes = await fetch('/api/server/stats');
+        if (statsRes.ok) {
+          const stats = await statsRes.json();
+          document.getElementById('playersWaiting').textContent = stats.queuedPlayers ?? 0;
+          document.getElementById('activeMatches').textContent = stats.activeMatches ?? 0;
         }
+
+      } catch (error) {
+        console.error('Navbar initialization failed:', error);
+        // Apply full fallback state like lobby.js
+        document.getElementById('navbarProfile').src = '/img/fallback-pfp.png';
+        document.getElementById('navbarUsername').textContent = 'Player';
+        document.getElementById('navbarElo').textContent = 'ELO: 0';
+        document.getElementById('playersWaiting').textContent = '0';
+        document.getElementById('activeMatches').textContent = '0';
       }
     }
     
     // Real-time updates
     socket.on('userUpdate', ({ username, profilePictureUrl, skill }) => {
-      if (username) document.getElementById('navbarUsername').textContent = username;
-      if (profilePictureUrl) {
-        const profileImg = document.getElementById('navbarProfile');
-        profileImg.src = profilePictureUrl;
+      if (username) {
+        document.getElementById('navbarUsername').textContent = username;
       }
-      if (skill) document.getElementById('navbarElo').textContent = `ELO: ${skill}`;
+      if (profilePictureUrl) {
+        const img = document.getElementById('navbarProfile');
+        img.src = profilePictureUrl;
+        img.onerror = () => img.src = '/img/fallback-pfp.png';
+      }
+      if (skill) {
+        document.getElementById('navbarElo').textContent = `ELO: ${skill}`;
+      }
     });
+
+    // Initialize immediately like lobby.js
+    document.addEventListener('DOMContentLoaded', initNavbar);
 
     document.getElementById('startMatchmakingBtn').addEventListener('click', () => {
       // Get user info from server instead of relying on DOM
