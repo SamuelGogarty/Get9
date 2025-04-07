@@ -99,18 +99,20 @@
           fetch('/user/skill', { credentials: 'include' })
         ]);
         
-        if (!userRes.ok || !eloRes.ok) throw new Error('Failed to fetch user data');
+        // Handle failed responses
+        if (!userRes.ok) throw new Error('Failed to fetch user info');
+        if (!eloRes.ok) throw new Error('Failed to fetch ELO data');
 
         const user = await userRes.json();
         const eloData = await eloRes.json();
 
-        // Update navbar elements
+        // Update elements with proper fallbacks
         const profileImg = document.getElementById('navbarProfile');
-        profileImg.src = user.profilePictureUrl;
+        profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
         profileImg.onerror = () => profileImg.src = '/img/fallback-pfp.png';
         
-        document.getElementById('navbarUsername').textContent = user.username;
-        document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill}`;
+        document.getElementById('navbarUsername').textContent = user.username || 'Player';
+        document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
         
         // Fetch server stats
         fetch('/api/server/stats')
@@ -124,7 +126,7 @@
           });
       } catch (error) {
         console.error('Navbar initialization error:', error);
-        // Set explicit fallbacks
+        // Apply explicit fallbacks
         document.getElementById('navbarProfile').src = '/img/fallback-pfp.png';
         document.getElementById('navbarUsername').textContent = 'Player';
         document.getElementById('navbarElo').textContent = 'ELO: 0';

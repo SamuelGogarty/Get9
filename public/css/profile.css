@@ -407,11 +407,15 @@ main {
 
 /* NAVBAR */
 nav {
-  border: solid 1px #323232;
+  border-top: solid 1px #323232;
+  border-bottom: solid 1px #080808;
+  border-left: solid 1px #323232;
+  border-right: solid 1px #080808;
   background: #212121;
   padding: 0;
   margin-bottom: 30px;
-  width: 1040px;
+  width: 100%; /* Changed from fixed 1040px */
+  max-width: 1040px; /* Add max-width instead */
 }
 
 nav ul {
@@ -442,8 +446,6 @@ nav li a:hover {
 }
 
 .right-nav {
-  display: flex;
-  align-items: center;
   margin-left: auto;
   padding-right: 10px;
 }
