@@ -94,17 +94,20 @@
 
     // Fetch and populate user data
     function fetchUserInfo() {
-      fetch('/user/info')
+      // Add credentials include for auth
+      fetch('/user/info', { credentials: 'include' })
         .then(response => response.json())
         .then(data => {
           document.getElementById('navbarUsername').textContent = data.username;
-          document.getElementById('navbarProfile').src = data.profilePictureUrl || '/img/fallback-pfp.png';
+          // Use steamPfpUrl field instead of profilePictureUrl
+          document.getElementById('navbarProfile').src = data.steamPfpUrl || '/img/fallback-pfp.png';
         })
         .catch(error => {
           console.error('Error fetching user info:', error);
         });
 
-      fetch('/user/skill')
+      // Add credentials include for ELO fetch
+      fetch('/user/skill', { credentials: 'include' })
         .then(response => response.json())
         .then(data => {
           document.getElementById('navbarElo').textContent = `ELO: ${data.skill || 0}`;
