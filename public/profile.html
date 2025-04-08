@@ -273,12 +273,17 @@
             profilePictureUrl: user.profilePictureUrl,
           };
           socket.emit('joinPreLobby', { inviteCode, user: userData });
-          document.getElementById('preLobbySection').classList.add('active');
+          // Removed invalid reference to preLobbySection
         })
         .catch(error => {
           console.error('Error fetching user info for joining pre-lobby:', error);
-          alert('Error joining pre-lobby. Please try again.');
+          alert('Error joining pre-lobby: ' + (error.message || 'Please check the invite code'));
         });
+    });
+
+    // Add error handler for specific join errors
+    socket.on('joinPreLobbyError', (error) => {
+      alert('Join Error: ' + (error.message || 'Invalid invite code or lobby full'));
     });
 
     document.getElementById('startPreLobbyMatchmakingBtn').addEventListener('click', () => {
