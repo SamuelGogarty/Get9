@@ -250,7 +250,8 @@ main {
   padding: 10px;
   background: #080808;
   border: 1px solid #2d2d2d;
-  width: 100%;
+  width: calc(100% - 50px); /* Reduced width by 50px */
+  margin-left: 0; /* Align left edge */
 }
 
 #matchmakingProfile {
