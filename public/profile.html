@@ -235,15 +235,17 @@
     });
 
     socket.on('preLobbyCreated', ({ inviteCode }) => {
-      document.querySelector('.lobby-sections').style.display = 'grid';
+      // Remove existing lobby section if it exists
+      const existingCodeBox = document.getElementById('preLobbySection');
+      if (existingCodeBox) {
+        existingCodeBox.remove();
+      }
+
+      // Clear any previous player list
       const playerList = document.getElementById('preLobbyPlayerList');
-      
-      // Clear existing content
       playerList.innerHTML = '';
       
-      const createContainer = document.querySelector('.create-container');
-      
-      // Create code box elements
+      // Create new code box elements
       const codeBox = document.createElement('div');
       codeBox.id = 'preLobbySection';
       codeBox.className = 'invite-code-box inset active';
@@ -266,7 +268,8 @@
         this.title = container.classList.contains('revealed') ? 'Hide Code' : 'Show Code';
       });
       
-      // Show matchmaking button
+      // Show lobby sections and matchmaking button
+      document.querySelector('.lobby-sections').style.display = 'grid';
       document.getElementById('startPreLobbyMatchmakingBtn').style.display = 'block';
     });
 
