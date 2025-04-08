@@ -839,7 +839,7 @@ io.on('connection', (socket) => {
     }
 
     // For a real match, you might want 10 players, but this is set to 2 for quick testing
-    const requiredPlayers = 2;
+    const requiredPlayers = 4;
     const groups = Object.values(groupedPlayers);
     let lobbyPlayers = [];
 
