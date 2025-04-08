@@ -250,7 +250,7 @@ main {
   padding: 10px;
   background: #080808;
   border: 1px solid #2d2d2d;
-  width: calc(100% - 30px); /* Changed from calc(100% - 40px) */
+  width: calc(100% - 25px); /* Changed from calc(100% - 30px) */
   margin-left: 0; /* Align left edge */
 }
 
