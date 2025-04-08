@@ -2,6 +2,7 @@ const socket = io();
 let currentUserId = null;
 let myTeam = null;
 let isCaptain = false;
+let currentLobbyId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('mapVoteOverlay').style.display = 'block';
@@ -35,8 +36,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   if (params.has('lobbyId') && currentUserId) {
     const lobbyId = params.get('lobbyId');
+    currentLobbyId = lobbyId;
     localStorage.setItem('currentLobbyId', lobbyId);
     socket.emit('joinLobby', { lobbyId, userId: currentUserId });
+  } else {
+    // Try to restore from localStorage
+    currentLobbyId = localStorage.getItem('currentLobbyId');
+    if (currentLobbyId && currentUserId) {
+      socket.emit('joinLobby', { lobbyId: currentLobbyId, userId: currentUserId });
+    }
   }
 });
 
@@ -221,12 +229,27 @@ socket.on('publicChatMessage', ({ username, message }) => {
 socket.on('redirect', url => window.location.href = url);
 socket.on('error', msg => alert('Error: ' + msg));
 
+// Handle reconnections
+socket.on('connect', () => {
+  if (currentLobbyId && currentUserId) {
+    socket.emit('joinLobby', { lobbyId: currentLobbyId, userId: currentUserId });
+  }
+});
+
 // Add periodic connection checks
 setInterval(() => {
   if (document.visibilityState === 'visible') {
-    const lobbyId = localStorage.getItem('currentLobbyId');
-    if (lobbyId) {
-      socket.emit('heartbeat', { lobbyId });
+    if (currentLobbyId) {
+      socket.emit('heartbeat', { lobbyId: currentLobbyId });
     }
   }
 }, 30000);
+
+// Handle page unload to clean up lobby state
+window.addEventListener('beforeunload', () => {
+  if (currentLobbyId) {
+    navigator.sendBeacon('/api/leave-game-lobby', JSON.stringify({
+      lobbyId: currentLobbyId
+    }));
+  }
+});
