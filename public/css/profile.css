@@ -157,13 +157,15 @@ main {
   border-right: solid 1px #323232;
   padding: 8px 12px; /* Increased padding */
   gap: 6px; /* Reduced gap */
-  margin-right: 20px; /* Add spacing from window edge */
+  margin-right: 10px; /* Reduced from 20px */
   display: flex;
   flex-direction: column; /* Stack vertically */
   height: auto;
   min-height: 0; /* Remove fixed minimum height */
   text-align: left; /* Change from right to left alignment */
   align-items: flex-start; /* Add left alignment for flex items */
+  width: fit-content; /* Add this */
+  max-width: 240px; /* Add max-width constraint */
 }
 
 .server-stats p {
@@ -172,6 +174,7 @@ main {
   gap: 15px;
   white-space: nowrap;
   margin: 0; /* Remove default paragraph margins */
+  min-width: 180px; /* Add minimum width for content */
 }
 
 .stat-value {
@@ -179,6 +182,8 @@ main {
   font-weight: bold;
   margin-left: 0; /* Remove left margin since we're using flex gap */
   font-family: monospace; /* Add monospace for number alignment */
+  text-align: right; /* Add right alignment for numbers */
+  flex-shrink: 0; /* Prevent number wrapping */
 }
 
 /* Matchmaking controls from new_home form styling */
