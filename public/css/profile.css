@@ -165,8 +165,8 @@ main {
   text-align: left; /* Change from right to left alignment */
   align-items: flex-start; /* Add left alignment for flex items */
   width: fit-content; /* Add this */
-  max-width: 300px; /* Increased from 240px */
-  min-width: 240px; /* Increased from 220px */
+  max-width: 350px; /* Changed from 300px */
+  min-width: 290px; /* Changed from 240px */
 }
 
 .server-stats p {
