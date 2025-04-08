@@ -8,16 +8,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('mapVoteOverlay').style.display = 'block';
 
   try {
-    const res = await fetch('/user/info');
+    const res = await fetch('/user/info', { credentials: 'include' });
     if (!res.ok) throw new Error('Failed to fetch user info');
     const user = await res.json();
     currentUserId = user.id;
     document.getElementById('navbarUsername').textContent = user.username;
-    document.getElementById('navbarProfile').src = user.profilePictureUrl;
+    
+    const profileImg = document.getElementById('navbarProfile');
+    profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
+    profileImg.onerror = () => profileImg.src = '/img/fallback-pfp.png';
     
     // Add ELO fetch
     try {
-      const eloRes = await fetch('/user/skill');
+      const eloRes = await fetch('/user/skill', { credentials: 'include' });
       if (eloRes.ok) {
         const eloData = await eloRes.json();
         document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
@@ -28,23 +31,42 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.error('ELO fetch failed:', error);
       document.getElementById('navbarElo').textContent = 'ELO: 0';
     }
-  } catch (e) {
-    console.error(e);
-    return;
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  if (params.has('lobbyId') && currentUserId) {
-    const lobbyId = params.get('lobbyId');
-    currentLobbyId = lobbyId;
-    localStorage.setItem('currentLobbyId', lobbyId);
-    socket.emit('joinLobby', { lobbyId, userId: currentUserId });
-  } else {
-    // Try to restore from localStorage
-    currentLobbyId = localStorage.getItem('currentLobbyId');
-    if (currentLobbyId && currentUserId) {
-      socket.emit('joinLobby', { lobbyId: currentLobbyId, userId: currentUserId });
+    
+    // Try to restore lobby from server first
+    try {
+      const lobbyRes = await fetch('/user/current-lobby', { credentials: 'include' });
+      if (lobbyRes.ok) {
+        const lobbyData = await lobbyRes.json();
+        if (lobbyData.lobbyId) {
+          currentLobbyId = lobbyData.lobbyId;
+          localStorage.setItem('currentLobbyId', lobbyData.lobbyId);
+          socket.emit('joinLobby', { lobbyId: lobbyData.lobbyId, userId: currentUserId });
+          return; // Skip URL param check if we restored from server
+        }
+      }
+    } catch (lobbyError) {
+      console.error('Lobby state restore failed:', lobbyError);
     }
+    
+    // Check URL params if server restore failed
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('lobbyId') && currentUserId) {
+      const lobbyId = params.get('lobbyId');
+      currentLobbyId = lobbyId;
+      localStorage.setItem('currentLobbyId', lobbyId);
+      socket.emit('joinLobby', { lobbyId, userId: currentUserId });
+    } else {
+      // Try to restore from localStorage as last resort
+      currentLobbyId = localStorage.getItem('currentLobbyId');
+      if (currentLobbyId && currentUserId) {
+        socket.emit('joinLobby', { lobbyId: currentLobbyId, userId: currentUserId });
+      }
+    }
+  } catch (e) {
+    console.error('User initialization failed:', e);
+    document.getElementById('navbarProfile').src = '/img/fallback-pfp.png';
+    document.getElementById('navbarUsername').textContent = 'Player';
+    document.getElementById('navbarElo').textContent = 'ELO: 0';
   }
 });
 
@@ -248,8 +270,38 @@ setInterval(() => {
 // Handle page unload to clean up lobby state
 window.addEventListener('beforeunload', () => {
   if (currentLobbyId) {
+    // Include user ID to properly track who's leaving
     navigator.sendBeacon('/api/leave-game-lobby', JSON.stringify({
-      lobbyId: currentLobbyId
+      lobbyId: currentLobbyId,
+      userId: currentUserId
     }));
+  }
+});
+
+// Handle socket reconnection more robustly
+socket.on('disconnect', () => {
+  console.log('Socket disconnected, will attempt to reconnect...');
+});
+
+socket.on('reconnect', () => {
+  console.log('Socket reconnected, rejoining lobby...');
+  if (currentLobbyId && currentUserId) {
+    socket.emit('joinLobby', { 
+      lobbyId: currentLobbyId, 
+      userId: currentUserId,
+      isReconnect: true 
+    });
+  }
+});
+
+// Handle lobby errors
+socket.on('lobbyError', (error) => {
+  console.error('Lobby error:', error);
+  alert('Lobby error: ' + error.message);
+  
+  // Clear lobby state if it's invalid
+  if (error.code === 'LOBBY_NOT_FOUND' || error.code === 'INVALID_LOBBY') {
+    currentLobbyId = null;
+    localStorage.removeItem('currentLobbyId');
   }
 });
