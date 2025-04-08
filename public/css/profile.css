@@ -171,21 +171,22 @@ main {
 
 .server-stats p {
   display: flex;
-  justify-content: space-between;
-  gap: 10px; /* Reduce gap between label and value */
+  justify-content: space-between; /* Keep this */
+  gap: 5px; /* Reduced from 10px */
   white-space: nowrap;
-  margin: 0; /* Remove default paragraph margins */
-  min-width: 220px; /* Increased from 180px */
+  margin: 0;
+  min-width: 220px; /* Keep existing min-width */
 }
 
 .stat-value {
   color: #F0B43F;
   font-weight: bold;
-  margin-left: 0; /* Remove left margin since we're using flex gap */
-  font-family: monospace; /* Add monospace for number alignment */
-  text-align: right; /* Add right alignment for numbers */
-  flex-shrink: 0; /* Prevent number wrapping */
-  min-width: 60px; /* Increased from 50px for number column */
+  margin-left: 0;
+  font-family: monospace;
+  text-align: right;
+  flex-shrink: 0;
+  min-width: 40px; /* Reduced from 60px */
+  padding-left: 8px; /* Add small separation */
 }
 
 /* Matchmaking controls from new_home form styling */
