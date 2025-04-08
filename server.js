@@ -100,9 +100,11 @@ passport.use(new SteamStrategy({
         [profile.username, profile.steamId, profile.photos[0].value, 'user', 'active', '']
       );
       const userId = insertResult.insertId;
+
       const dbStats = await mysql.createConnection(dbConfigStats);
       await dbStats.query('INSERT INTO ultimate_stats (steamid, skill) VALUES (?, ?)', [profile.steamId, 0]);
       await dbStats.end();
+
       user = {
         id: userId,
         username: profile.username,
@@ -516,10 +518,10 @@ io.on('connection', (socket) => {
       lobbies[lobbyId].lastHeartbeat = Date.now();
     }
   });
-  // joinLobby
+
+  // joinLobby (for the final in-game lobby)
   socket.on('joinLobby', async ({ lobbyId, userId }) => {
     socket.join(lobbyId);
-    socket.lobbyId = lobbyId;
     socket.lobbyId = lobbyId;
     if (!lobbies[lobbyId]) {
       lobbies[lobbyId] = {
@@ -569,19 +571,16 @@ io.on('connection', (socket) => {
     if (lobby && lobby.players) {
       // Transform player data and ensure fallback image is used if needed.
       const transformedPlayers = await Promise.all(lobby.players.map(async (p) => {
-        // Fetch fresh ELO data using proper identifiers
+        // Fetch fresh ELO data using stats DB
         const dbStats = await mysql.createConnection(dbConfigStats);
         const [eloRows] = await dbStats.query(
           'SELECT skill FROM ultimate_stats WHERE steamid = ? OR name = ?',
-          [p.steam_id || '', p.name || '']  // Already correct, but ensure fallback
+          [p.steam_id || '', p.name || '']
         );
-        if (!eloRows.length) {
-          console.log(`No ELO found for ${p.name} (steam: ${p.steam_id}), using default`);
-        }
         await dbStats.end();
 
         return {
-          ...p,  // Spread existing player properties
+          ...p,
           profile_picture: p.profile_picture || DEFAULT_PROFILE_PICTURE,
           elo: eloRows[0]?.skill || 0
         };
@@ -596,6 +595,7 @@ io.on('connection', (socket) => {
       socket.emit('error', 'Lobby not found or no players');
     }
   });
+
   // Public chat
   socket.on('publicChatMessage', ({ message, lobbyId }) => {
     const finalLobbyId = lobbyId || socket.lobbyId;
@@ -607,6 +607,7 @@ io.on('connection', (socket) => {
       message
     });
   });
+
   // Team chat
   socket.on('teamChatMessage', ({ message, lobbyId }) => {
     const finalLobbyId = lobbyId || socket.lobbyId;
@@ -622,6 +623,7 @@ io.on('connection', (socket) => {
       });
     });
   });
+
   // Start Matchmaking
   socket.on('startMatchmaking', async (user) => {
     user.socketId = socket.id;
@@ -681,29 +683,79 @@ io.on('connection', (socket) => {
       await db.end();
     }
   });
-  // Pre-lobby
+
+  // ---------------------------------------------------------
+  // PRE-LOBBY
+  // ---------------------------------------------------------
   socket.on('createPreLobby', (user) => {
     const inviteCode = generateInviteCode();
     const preLobby = {
       inviteCode,
       leader: user,
-      players: [user]
+      players: [user]  // Start with the creator
     };
     preLobbies[inviteCode] = preLobby;
+
+    // Join the "preLobby_<code>" room
     socket.join(`preLobby_${inviteCode}`);
     socket.emit('preLobbyCreated', { inviteCode });
   });
+
+  // UPDATED joinPreLobby with duplication check + specialized error
   socket.on('joinPreLobby', ({ inviteCode, user }) => {
     const preLobby = preLobbies[inviteCode];
     if (!preLobby) {
-      socket.emit('error', 'Invalid invite code.');
+      socket.emit('joinPreLobbyError', { message: 'Invalid invite code.' });
       return;
     }
-    user.socketId = socket.id;
-    preLobby.players.push(user);
+
+    // Check for duplicates
+    const isAlreadyInLobby = preLobby.players.some(
+      (p) =>
+        (p.steamId && p.steamId === user.steamId) ||
+        (p.email && p.email === user.email)
+    );
+    if (!isAlreadyInLobby) {
+      user.socketId = socket.id;
+      preLobby.players.push(user);
+    }
+
     socket.join(`preLobby_${inviteCode}`);
-    io.to(`preLobby_${inviteCode}`).emit('preLobbyUpdated', { players: preLobby.players });
+
+    io.to(`preLobby_${inviteCode}`).emit('preLobbyUpdated', {
+      players: preLobby.players,
+      inviteCode
+    });
   });
+
+  // NEW: return current players for this pre-lobby (for refresh restore)
+  socket.on('getPreLobbyPlayers', ({ inviteCode }) => {
+    const preLobby = preLobbies[inviteCode];
+    if (!preLobby) {
+      socket.emit('joinPreLobbyError', { message: 'Pre-lobby not found.' });
+      return;
+    }
+    socket.emit('preLobbyPlayers', {
+      players: preLobby.players,
+      inviteCode
+    });
+  });
+
+  // NEW: rejoin the same pre-lobby room on refresh
+  socket.on('rejoinPreLobby', ({ inviteCode }) => {
+    const preLobby = preLobbies[inviteCode];
+    if (!preLobby) {
+      socket.emit('joinPreLobbyError', { message: 'Pre-lobby not found.' });
+      return;
+    }
+    socket.join(`preLobby_${inviteCode}`);
+    // Send existing players
+    socket.emit('preLobbyRestored', {
+      players: preLobby.players,
+      inviteCode
+    });
+  });
+
   socket.on('startPreLobbyMatchmaking', async ({ inviteCode }) => {
     const preLobby = preLobbies[inviteCode];
     if (!preLobby) {
@@ -736,16 +788,22 @@ io.on('connection', (socket) => {
         playerIds.push(playerId);
         await db.query('INSERT INTO queue (player_id) VALUES (?)', [playerId]);
       }
+
+      // Remove the pre-lobby from memory now that we queue up
       delete preLobbies[inviteCode];
+
+      // Attempt forming a new match with updated queue
       const [queue] = await db.query('SELECT * FROM queue');
       const matchmakingQueue = queue.map(q => ({ playerId: q.player_id }));
       await checkQueueAndFormLobby(matchmakingQueue, db);
+
     } catch (error) {
       console.error('Error in startPreLobbyMatchmaking:', error);
     } finally {
       await db.end();
     }
   });
+
   // ----------------------------------------------------------
   // Main Matchmaking Logic
   // ----------------------------------------------------------
@@ -770,12 +828,14 @@ io.on('connection', (socket) => {
       
       const groupId = playerWithElo.group_id || `solo_${playerWithElo.id}`;
       if (!groupedPlayers[groupId]) groupedPlayers[groupId] = [];
-      groupedPlayers[groupId].push(playerWithElo); // Push the playerWithElo object instead
+      groupedPlayers[groupId].push(playerWithElo);
     }
-    // For normal use, set requiredPlayers to an even number (e.g., 10)
+
+    // For a real match, you might want 10 players, but this is set to 2 for quick testing
     const requiredPlayers = 2;
     const groups = Object.values(groupedPlayers);
     let lobbyPlayers = [];
+
     while (groups.length > 0 && lobbyPlayers.length < requiredPlayers) {
       const group = groups.shift();
       if (lobbyPlayers.length + group.length <= requiredPlayers) {
@@ -785,11 +845,13 @@ io.on('connection', (socket) => {
         break;
       }
     }
+
     if (lobbyPlayers.length === requiredPlayers) {
       const lobbyId = generateUniqueName('lobby');
       const team1 = [];
       const team2 = [];
-      // Evenly distribute players across two teams
+
+      // Distribute across two teams
       for (let i = 0; i < lobbyPlayers.length; i++) {
         if (i % 2 === 0) {
           team1.push(lobbyPlayers[i]);
@@ -799,12 +861,11 @@ io.on('connection', (socket) => {
           lobbyPlayers[i].team = 'team2';
         }
       }
-      // Designate captain with priority:
-      // For each team, check for a player whose steamId (or steam_id) or email matches the captainConfig.
-      // If none match, choose the first player.
+
+      // Captain logic
       function designateCaptain(team) {
         const priorityCandidate = team.find(p => {
-          const sid = p.steam_id || p.steamId; // check both possible keys
+          const sid = p.steam_id || p.steamId;
           if (sid && captainConfig.steamIds.includes(sid)) return true;
           if (p.email && captainConfig.emails.includes(p.email)) return true;
           return false;
@@ -813,41 +874,44 @@ io.on('connection', (socket) => {
       }
       const captainTeam1 = designateCaptain(team1);
       const captainTeam2 = designateCaptain(team2);
-      // Mark only these players as captains
       team1.forEach(p => p.captain = false);
       team2.forEach(p => p.captain = false);
       captainTeam1.captain = true;
       captainTeam2.captain = true;
-      const teamCaptains = {
-        team1: captainTeam1.user_id || captainTeam1.id,
-        team2: captainTeam2.user_id || captainTeam2.id
-      };
+
       lobbies[lobbyId] = {
         players: lobbyPlayers,
         teams: { team1, team2 },
         availableMaps: ['de_dust', 'de_dust2', 'de_inferno', 'de_nuke', 'de_tuscan', 'de_cpl_strike', 'de_prodigy'],
         bannedMaps: [],
-        turn: 'team1', // Set initial turn to team1
-        teamCaptains,
+        turn: 'team1',
+        teamCaptains: {
+          team1: captainTeam1.user_id || captainTeam1.id,
+          team2: captainTeam2.user_id || captainTeam2.id
+        },
         serverCreated: false,
         createdAt: Date.now()
       };
+
       const playerIds = lobbyPlayers.map(p => p.id);
-      // Update DB with the assigned team for each player
+      // Update DB with assigned team
       for (let p of lobbyPlayers) {
         await db.query('UPDATE players SET lobby_id = ?, team = ? WHERE id = ?', [lobbyId, p.team, p.id]);
       }
-      // Remove them from the queue
+      // Remove from queue
       await db.query('DELETE FROM queue WHERE player_id IN (?)', [playerIds]);
-      // Emit initial turn info so that clients know which team is active
+
+      // Let them know the first ban turn
       io.to(lobbyId).emit('turnChanged', { currentTurn: 'team1' });
-      // Redirect players to the new lobby
+
+      // Redirect players to new lobby
       const socketIds = lobbyPlayers.map(p => p.socket_id);
       socketIds.forEach(sid => {
         io.to(sid).emit('redirect', `/lobby.html?lobbyId=${lobbyId}`);
       });
     }
   }
+
   // Map selection with alternating bans and countdown timer
   socket.on('mapSelected', async ({ lobbyId, mapName }) => {
     const lobby = lobbies[lobbyId];
@@ -896,6 +960,7 @@ io.on('connection', (socket) => {
     io.to(lobbyId).emit('turnChanged', { currentTurn: lobby.turn });
     startCountdown(lobbyId, lobby.turn);
   });
+
   // Disconnection
   socket.on('disconnect', async () => {
     console.log(`Socket ${socket.id} disconnected.`);
