@@ -155,8 +155,8 @@ main {
   border-bottom: solid 1px #323232;
   border-left: solid 1px #080808;
   border-right: solid 1px #323232;
-  padding: 8px 20px; /* Keep vertical padding same, increase horizontal */
-  gap: 6px; /* Reduced gap */
+  padding: 6px 20px; /* Reduced vertical padding from 8px */
+  gap: 3px; /* Reduced from 6px */
   margin-right: 10px; /* Reduced from 20px */
   display: flex;
   flex-direction: column; /* Stack vertically */
