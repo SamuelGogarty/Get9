@@ -134,6 +134,24 @@
           document.getElementById('activeMatches').textContent = stats.activeMatches ?? 0;
         }
 
+        // Add lobby state restoration
+        try {
+          const lobbyRes = await fetch('/user/current-lobby', { credentials: 'include' });
+          if (lobbyRes.ok) {
+            const lobbyData = await lobbyRes.json();
+            if (lobbyData.inviteCode) {
+              // Create UI elements and populate player list
+              createLobbyUI(lobbyData.inviteCode);
+              updatePlayerList(lobbyData.players || []);
+              
+              // Request fresh player list from server
+              socket.emit('getPreLobbyPlayers', { inviteCode: lobbyData.inviteCode });
+            }
+          }
+        } catch (lobbyError) {
+          console.error('Lobby state restore failed:', lobbyError);
+        }
+
       } catch (error) {
         console.error('Navbar initialization failed:', error);
         // Apply full fallback state like lobby.js
@@ -234,12 +252,11 @@
         });
     });
 
-    socket.on('preLobbyCreated', ({ inviteCode }) => {
-      // Remove existing lobby section if it exists
+    // Helper function to create lobby UI
+    function createLobbyUI(inviteCode) {
+      // Remove existing lobby section if exists
       const existingCodeBox = document.getElementById('preLobbySection');
-      if (existingCodeBox) {
-        existingCodeBox.remove();
-      }
+      if (existingCodeBox) existingCodeBox.remove();
 
       // Clear any previous player list
       const playerList = document.getElementById('preLobbyPlayerList');
@@ -271,6 +288,30 @@
       // Show lobby sections and matchmaking button
       document.querySelector('.lobby-sections').style.display = 'grid';
       document.getElementById('startPreLobbyMatchmakingBtn').style.display = 'block';
+    }
+
+    // Helper function to update player list
+    function updatePlayerList(players) {
+      const playerList = document.getElementById('preLobbyPlayerList');
+      playerList.innerHTML = '';
+
+      players.forEach((player) => {
+        const playerItem = document.createElement('div');
+        playerItem.className = 'player-item';
+        playerItem.innerHTML = `
+          <img src="${player.profilePictureUrl}" alt="${player.username}" 
+               style="width:32px;height:32px;border-radius:4px;">
+          <div class="player-info">
+            <div class="player-name">${player.username}</div>
+            <div class="player-elo">ELO: ${player.skill || 'Unrated'}</div>
+          </div>
+        `;
+        playerList.appendChild(playerItem);
+      });
+    }
+
+    socket.on('preLobbyCreated', ({ inviteCode }) => {
+      createLobbyUI(inviteCode);
     });
 
     document.getElementById('joinPreLobbyBtn').addEventListener('click', () => {
@@ -313,22 +354,16 @@
     });
 
     socket.on('preLobbyUpdated', ({ players }) => {
-      const playerList = document.getElementById('preLobbyPlayerList');
-      playerList.innerHTML = '';
-
-      players.forEach((player) => {
-        const playerItem = document.createElement('div');
-        playerItem.className = 'player-item';
-        playerItem.innerHTML = `
-          <img src="${player.profilePictureUrl}" alt="${player.username}" 
-               style="width:32px;height:32px;border-radius:4px;">
-          <div class="player-info">
-            <div class="player-name">${player.username}</div>
-            <div class="player-elo">ELO: ${player.skill || 'Unrated'}</div>
-          </div>
-        `;
-        playerList.appendChild(playerItem);
-      });
+      updatePlayerList(players);
+    });
+    
+    socket.on('preLobbyPlayers', ({ players }) => {
+      updatePlayerList(players);
+    });
+    
+    socket.on('preLobbyJoined', ({ inviteCode, players }) => {
+      createLobbyUI(inviteCode);
+      updatePlayerList(players);
     });
     
     document.getElementById('sendPreLobbyMessage').addEventListener('click', () => {
