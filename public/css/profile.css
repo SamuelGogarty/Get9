@@ -172,7 +172,7 @@ main {
 .server-stats p {
   display: flex;
   justify-content: space-between; /* Keep this */
-  gap: 5px; /* Reduced from 10px */
+  gap: 3px; /* Reduced from 5px */
   white-space: nowrap;
   margin: 0;
   min-width: 220px; /* Keep existing min-width */
@@ -185,8 +185,8 @@ main {
   font-family: monospace;
   text-align: right;
   flex-shrink: 0;
-  min-width: 40px; /* Reduced from 60px */
-  padding-left: 8px; /* Add small separation */
+  min-width: 35px; /* Reduced from 40px */
+  padding-left: 4px; /* Reduced from 8px */
 }
 
 /* Matchmaking controls from new_home form styling */
