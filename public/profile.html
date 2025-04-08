@@ -400,7 +400,12 @@
     });
 
     socket.on('preLobbyUpdated', ({ players, inviteCode }) => {
-      if (document.getElementById('inviteCode').textContent === inviteCode) {
+      // Only update if we're in this lobby
+      if (currentLobbyCode === inviteCode) {
+        // Create UI if it doesn't exist yet
+        if (!document.getElementById('preLobbySection')) {
+          createLobbyUI(inviteCode);
+        }
         updatePlayerList(players);
         
         // Store in sessionStorage as fallback
@@ -420,6 +425,13 @@
       currentLobbyCode = inviteCode;
       createLobbyUI(inviteCode);
       updatePlayerList(players);
+      
+      // Store in sessionStorage
+      sessionStorage.setItem('currentLobby', JSON.stringify({
+        inviteCode,
+        players,
+        timestamp: Date.now()
+      }));
     });
     
     // Add handler for restored lobby data

@@ -722,6 +722,13 @@ io.on('connection', (socket) => {
 
     socket.join(`preLobby_${inviteCode}`);
 
+    // Send specific join confirmation to this client
+    socket.emit('preLobbyJoined', { 
+      inviteCode,
+      players: preLobby.players
+    });
+
+    // Update all clients in the room
     io.to(`preLobby_${inviteCode}`).emit('preLobbyUpdated', {
       players: preLobby.players,
       inviteCode
