@@ -68,6 +68,11 @@
       <!-- Pre-Lobby Members -->
       <div class="window member-list-container" name="Pre-Lobby Members">
         <div class="content" id="preLobbyPlayerList"></div>
+        <button class="greensteam-button" 
+                id="startPreLobbyMatchmakingBtn" 
+                style="margin-top: 15px; display: none;">
+          Start Matchmaking
+        </button>
       </div>
 
       <!-- Pre-Lobby Chat -->
@@ -230,6 +235,12 @@
     });
 
     socket.on('preLobbyCreated', ({ inviteCode }) => {
+      document.querySelector('.lobby-sections').style.display = 'grid';
+      const playerList = document.getElementById('preLobbyPlayerList');
+      
+      // Clear existing content
+      playerList.innerHTML = '';
+      
       const createContainer = document.querySelector('.create-container');
       
       // Create code box elements
@@ -254,6 +265,9 @@
         container.classList.toggle('revealed');
         this.title = container.classList.contains('revealed') ? 'Hide Code' : 'Show Code';
       });
+      
+      // Show matchmaking button
+      document.getElementById('startPreLobbyMatchmakingBtn').style.display = 'block';
     });
 
     document.getElementById('joinPreLobbyBtn').addEventListener('click', () => {
@@ -288,17 +302,27 @@
 
     document.getElementById('startPreLobbyMatchmakingBtn').addEventListener('click', () => {
       const inviteCode = document.getElementById('inviteCode').textContent;
+      if (!inviteCode) {
+        alert('No active lobby found');
+        return;
+      }
       socket.emit('startPreLobbyMatchmaking', { inviteCode });
     });
 
     socket.on('preLobbyUpdated', ({ players }) => {
       const playerList = document.getElementById('preLobbyPlayerList');
       playerList.innerHTML = '';
+
       players.forEach((player) => {
         const playerItem = document.createElement('div');
+        playerItem.className = 'player-item';
         playerItem.innerHTML = `
-          <img src="${player.profilePictureUrl}" alt="${player.username}" style="width: 24px; height: 24px;">
-          <span>${player.username}</span>
+          <img src="${player.profilePictureUrl}" alt="${player.username}" 
+               style="width:32px;height:32px;border-radius:4px;">
+          <div class="player-info">
+            <div class="player-name">${player.username}</div>
+            <div class="player-elo">ELO: ${player.skill || 'Unrated'}</div>
+          </div>
         `;
         playerList.appendChild(playerItem);
       });
@@ -314,10 +338,16 @@
       document.getElementById('preLobbyChatInput').value = '';
     });
 
-    socket.on('preLobbyChatMessage', ({ username, message }) => {
+    socket.on('preLobbyChatMessage', ({ username, message, profilePictureUrl }) => {
       const ul = document.getElementById('preLobbyChatMessages');
       const li = document.createElement('li');
-      li.textContent = `${username}: ${message}`;
+      li.innerHTML = `
+        <img src="${profilePictureUrl}" alt="${username}" style="width:24px;height:24px;">
+        <strong>${username}:</strong> ${message}
+      `;
+      li.style.display = 'flex';
+      li.style.alignItems = 'center';
+      li.style.gap = '8px';
       ul.appendChild(li);
       ul.scrollTop = ul.scrollHeight;
     });

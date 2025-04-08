@@ -386,11 +386,25 @@ main {
 .player-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
-  margin: 2px 0;
+  gap: 12px;
+  padding: 8px;
+  margin: 4px 0;
   background: #181818;
   border: 1px solid #2d2d2d;
+}
+
+.player-info {
+  flex: 1;
+}
+
+.player-name {
+  font-weight: bold;
+  color: #F0B43F;
+}
+
+.player-elo {
+  font-size: 0.9em;
+  opacity: 0.8;
 }
 
 /* Progress bar from new_home */
