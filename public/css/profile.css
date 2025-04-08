@@ -171,7 +171,7 @@ main {
 
 .server-stats p {
   display: flex;
-  justify-content: space-between; /* Keep this */
+  justify-content: flex-start; /* Changed from space-between */
   gap: 3px; /* Reduced from 5px */
   white-space: nowrap;
   margin: 0;
@@ -181,12 +181,12 @@ main {
 .stat-value {
   color: #F0B43F;
   font-weight: bold;
-  margin-left: 0;
+  margin-left: 8px; /* Added margin instead of padding */
   font-family: monospace;
   text-align: right;
   flex-shrink: 0;
-  min-width: 35px; /* Reduced from 40px */
-  padding-left: 4px; /* Reduced from 8px */
+  min-width: auto; /* Removed fixed minimum width */
+  padding-left: 0; /* Removed padding */
 }
 
 /* Matchmaking controls from new_home form styling */
