@@ -155,7 +155,7 @@ main {
   border-bottom: solid 1px #323232;
   border-left: solid 1px #080808;
   border-right: solid 1px #323232;
-  padding: 8px 12px; /* Increased padding */
+  padding: 8px 20px; /* Keep vertical padding same, increase horizontal */
   gap: 6px; /* Reduced gap */
   margin-right: 10px; /* Reduced from 20px */
   display: flex;
@@ -165,16 +165,17 @@ main {
   text-align: left; /* Change from right to left alignment */
   align-items: flex-start; /* Add left alignment for flex items */
   width: fit-content; /* Add this */
-  max-width: 240px; /* Add max-width constraint */
+  max-width: 300px; /* Increased from 240px */
+  min-width: 240px; /* Increased from 220px */
 }
 
 .server-stats p {
   display: flex;
   justify-content: space-between;
-  gap: 15px;
+  gap: 10px; /* Reduce gap between label and value */
   white-space: nowrap;
   margin: 0; /* Remove default paragraph margins */
-  min-width: 180px; /* Add minimum width for content */
+  min-width: 220px; /* Increased from 180px */
 }
 
 .stat-value {
@@ -184,6 +185,7 @@ main {
   font-family: monospace; /* Add monospace for number alignment */
   text-align: right; /* Add right alignment for numbers */
   flex-shrink: 0; /* Prevent number wrapping */
+  min-width: 60px; /* Increased from 50px for number column */
 }
 
 /* Matchmaking controls from new_home form styling */
