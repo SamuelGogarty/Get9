@@ -92,6 +92,30 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
+    
+    // Add current lobby tracking
+    let currentLobbyCode = null;
+
+    // Restore from sessionStorage while waiting for server response
+    const cachedLobby = sessionStorage.getItem('currentLobby');
+    if (cachedLobby) {
+      try {
+        const lobbyData = JSON.parse(cachedLobby);
+        if (Date.now() - lobbyData.timestamp < 30000) { // 30 second cache
+          createLobbyUI(lobbyData.inviteCode);
+          updatePlayerList(lobbyData.players);
+        }
+      } catch (e) {
+        sessionStorage.removeItem('currentLobby');
+      }
+    }
+
+    // Add cleanup when leaving lobby
+    window.addEventListener('beforeunload', () => {
+      if (!currentLobbyCode) {
+        sessionStorage.removeItem('currentLobby');
+      }
+    });
 
     // Initialize navbar
     async function initNavbar() {
@@ -140,12 +164,19 @@
           if (lobbyRes.ok) {
             const lobbyData = await lobbyRes.json();
             if (lobbyData.inviteCode) {
-              // Create UI elements and populate player list
+              // Create UI elements first
               createLobbyUI(lobbyData.inviteCode);
-              updatePlayerList(lobbyData.players || []);
+              
+              // Immediately show cached players while waiting for fresh data
+              if (lobbyData.players && lobbyData.players.length > 0) {
+                updatePlayerList(lobbyData.players);
+              }
               
               // Request fresh player list from server
               socket.emit('getPreLobbyPlayers', { inviteCode: lobbyData.inviteCode });
+              
+              // Join the lobby room immediately
+              socket.emit('rejoinPreLobby', { inviteCode: lobbyData.inviteCode });
             }
           }
         } catch (lobbyError) {
@@ -273,6 +304,9 @@
         </div>
         <button class="greensteam-button" id="toggleCodeVisibility" title="Show Code">👁</button>
       `;
+      
+      // Update current lobby code
+      currentLobbyCode = inviteCode;
 
       // Insert after create button
       document.getElementById('createPreLobbyBtn').insertAdjacentElement('afterend', codeBox);
@@ -293,7 +327,18 @@
     // Helper function to update player list
     function updatePlayerList(players) {
       const playerList = document.getElementById('preLobbyPlayerList');
+      if (!playerList) return;
+
       playerList.innerHTML = '';
+      
+      // Store fresh copy in sessionStorage
+      if (currentLobbyCode) {
+        sessionStorage.setItem('currentLobby', JSON.stringify({
+          inviteCode: currentLobbyCode,
+          players,
+          timestamp: Date.now()
+        }));
+      }
 
       players.forEach((player) => {
         const playerItem = document.createElement('div');
@@ -311,6 +356,7 @@
     }
 
     socket.on('preLobbyCreated', ({ inviteCode }) => {
+      currentLobbyCode = inviteCode;
       createLobbyUI(inviteCode);
     });
 
@@ -353,8 +399,17 @@
       socket.emit('startPreLobbyMatchmaking', { inviteCode });
     });
 
-    socket.on('preLobbyUpdated', ({ players }) => {
-      updatePlayerList(players);
+    socket.on('preLobbyUpdated', ({ players, inviteCode }) => {
+      if (document.getElementById('inviteCode').textContent === inviteCode) {
+        updatePlayerList(players);
+        
+        // Store in sessionStorage as fallback
+        sessionStorage.setItem('currentLobby', JSON.stringify({
+          inviteCode,
+          players,
+          timestamp: Date.now()
+        }));
+      }
     });
     
     socket.on('preLobbyPlayers', ({ players }) => {
@@ -362,8 +417,16 @@
     });
     
     socket.on('preLobbyJoined', ({ inviteCode, players }) => {
+      currentLobbyCode = inviteCode;
       createLobbyUI(inviteCode);
       updatePlayerList(players);
+    });
+    
+    // Add handler for restored lobby data
+    socket.on('preLobbyRestored', ({ players, inviteCode }) => {
+      if (document.getElementById('inviteCode').textContent === inviteCode) {
+        updatePlayerList(players);
+      }
     });
     
     document.getElementById('sendPreLobbyMessage').addEventListener('click', () => {
