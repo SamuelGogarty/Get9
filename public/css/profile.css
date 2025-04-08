@@ -226,21 +226,68 @@ main {
   border: none; /* Remove inner border */
   padding: 0; /* Remove extra padding */
   display: flex;
-  flex-direction: row; /* Changed from row-reverse */
+  flex-direction: column; /* Changed to column to accommodate welcome section */
   justify-content: space-between;
-  align-items: center;
   min-height: auto;
   max-height: none;
+  gap: 15px;
+}
+
+/* Welcome section styling */
+.welcome-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 5px;
+  padding: 10px;
+  background: #080808;
+  border: 1px solid #2d2d2d;
+  width: 100%;
+}
+
+#matchmakingProfile {
+  width: 50px;
+  height: 50px;
+  border: 2px solid #F0B43F;
+  object-fit: cover;
+  box-shadow: 0 0 8px rgba(240, 180, 63, 0.3);
+}
+
+.welcome-message {
+  display: flex;
+  flex-direction: column;
+}
+
+.welcome-text {
+  color: #7b8484;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.welcome-username {
+  color: #F0B43F;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(240, 180, 63, 0.4);
+  letter-spacing: 0.5px;
 }
 
 .server-stats {
-  order: 2; /* Keep on right side but with normal flow */
   margin-left: 0; /* Remove previous auto margin */
 }
 
 .matchmaking-controls {
-  order: 1; /* Keep on left side but with normal flow */
   margin-right: 0; /* Remove previous auto margin */
+}
+
+/* Add a row for server stats and matchmaking controls */
+.window.matchmaking-header .content > div:not(.welcome-section) {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 /* Remove duplicate server-stats rule */
