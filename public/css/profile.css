@@ -46,8 +46,9 @@ main {
   grid-template-rows: minmax(0, 1fr);
   gap: 20px;
   align-items: stretch;
-  height: calc(100% - 60px); /* Account for header elements */
-  min-height: 300px; /* Add minimum height */
+  height: auto; /* Remove fixed height */
+  min-height: 400px; /* Ensure minimum usable space */
+  grid-auto-rows: minmax(400px, 1fr); /* Both sections equal height */
 }
 
 /* Thin lobby management bar */
@@ -342,9 +343,10 @@ main {
 }
 
 /* Chat section styling matching new_home */
-.window[name="Pre-Lobby Members"] .content,
-.clan-chat .content {
-  height: 400px;
+.member-list-container .content,
+.chat-container .content {
+  height: 100%; /* Fill parent container */
+  min-height: 300px; /* Prevent collapse */
   display: flex;
   flex-direction: column;
 }
@@ -628,12 +630,13 @@ nav li a:hover {
   width: 100%;
   height: 100%;
   background: repeating-linear-gradient(
-    to right,
-    #000 0px,    /* Solid black stripes */
-    #000 3px,    /* Wider dark part */
-    #212121 3px, /* Matching container background */
-    #212121 6px  /* Same width as dark stripe */
+    90deg,
+    #080808 0px,
+    #080808 2px,
+    #212121 2px,
+    #212121 4px
   );
+  background-size: 6px 100%; /* More consistent stripe pattern */
   pointer-events: none;
   display: block;
   border-top: solid 1px #080808;
@@ -716,6 +719,24 @@ nav li a:hover {
   padding: 10px;
 }
 
+
+/* Visual feedback for buttons */
+.greensteam-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #181818 !important;
+}
+
+/* Pulsing effect for active matchmaking */
+@keyframes pulse {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; }
+  100% { opacity: 0.8; }
+}
+
+.que-in-progress-bar {
+  animation: pulse 1.5s infinite;
+}
 
 /* Media query for responsive layout */
 @media (max-width: 800px) {

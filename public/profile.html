@@ -54,12 +54,12 @@
               <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
 
               <!-- Code Box Inset with Eye Toggle -->
-              <div id="inviteCodeSection" class="invite-code-box inset active" style="display: none; margin-left: 10px;">
+              <div id="inviteCodeSection" class="invite-code-box inset active" style="display: none; margin-left: 10px;" role="status" aria-live="polite" aria-label="Invite code container">
                 <div class="code-container">
                   <strong id="inviteCodeDisplay"></strong>
                   <div class="mask-overlay"></div>
                 </div>
-                <button class="greensteam-button" id="toggleCodeVisibility" title="Show Code" style="margin-left: 8px;">👁</button>
+                <button class="greensteam-button" id="toggleCodeVisibility" title="Show Code" style="margin-left: 8px;" aria-label="Reveal invite code">👁</button>
               </div>
 
             </div>
@@ -232,6 +232,20 @@
       } catch (err) {
         console.error('Error creating pre-lobby:', err);
         alert('Error creating pre-lobby.');
+      }
+    });
+
+    // Input validation for invite code
+    document.getElementById('inviteCodeInput').addEventListener('input', (e) => {
+      const code = e.target.value.trim();
+      document.getElementById('joinPreLobbyBtn').disabled = code.length !== 8;
+    });
+
+    // Enter key for chat input
+    document.getElementById('preLobbyChatInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('sendPreLobbyMessage').click();
       }
     });
 
@@ -417,26 +431,22 @@
       });
     }
 
-    // Use user/info to see if I match the first player's steamId or email => I'm leader
+    // More robust leader check using server-provided user ID
     async function checkIfLeader(firstPlayer) {
       try {
-        const meRes = await fetch('/user/info', { credentials: 'include' });
-        const me = await meRes.json();
-        if ((me.steamId && me.steamId === firstPlayer.steamId)
-         || (me.email && me.email === firstPlayer.email)) {
-          isLobbyLeader = true;
-        } else {
-          isLobbyLeader = false;
-        }
-        if (!isLobbyLeader) {
-          startMatchmakingBtn.disabled = true;
-          startMatchmakingBtn.textContent = 'Matchmaking (Leader Only)';
-        } else {
-          startMatchmakingBtn.disabled = false;
-          startMatchmakingBtn.textContent = 'Start Matchmaking';
-        }
+        const meRes = await fetch('/user/session', {credentials: 'include'});
+        const {userId} = await meRes.json();
+        
+        // Compare by server-provided user ID instead of email/steamID
+        isLobbyLeader = userId === firstPlayer.id;
+        
+        startMatchmakingBtn.disabled = !isLobbyLeader;
+        startMatchmakingBtn.textContent = isLobbyLeader 
+          ? 'Start Matchmaking' 
+          : 'Waiting for Leader...';
       } catch (err) {
-        console.warn('Error determining if leader:', err);
+        console.error('Leader check failed:', err);
+        isLobbyLeader = false;
       }
     }
 
@@ -452,6 +462,21 @@
       startMatchmakingBtn.disabled = false;
       startMatchmakingBtn.textContent = 'Start Matchmaking';
     }
+
+    // Handle page unload
+    window.addEventListener('beforeunload', () => {
+      if (currentLobbyCode) {
+        socket.emit('leavePreLobby', {inviteCode: currentLobbyCode});
+      }
+    });
+
+    // Handle server disconnect
+    socket.on('disconnect', () => {
+      if (currentLobbyCode) {
+        alert('Lost connection to server - returning to lobby');
+        window.location.reload();
+      }
+    });
   </script>
 </body>
 </html>
