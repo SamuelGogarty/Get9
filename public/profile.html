@@ -41,6 +41,10 @@
           <div class="matchmaking-controls">
             <!-- Single button for both solo & group queue -->
             <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
+            
+            <!-- NEW: Stop Searching button -->
+            <button class="greensteam-button" id="cancelMatchmakingBtn" style="display:none;">Stop Searching</button>
+            
             <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100" style="display:none;"></progress>
           </div>
         </div>
@@ -61,10 +65,9 @@
                 </div>
                 <button class="greensteam-button" id="toggleCodeVisibility" title="Show Code" style="margin-left: 8px;" aria-label="Reveal invite code">👁</button>
               </div>
-
             </div>
             <div class="join-container">
-              <button class="greensteam-button" id="joinPreLobbyBtn">Join</button>
+              <button class="greensteam-button" id="joinPreLobbyBtn" disabled>Join</button>
               <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
             </div>
           </div>
@@ -75,7 +78,9 @@
       <div class="lobby-sections" style="display:none;">
         <!-- Pre-Lobby Members -->
         <div class="window member-list-container" name="Pre-Lobby Members">
-          <div class="content" id="preLobbyPlayerList"></div>
+          <div class="content" id="preLobbyPlayerList">
+            <!-- Member rows (via JS) -->
+          </div>
         </div>
 
         <!-- Pre-Lobby Chat -->
@@ -87,6 +92,11 @@
               <button class="greensteam-button" id="sendPreLobbyMessage">Send</button>
             </div>
           </div>
+        </div>
+
+        <!-- NEW: Leave Lobby Button -->
+        <div style="margin-top: 10px;">
+          <button class="greensteam-button" id="leavePreLobbyBtn" style="display:none;">Leave Lobby</button>
         </div>
       </div>
     </main>
@@ -151,7 +161,7 @@
     }
 
     // ================================
-    // PROGRESS BAR
+    // PROGRESS BAR & CANCEL BUTTON
     // ================================
     function showQueueProgress() {
       const pb = document.getElementById('matchmakingProgress');
@@ -166,6 +176,13 @@
     function hideQueueProgress() {
       document.getElementById('matchmakingProgress').style.display = 'none';
       if (progressInterval) clearInterval(progressInterval);
+    }
+
+    function showCancelSearchButton() {
+      document.getElementById('cancelMatchmakingBtn').style.display = 'inline-block';
+    }
+    function hideCancelSearchButton() {
+      document.getElementById('cancelMatchmakingBtn').style.display = 'none';
     }
 
     // ================================
@@ -202,17 +219,28 @@
       showQueueProgress();
     });
 
+    // NEW: Cancel matchmaking event
+    const cancelMatchmakingBtn = document.getElementById('cancelMatchmakingBtn');
+    cancelMatchmakingBtn.addEventListener('click', () => {
+      socket.emit('stopMatchmaking');
+      hideQueueProgress();
+      hideCancelSearchButton();
+    });
+
     // If we get an error or redirect => stop progress
     socket.on('error', (msg) => {
       hideQueueProgress();
+      hideCancelSearchButton();
       alert('Error: ' + msg);
     });
     socket.on('redirect', (url) => {
       hideQueueProgress();
+      hideCancelSearchButton();
       window.location.href = url;
     });
     socket.on('queued', () => {
       console.log('We are queued.');
+      showCancelSearchButton();
     });
 
     // ================================
@@ -238,7 +266,7 @@
     // Input validation for invite code
     document.getElementById('inviteCodeInput').addEventListener('input', (e) => {
       const code = e.target.value.trim();
-      document.getElementById('joinPreLobbyBtn').disabled = code.length !== 8;
+      document.getElementById('joinPreLobbyBtn').disabled = (code.length !== 8);
     });
 
     // Enter key for chat input
@@ -289,7 +317,8 @@
       // Ensure it's masked by default
       maskInviteCode();
 
-      // If you want to forcibly unmask, you can skip
+      // NEW: Show "Leave Lobby" button
+      document.getElementById('leavePreLobbyBtn').style.display = 'inline-block';
     });
 
     socket.on('preLobbyJoined', ({ inviteCode, players }) => {
@@ -302,6 +331,9 @@
 
       maskInviteCode();
       updatePlayerList(players);
+
+      // NEW: Show "Leave Lobby" button
+      document.getElementById('leavePreLobbyBtn').style.display = 'inline-block';
     });
 
     socket.on('preLobbyUpdated', ({ inviteCode, players }) => {
@@ -322,6 +354,9 @@
         document.getElementById('inviteCodeSection').style.display = 'inline-flex';
         maskInviteCode();
         updatePlayerList(players);
+
+        // Show "Leave Lobby" button
+        document.getElementById('leavePreLobbyBtn').style.display = 'inline-block';
       }
     });
 
@@ -384,7 +419,6 @@
     });
 
     function maskInviteCode() {
-      // remove .revealed so the mask is displayed
       document.querySelector('.code-container')?.classList.remove('revealed');
       toggleBtn.title = 'Show Code';
     }
@@ -427,6 +461,24 @@
 
         row.appendChild(pic);
         row.appendChild(infoDiv);
+
+        // NEW: Kick button if I'm leader and this is not the first (leader) slot
+        if (isLobbyLeader && idx !== 0) {
+          const kickBtn = document.createElement('button');
+          kickBtn.textContent = 'Kick';
+          kickBtn.className = 'greensteam-button';
+          kickBtn.style.marginLeft = '10px';
+
+          // We'll rely on p.socketId from server
+          if (p.socketId) {
+            kickBtn.addEventListener('click', () => {
+              socket.emit('kickFromPreLobby', p.socketId);
+            });
+          }
+
+          row.appendChild(kickBtn);
+        }
+
         container.appendChild(row);
       });
     }
@@ -438,7 +490,7 @@
         const {userId} = await meRes.json();
         
         // Compare by server-provided user ID instead of email/steamID
-        isLobbyLeader = userId === firstPlayer.id;
+        isLobbyLeader = (userId === firstPlayer.id);
         
         startMatchmakingBtn.disabled = !isLobbyLeader;
         startMatchmakingBtn.textContent = isLobbyLeader 
@@ -449,6 +501,15 @@
         isLobbyLeader = false;
       }
     }
+
+    // ================================
+    // Leave Lobby button
+    // ================================
+    document.getElementById('leavePreLobbyBtn').addEventListener('click', () => {
+      if (currentLobbyCode) {
+        socket.emit('leavePreLobby', { inviteCode: currentLobbyCode });
+      }
+    });
 
     // Cleanup
     function cleanupPreLobbyUI() {
@@ -461,12 +522,15 @@
       document.getElementById('inviteCodeDisplay').textContent = '';
       startMatchmakingBtn.disabled = false;
       startMatchmakingBtn.textContent = 'Start Matchmaking';
+      
+      // Hide leave button
+      document.getElementById('leavePreLobbyBtn').style.display = 'none';
     }
 
     // Handle page unload
     window.addEventListener('beforeunload', () => {
       if (currentLobbyCode) {
-        socket.emit('leavePreLobby', {inviteCode: currentLobbyCode});
+        socket.emit('leavePreLobby', { inviteCode: currentLobbyCode });
       }
     });
 
