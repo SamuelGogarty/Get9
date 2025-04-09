@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>User Profile</title>
-    <link rel="stylesheet" href="css/profile.css">
-    <script src="/socket.io/socket.io.js"></script>
+  <meta charset="UTF-8">
+  <title>User Profile</title>
+  <link rel="stylesheet" href="css/profile.css">
+  <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
   <nav>
@@ -24,168 +24,124 @@
 
   <div class="container">
     <main class="main-grid">
-    <!-- Top Matchmaking Window -->
-    <div class="window matchmaking-header" name="Matchmaking">
-      <div class="content">
-        <div class="welcome-section">
-          <img id="matchmakingProfile" src="/img/fallback-pfp.png" alt="Profile Picture">
-          <div class="welcome-message">
-            <div class="welcome-text">WELCOME BACK,</div>
-            <div class="welcome-username" id="matchmakingUsername">Commando</div>
-          </div>
-        </div>
-        <div class="server-stats">
-          <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
-          <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
-        </div>
-        <div class="matchmaking-controls">
-          <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
-          <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100"></progress>
-        </div>
-      </div>
-    </div>
-
-    <!-- Thin Lobby Management Bar -->
-    <div class="window lobby-management-bar" name="Lobby Management">
-      <div class="content">
-        <div class="lobby-controls">
-          <!-- Create Section -->
-          <div class="create-container">
-            <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
-          </div>
-          
-          <!-- Join Section -->
-          <div class="join-container">
-            <button class="greensteam-button" id="joinPreLobbyBtn">Join</button>
-            <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Side-by-Side Sections -->
-    <div class="lobby-sections">
-      <!-- Pre-Lobby Members -->
-      <div class="window member-list-container" name="Pre-Lobby Members">
-        <div class="content" id="preLobbyPlayerList"></div>
-        <button class="greensteam-button" 
-                id="startPreLobbyMatchmakingBtn" 
-                style="margin-top: 15px; display: none;">
-          Start Matchmaking
-        </button>
-      </div>
-
-      <!-- Pre-Lobby Chat -->
-      <div class="window chat-container clan-chat" name="Pre-Lobby Chat">
+      <!-- Top Matchmaking Window -->
+      <div class="window matchmaking-header" name="Matchmaking">
         <div class="content">
-          <ul id="preLobbyChatMessages"></ul>
-          <div class="chat-input">
-            <input type="text" id="preLobbyChatInput" placeholder="Type message...">
-            <button class="greensteam-button" id="sendPreLobbyMessage">Send</button>
+          <div class="welcome-section">
+            <img id="matchmakingProfile" src="/img/fallback-pfp.png" alt="Profile Picture">
+            <div class="welcome-message">
+              <div class="welcome-text">WELCOME BACK,</div>
+              <div class="welcome-username" id="matchmakingUsername">Commando</div>
+            </div>
+          </div>
+          <div class="server-stats">
+            <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
+            <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
+          </div>
+          <div class="matchmaking-controls">
+            <!-- Single button for both solo & group queue -->
+            <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
+            <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100" style="display:none;"></progress>
           </div>
         </div>
       </div>
-    </div>
+
+      <!-- Thin Lobby Management Bar -->
+      <div class="window lobby-management-bar" name="Lobby Management">
+        <div class="content">
+          <div class="lobby-controls">
+            <div class="create-container">
+              <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
+
+              <!-- Code Box Inset with Eye Toggle -->
+              <div id="inviteCodeSection" class="invite-code-box inset active" style="display: none; margin-left: 10px;">
+                <div class="code-container">
+                  <strong id="inviteCodeDisplay"></strong>
+                  <div class="mask-overlay"></div>
+                </div>
+                <button class="greensteam-button" id="toggleCodeVisibility" title="Show Code" style="margin-left: 8px;">👁</button>
+              </div>
+
+            </div>
+            <div class="join-container">
+              <button class="greensteam-button" id="joinPreLobbyBtn">Join</button>
+              <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Side-by-Side Sections -->
+      <div class="lobby-sections" style="display:none;">
+        <!-- Pre-Lobby Members -->
+        <div class="window member-list-container" name="Pre-Lobby Members">
+          <div class="content" id="preLobbyPlayerList"></div>
+        </div>
+
+        <!-- Pre-Lobby Chat -->
+        <div class="window chat-container clan-chat" name="Pre-Lobby Chat">
+          <div class="content">
+            <ul id="preLobbyChatMessages"></ul>
+            <div class="chat-input">
+              <input type="text" id="preLobbyChatInput" placeholder="Type message...">
+              <button class="greensteam-button" id="sendPreLobbyMessage">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
+  <!-- The actual JS logic below -->
   <script>
     const socket = io();
-    
-    // Add current lobby tracking
-    let currentLobbyCode = null;
 
-    // Restore from sessionStorage while waiting for server response
-    const cachedLobby = sessionStorage.getItem('currentLobby');
-    if (cachedLobby) {
-      try {
-        const lobbyData = JSON.parse(cachedLobby);
-        if (Date.now() - lobbyData.timestamp < 30000) { // 30 second cache
-          createLobbyUI(lobbyData.inviteCode);
-          updatePlayerList(lobbyData.players);
-        }
-      } catch (e) {
-        sessionStorage.removeItem('currentLobby');
-      }
+    let currentLobbyCode = null;  // If user is in a pre-lobby
+    let isLobbyLeader = false;    // Whether I'm the leader
+    let progressInterval = null;  // For the que-in-progress bar
+
+    // ================================
+    // ONLOAD & NAVBAR
+    // ================================
+    document.addEventListener('DOMContentLoaded', initPage);
+    async function initPage() {
+      hideQueueProgress();
+      initNavbar();
     }
 
-    // Add cleanup when leaving lobby
-    window.addEventListener('beforeunload', () => {
-      if (!currentLobbyCode) {
-        sessionStorage.removeItem('currentLobby');
-      }
-    });
-
-    // Initialize navbar
     async function initNavbar() {
       try {
-        // Use the same initialization pattern as lobby.js
         const [userRes, eloRes] = await Promise.all([
           fetch('/user/info', { credentials: 'include' }),
           fetch('/user/skill', { credentials: 'include' })
         ]);
-
-        // Handle failed responses first
         if (!userRes.ok || !eloRes.ok) {
           throw new Error(`User data fetch failed: ${userRes.status}, ${eloRes.status}`);
         }
+        const [user, eloData] = await Promise.all([userRes.json(), eloRes.json()]);
 
-        const [user, eloData] = await Promise.all([
-          userRes.json(),
-          eloRes.json()
-        ]);
-
-        // Update elements using same logic as lobby.js
         const profileImg = document.getElementById('navbarProfile');
         profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
-        profileImg.onerror = () => profileImg.src = '/img/fallback-pfp.png';
-        
+        profileImg.onerror = () => { profileImg.src = '/img/fallback-pfp.png'; };
+
         document.getElementById('navbarUsername').textContent = user.username || 'Player';
         document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
-        
-        // Update matchmaking welcome section
-        const mmProfileImg = document.getElementById('matchmakingProfile');
-        mmProfileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
-        mmProfileImg.onerror = () => mmProfileImg.src = '/img/fallback-pfp.png';
+
+        // Matchmaking welcome
+        const mmProfile = document.getElementById('matchmakingProfile');
+        mmProfile.src = user.profilePictureUrl || '/img/fallback-pfp.png';
+        mmProfile.onerror = () => { mmProfile.src = '/img/fallback-pfp.png'; };
         document.getElementById('matchmakingUsername').textContent = user.username || 'Player';
 
-        // Add server stats fetch from lobby.js pattern
-        const statsRes = await fetch('/api/server/stats');
+        // Extra server stats
+        const statsRes = await fetch('/api/server/stats', { credentials: 'include' });
         if (statsRes.ok) {
           const stats = await statsRes.json();
           document.getElementById('playersWaiting').textContent = stats.queuedPlayers ?? 0;
           document.getElementById('activeMatches').textContent = stats.activeMatches ?? 0;
         }
-
-        // Add lobby state restoration
-        try {
-          const lobbyRes = await fetch('/user/current-lobby', { credentials: 'include' });
-          if (lobbyRes.ok) {
-            const lobbyData = await lobbyRes.json();
-            if (lobbyData.inviteCode) {
-              // Create UI elements first
-              createLobbyUI(lobbyData.inviteCode);
-              
-              // Immediately show cached players while waiting for fresh data
-              if (lobbyData.players && lobbyData.players.length > 0) {
-                updatePlayerList(lobbyData.players);
-              }
-              
-              // Request fresh player list from server
-              socket.emit('getPreLobbyPlayers', { inviteCode: lobbyData.inviteCode });
-              
-              // Join the lobby room immediately
-              socket.emit('rejoinPreLobby', { inviteCode: lobbyData.inviteCode });
-            }
-          }
-        } catch (lobbyError) {
-          console.error('Lobby state restore failed:', lobbyError);
-        }
-
-      } catch (error) {
-        console.error('Navbar initialization failed:', error);
-        // Apply full fallback state like lobby.js
+      } catch (err) {
+        console.error('Navbar init failed:', err);
         document.getElementById('navbarProfile').src = '/img/fallback-pfp.png';
         document.getElementById('navbarUsername').textContent = 'Player';
         document.getElementById('navbarElo').textContent = 'ELO: 0';
@@ -193,269 +149,207 @@
         document.getElementById('activeMatches').textContent = '0';
       }
     }
-    
-    // Real-time updates
-    socket.on('userUpdate', ({ username, profilePictureUrl, skill }) => {
-      if (username) {
-        document.getElementById('navbarUsername').textContent = username;
-        document.getElementById('matchmakingUsername').textContent = username;
-      }
-      if (profilePictureUrl) {
-        const img = document.getElementById('navbarProfile');
-        img.src = profilePictureUrl;
-        img.onerror = () => img.src = '/img/fallback-pfp.png';
-        
-        const mmImg = document.getElementById('matchmakingProfile');
-        mmImg.src = profilePictureUrl;
-        mmImg.onerror = () => mmImg.src = '/img/fallback-pfp.png';
-      }
-      if (skill) {
-        document.getElementById('navbarElo').textContent = `ELO: ${skill}`;
-      }
-    });
 
-    // Initialize immediately like lobby.js
-    document.addEventListener('DOMContentLoaded', initNavbar);
+    // ================================
+    // PROGRESS BAR
+    // ================================
+    function showQueueProgress() {
+      const pb = document.getElementById('matchmakingProgress');
+      pb.style.display = 'block';
+      pb.value = 0;
+      let val = 0;
+      progressInterval = setInterval(() => {
+        val = (val + 1) % 100;
+        pb.value = val;
+      }, 100);
+    }
+    function hideQueueProgress() {
+      document.getElementById('matchmakingProgress').style.display = 'none';
+      if (progressInterval) clearInterval(progressInterval);
+    }
 
-    document.getElementById('startMatchmakingBtn').addEventListener('click', () => {
-      // Get user info from server instead of relying on DOM
-      fetch('/user/info', { credentials: 'include' })
-        .then(response => response.json())
-        .then(user => {
-          socket.emit('startMatchmaking', { 
+    // ================================
+    // SINGLE START MATCHMAKING BUTTON
+    // ================================
+    const startMatchmakingBtn = document.getElementById('startMatchmakingBtn');
+    startMatchmakingBtn.addEventListener('click', async () => {
+      if (currentLobbyCode) {
+        // GROUP
+        if (!isLobbyLeader) {
+          alert('Only the lobby leader can start matchmaking.');
+          return;
+        }
+        // Leader starts group queue
+        socket.emit('startPreLobbyMatchmaking', { inviteCode: currentLobbyCode });
+      } else {
+        // SOLO
+        try {
+          const userRes = await fetch('/user/info', { credentials: 'include' });
+          const user = await userRes.json();
+          socket.emit('startMatchmaking', {
             username: user.username,
             steamId: user.steamId,
             email: user.email,
             profilePictureUrl: user.profilePictureUrl
           });
-          
-          // Show progress animation
-          const progress = document.getElementById('matchmakingProgress');
-          progress.style.display = 'block';
-          progress.value = 0;
-          
-          let progressValue = 0;
-          const progressInterval = setInterval(() => {
-            progressValue = (progressValue + 1) % 100;
-            progress.value = progressValue;
-          }, 100);
-          
-          // Store interval ID to clear it when matchmaking completes
-          window.matchmakingInterval = progressInterval;
-        })
-        .catch(error => {
-          console.error('Error fetching user info for matchmaking:', error);
-          alert('Error starting matchmaking. Please try again.');
-        });
+        } catch (err) {
+          console.error('Error starting solo queue:', err);
+          alert('Error starting matchmaking.');
+          return;
+        }
+      }
+      // Show progress for both group or solo
+      showQueueProgress();
     });
 
+    // If we get an error or redirect => stop progress
+    socket.on('error', (msg) => {
+      hideQueueProgress();
+      alert('Error: ' + msg);
+    });
     socket.on('redirect', (url) => {
-      if (window.matchmakingInterval) {
-        clearInterval(window.matchmakingInterval);
-      }
-      document.getElementById('matchmakingProgress').style.display = 'none';
+      hideQueueProgress();
       window.location.href = url;
     });
-
-    socket.on('error', (message) => {
-      if (window.matchmakingInterval) {
-        clearInterval(window.matchmakingInterval);
-      }
-      document.getElementById('matchmakingProgress').style.display = 'none';
-      alert('Error: ' + message);
+    socket.on('queued', () => {
+      console.log('We are queued.');
     });
 
-    document.getElementById('createPreLobbyBtn').addEventListener('click', () => {
-      fetch('/user/info', { credentials: 'include' })
-        .then(response => response.json())
-        .then(user => {
-          const userData = {
+    // ================================
+    // CREATE / JOIN PRE-LOBBY
+    // ================================
+    const createPreLobbyBtn = document.getElementById('createPreLobbyBtn');
+    createPreLobbyBtn.addEventListener('click', async () => {
+      try {
+        const userRes = await fetch('/user/info', { credentials: 'include' });
+        const user = await userRes.json();
+        socket.emit('createPreLobby', {
+          username: user.username,
+          steamId: user.steamId,
+          email: user.email,
+          profilePictureUrl: user.profilePictureUrl
+        });
+      } catch (err) {
+        console.error('Error creating pre-lobby:', err);
+        alert('Error creating pre-lobby.');
+      }
+    });
+
+    const joinPreLobbyBtn = document.getElementById('joinPreLobbyBtn');
+    joinPreLobbyBtn.addEventListener('click', async () => {
+      const code = document.getElementById('inviteCodeInput').value.trim();
+      if (!code) {
+        alert('Please enter an invite code.');
+        return;
+      }
+      try {
+        const userRes = await fetch('/user/info', { credentials: 'include' });
+        const user = await userRes.json();
+        socket.emit('joinPreLobby', {
+          inviteCode: code,
+          user: {
             username: user.username,
             steamId: user.steamId,
             email: user.email,
-            profilePictureUrl: user.profilePictureUrl,
-          };
-          socket.emit('createPreLobby', userData);
-        })
-        .catch(error => {
-          console.error('Error fetching user info for pre-lobby:', error);
-          alert('Error creating pre-lobby. Please try again.');
+            profilePictureUrl: user.profilePictureUrl
+          }
         });
+      } catch (err) {
+        console.error('Error joining pre-lobby:', err);
+        alert('Error joining pre-lobby.');
+      }
     });
 
-    // Helper function to create lobby UI
-    function createLobbyUI(inviteCode) {
-      // Remove existing lobby section if exists
-      const existingCodeBox = document.getElementById('preLobbySection');
-      if (existingCodeBox) existingCodeBox.remove();
-
-      // Clear any previous player list
-      const playerList = document.getElementById('preLobbyPlayerList');
-      playerList.innerHTML = '';
-      
-      // Create new code box elements
-      const codeBox = document.createElement('div');
-      codeBox.id = 'preLobbySection';
-      codeBox.className = 'invite-code-box inset active';
-      codeBox.innerHTML = `
-        <div class="code-container">
-          <strong id="inviteCode">${inviteCode}</strong>
-          <div class="mask-overlay"></div>
-        </div>
-        <button class="greensteam-button" id="toggleCodeVisibility" title="Show Code">👁</button>
-      `;
-      
-      // Update current lobby code
-      currentLobbyCode = inviteCode;
-
-      // Insert after create button
-      document.getElementById('createPreLobbyBtn').insertAdjacentElement('afterend', codeBox);
-
-      // Add toggle handler
-      document.getElementById('toggleCodeVisibility').addEventListener('click', function() {
-        const container = this.closest('.invite-code-box').querySelector('.code-container');
-        this.classList.toggle('revealed');
-        container.classList.toggle('revealed');
-        this.title = container.classList.contains('revealed') ? 'Hide Code' : 'Show Code';
-      });
-      
-      // Show lobby sections and matchmaking button
-      document.querySelector('.lobby-sections').style.display = 'grid';
-      document.getElementById('startPreLobbyMatchmakingBtn').style.display = 'block';
-    }
-
-    // Helper function to update player list
-    function updatePlayerList(players) {
-      const playerList = document.getElementById('preLobbyPlayerList');
-      if (!playerList) return;
-
-      playerList.innerHTML = '';
-      
-      // Store fresh copy in sessionStorage
-      if (currentLobbyCode) {
-        sessionStorage.setItem('currentLobby', JSON.stringify({
-          inviteCode: currentLobbyCode,
-          players,
-          timestamp: Date.now()
-        }));
-      }
-
-      players.forEach((player) => {
-        const playerItem = document.createElement('div');
-        playerItem.className = 'player-item';
-        playerItem.innerHTML = `
-          <img src="${player.profilePictureUrl}" alt="${player.username}" 
-               style="width:32px;height:32px;border-radius:4px;">
-          <div class="player-info">
-            <div class="player-name">${player.username}</div>
-            <div class="player-elo">ELO: ${player.skill || 'Unrated'}</div>
-          </div>
-        `;
-        playerList.appendChild(playerItem);
-      });
-    }
-
+    // ================================
+    // PRE-LOBBY EVENTS
+    // ================================
     socket.on('preLobbyCreated', ({ inviteCode }) => {
       currentLobbyCode = inviteCode;
-      createLobbyUI(inviteCode);
+      isLobbyLeader = true;
+      document.querySelector('.lobby-sections').style.display = 'grid';
+
+      // Show code in the inset box
+      document.getElementById('inviteCodeDisplay').textContent = inviteCode;
+      document.getElementById('inviteCodeSection').style.display = 'inline-flex'; 
+
+      // Ensure it's masked by default
+      maskInviteCode();
+
+      // If you want to forcibly unmask, you can skip
     });
 
-    document.getElementById('joinPreLobbyBtn').addEventListener('click', () => {
-      const inviteCode = document.getElementById('inviteCodeInput').value;
-      if (!inviteCode) {
-        alert('Please enter an invite code');
-        return;
-      }
-      
-      fetch('/user/info', { credentials: 'include' })
-        .then(response => response.json())
-        .then(user => {
-          const userData = {
-            username: user.username,
-            steamId: user.steamId,
-            email: user.email,
-            profilePictureUrl: user.profilePictureUrl,
-          };
-          socket.emit('joinPreLobby', { inviteCode, user: userData });
-          // Removed invalid reference to preLobbySection
-        })
-        .catch(error => {
-          console.error('Error fetching user info for joining pre-lobby:', error);
-          alert('Error joining pre-lobby: ' + (error.message || 'Please check the invite code'));
-        });
-    });
-
-    // Add error handler for specific join errors
-    socket.on('joinPreLobbyError', (error) => {
-      alert('Join Error: ' + (error.message || 'Invalid invite code or lobby full'));
-    });
-
-    document.getElementById('startPreLobbyMatchmakingBtn').addEventListener('click', () => {
-      const inviteCode = document.getElementById('inviteCode').textContent;
-      if (!inviteCode) {
-        alert('No active lobby found');
-        return;
-      }
-      socket.emit('startPreLobbyMatchmaking', { inviteCode });
-    });
-
-    socket.on('preLobbyUpdated', ({ players, inviteCode }) => {
-      // Only update if we're in this lobby
-      if (currentLobbyCode === inviteCode) {
-        // Create UI if it doesn't exist yet
-        if (!document.getElementById('preLobbySection')) {
-          createLobbyUI(inviteCode);
-        }
-        updatePlayerList(players);
-        
-        // Store in sessionStorage as fallback
-        sessionStorage.setItem('currentLobby', JSON.stringify({
-          inviteCode,
-          players,
-          timestamp: Date.now()
-        }));
-      }
-    });
-    
-    socket.on('preLobbyPlayers', ({ players }) => {
-      updatePlayerList(players);
-    });
-    
     socket.on('preLobbyJoined', ({ inviteCode, players }) => {
       currentLobbyCode = inviteCode;
-      createLobbyUI(inviteCode);
+      isLobbyLeader = false;
+      document.querySelector('.lobby-sections').style.display = 'grid';
+
+      document.getElementById('inviteCodeDisplay').textContent = inviteCode;
+      document.getElementById('inviteCodeSection').style.display = 'inline-flex';
+
+      maskInviteCode();
       updatePlayerList(players);
-      
-      // Store in sessionStorage
-      sessionStorage.setItem('currentLobby', JSON.stringify({
-        inviteCode,
-        players,
-        timestamp: Date.now()
-      }));
     });
-    
-    // Add handler for restored lobby data
-    socket.on('preLobbyRestored', ({ players, inviteCode }) => {
-      if (document.getElementById('inviteCode').textContent === inviteCode) {
+
+    socket.on('preLobbyUpdated', ({ inviteCode, players }) => {
+      if (inviteCode !== currentLobbyCode) return;
+      updatePlayerList(players);
+    });
+
+    socket.on('preLobbyPlayers', ({ inviteCode, players }) => {
+      if (inviteCode === currentLobbyCode) {
         updatePlayerList(players);
       }
     });
-    
-    document.getElementById('sendPreLobbyMessage').addEventListener('click', () => {
-      const msg = document.getElementById('preLobbyChatInput').value.trim();
-      if (!msg) return;
-      socket.emit('preLobbyChatMessage', { 
+
+    socket.on('preLobbyRestored', ({ inviteCode, players }) => {
+      if (inviteCode === currentLobbyCode) {
+        document.querySelector('.lobby-sections').style.display = 'grid';
+        document.getElementById('inviteCodeDisplay').textContent = inviteCode;
+        document.getElementById('inviteCodeSection').style.display = 'inline-flex';
+        maskInviteCode();
+        updatePlayerList(players);
+      }
+    });
+
+    socket.on('joinPreLobbyError', ({ message }) => {
+      alert('Join Pre-Lobby Error: ' + (message || 'Unknown'));
+    });
+
+    // If user is kicked or leaves
+    socket.on('kickedFromPreLobby', ({ inviteCode }) => {
+      if (inviteCode === currentLobbyCode) {
+        alert('You have been kicked from the pre-lobby.');
+        cleanupPreLobbyUI();
+      }
+    });
+    socket.on('preLobbyLeft', ({ inviteCode }) => {
+      if (inviteCode === currentLobbyCode) {
+        alert('You have left the pre-lobby.');
+        cleanupPreLobbyUI();
+      }
+    });
+
+    // ================================
+    // PRE-LOBBY CHAT
+    // ================================
+    const sendPreLobbyMessageBtn = document.getElementById('sendPreLobbyMessage');
+    sendPreLobbyMessageBtn.addEventListener('click', () => {
+      const msgInput = document.getElementById('preLobbyChatInput');
+      const msg = msgInput.value.trim();
+      if (!msg || !currentLobbyCode) return;
+      socket.emit('preLobbyChatMessage', {
         message: msg,
-        inviteCode: document.getElementById('inviteCode').textContent
+        inviteCode: currentLobbyCode
       });
-      document.getElementById('preLobbyChatInput').value = '';
+      msgInput.value = '';
     });
 
     socket.on('preLobbyChatMessage', ({ username, message, profilePictureUrl }) => {
       const ul = document.getElementById('preLobbyChatMessages');
       const li = document.createElement('li');
       li.innerHTML = `
-        <img src="${profilePictureUrl}" alt="${username}" style="width:24px;height:24px;">
+        <img src="${profilePictureUrl || '/img/fallback-pfp.png'}" alt="${username}"
+             style="width:24px;height:24px;">
         <strong>${username}:</strong> ${message}
       `;
       li.style.display = 'flex';
@@ -465,11 +359,99 @@
       ul.scrollTop = ul.scrollHeight;
     });
 
-    // Add DOMContentLoaded handler
-    document.addEventListener('DOMContentLoaded', () => {
-      // Initialize navbar
-      initNavbar();
+    // ================================
+    // Code Box Toggle
+    // ================================
+    const toggleBtn = document.getElementById('toggleCodeVisibility');
+    toggleBtn.addEventListener('click', () => {
+      const container = document.querySelector('.code-container');
+      container.classList.toggle('revealed');
+      toggleBtn.title = container.classList.contains('revealed') ? 'Hide Code' : 'Show Code';
     });
+
+    function maskInviteCode() {
+      // remove .revealed so the mask is displayed
+      document.querySelector('.code-container')?.classList.remove('revealed');
+      toggleBtn.title = 'Show Code';
+    }
+
+    // ================================
+    // Update Player List & Leader
+    // ================================
+    async function updatePlayerList(players) {
+      const container = document.getElementById('preLobbyPlayerList');
+      container.innerHTML = '';
+
+      // Assume first is the leader
+      if (players.length > 0) {
+        await checkIfLeader(players[0]);
+      } else {
+        isLobbyLeader = false;
+      }
+
+      players.forEach((p, idx) => {
+        const row = document.createElement('div');
+        row.className = 'player-item';
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.style.marginBottom = '6px';
+
+        const pic = document.createElement('img');
+        pic.src = p.profilePictureUrl || '/img/fallback-pfp.png';
+        pic.onerror = () => { pic.src = '/img/fallback-pfp.png'; };
+        pic.style.width = '32px';
+        pic.style.height = '32px';
+        pic.style.borderRadius = '4px';
+        pic.style.marginRight = '10px';
+
+        const infoDiv = document.createElement('div');
+        let leaderSuffix = (idx === 0) ? ' (Leader)' : '';
+        infoDiv.innerHTML = `
+          <div class="player-name" style="font-weight:bold;">${p.username}${leaderSuffix}</div>
+          <div class="player-elo">ELO: ${p.skill || 'Unrated'}</div>
+        `;
+
+        row.appendChild(pic);
+        row.appendChild(infoDiv);
+        container.appendChild(row);
+      });
+    }
+
+    // Use user/info to see if I match the first player's steamId or email => I'm leader
+    async function checkIfLeader(firstPlayer) {
+      try {
+        const meRes = await fetch('/user/info', { credentials: 'include' });
+        const me = await meRes.json();
+        if ((me.steamId && me.steamId === firstPlayer.steamId)
+         || (me.email && me.email === firstPlayer.email)) {
+          isLobbyLeader = true;
+        } else {
+          isLobbyLeader = false;
+        }
+        if (!isLobbyLeader) {
+          startMatchmakingBtn.disabled = true;
+          startMatchmakingBtn.textContent = 'Matchmaking (Leader Only)';
+        } else {
+          startMatchmakingBtn.disabled = false;
+          startMatchmakingBtn.textContent = 'Start Matchmaking';
+        }
+      } catch (err) {
+        console.warn('Error determining if leader:', err);
+      }
+    }
+
+    // Cleanup
+    function cleanupPreLobbyUI() {
+      currentLobbyCode = null;
+      isLobbyLeader = false;
+      document.querySelector('.lobby-sections').style.display = 'none';
+      document.getElementById('preLobbyPlayerList').innerHTML = '';
+      document.getElementById('preLobbyChatMessages').innerHTML = '';
+      document.getElementById('inviteCodeSection').style.display = 'none';
+      document.getElementById('inviteCodeDisplay').textContent = '';
+      startMatchmakingBtn.disabled = false;
+      startMatchmakingBtn.textContent = 'Start Matchmaking';
+    }
   </script>
 </body>
 </html>
