@@ -83,13 +83,13 @@ socket.on('lobbyReady', ({ teams, currentTurn, players }) => {
       row.innerHTML = `
         <img src="${player.profile_picture}" class="profile-pic" alt="Profile">
         <div class="player-name">
-          <a href="/player.html?id=${player.user_id || player.id}" class="player-profile-link">${player.name}${player.captain ? " (Captain)" : ""}</a>
+          <a href="/player.html?id=${player.user_id}" class="player-profile-link">${player.username || player.name}${player.captain ? " (Captain)" : ""}</a>
         </div>
         <div class="player-elo">${player.elo}</div>
       `;
       container.appendChild(row);
 
-      if (player.user_id == currentUserId) {
+      if (player.user_id === currentUserId) {
         myTeam = teamName;
         isCaptain = player.captain;
       }
