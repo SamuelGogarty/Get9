@@ -1005,7 +1005,7 @@ io.on('connection', (socket) => {
   });
 
   // CREATE PRE-LOBBY (leader)
-  socket.on('createPreLobby', (user) => {
+  socket.on('createPreLobby', async (user) => { // <-- Add async here
     const existingCode = userPreLobbyMap[socket.id];
     if (existingCode && preLobbies[existingCode]) {
       leavePreLobbyInternal(existingCode, socket.id);
@@ -1083,7 +1083,7 @@ io.on('connection', (socket) => {
   });
 
   // JOIN PRE-LOBBY (guest)
-  socket.on('joinPreLobby', ({ inviteCode, user }) => {
+  socket.on('joinPreLobby', async ({ inviteCode, user }) => { // <-- Add async here
     const preLobby = preLobbies[inviteCode];
     if (!preLobby) {
       socket.emit('joinPreLobbyError', { message: 'Invalid invite code.' });
