@@ -605,7 +605,13 @@ async function checkQueueAndFormLobby(matchmakingQueue, db) {
   const groupedPlayers = {};
 
   for (const queued of matchmakingQueue) {
-    const [playerData] = await db.query('SELECT * FROM players WHERE id = ?', [queued.playerId]);
+    const [playerData] = await db.query(
+      'SELECT p.*, u.steam_id, u.profile_picture ' + 
+      'FROM players p ' +
+      'JOIN users u ON p.user_id = u.id ' + 
+      'WHERE p.id = ?',
+      [queued.playerId]
+    );
     if (!playerData || playerData.length === 0) continue;
     const playerRow = playerData[0];
 
@@ -1448,10 +1454,24 @@ io.on('connection', (socket) => {
     let db;
     try {
       db = await mysql.createConnection(dbConfigMatchmaking);
-      for (const player of lobbyPlayers) {
+      for (const pData of lobbyPlayers) {
+        // Get fresh user data from users table
+        const [user] = await db.query(
+          'SELECT username, profile_picture FROM users WHERE id = ?',
+          [pData.user_id]
+        );
+        
         await db.query(
-          'UPDATE players SET lobby_id = ?, team = ? WHERE id = ?',
-          [lobbyId, player.team, player.id] // player.team should be set during check creation
+          'UPDATE players SET ' +
+          'lobby_id = ?, team = ?, name = ?, profile_picture = ? ' +
+          'WHERE id = ?',
+          [
+            lobbyId,
+            pData.team,
+            user[0].username,
+            user[0].profile_picture,
+            pData.id
+          ]
         );
       }
       console.log(`[Match Ready] Database updated for lobby ${lobbyId}.`);
