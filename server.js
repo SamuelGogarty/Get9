@@ -652,28 +652,43 @@ async function checkQueueAndFormLobby(matchmakingQueue, db) {
     const lobbyId = generateUniqueName('lobby');
     const team1 = [];
     const team2 = [];
-    const playerGroupsInLobby = {}; // Store groups that are part of this lobby
 
-    // Reconstruct which groups are in the lobby based on group_id or solo status
-    lobbyPlayers.forEach(p => {
-        const groupId = p.group_id || `solo_${p.id}`; // Use group_id if present, else treat as solo
-        if (!playerGroupsInLobby[groupId]) {
-            playerGroupsInLobby[groupId] = [];
-        }
-        playerGroupsInLobby[groupId].push(p);
-    });
+    // Check for the specific 1v1 solo queue case
+    const isSolo1v1 = requiredPlayers === 2 &&
+                      lobbyPlayers.length === 2 &&
+                      (!lobbyPlayers[0].group_id || lobbyPlayers[0].group_id.startsWith('solo_')) &&
+                      (!lobbyPlayers[1].group_id || lobbyPlayers[1].group_id.startsWith('solo_'));
 
-    // Assign entire groups to teams for balance
-    Object.values(playerGroupsInLobby).forEach(group => {
-        const targetTeamList = team1.length <= team2.length ? team1 : team2;
-        const targetTeamName = team1.length <= team2.length ? 'team1' : 'team2';
-        group.forEach(player => {
-            player.team = targetTeamName; // Set the team property on the player
-            targetTeamList.push(player);  // Add player to the correct team list
-        });
-    });
+    if (isSolo1v1) {
+      // Directly assign players to opposing teams for 1v1 solo
+      lobbyPlayers[0].team = 'team1';
+      team1.push(lobbyPlayers[0]);
+      lobbyPlayers[1].team = 'team2';
+      team2.push(lobbyPlayers[1]);
+      console.log(`[Match Ready] Assigned 1v1 solo players to opposing teams for lobby ${lobbyId}.`);
+    } else {
+      // Use existing group-based assignment for other cases
+      const playerGroupsInLobby = {}; // Store groups that are part of this lobby
+      lobbyPlayers.forEach(p => {
+          const groupId = p.group_id || `solo_${p.id}`; // Use group_id if present, else treat as solo
+          if (!playerGroupsInLobby[groupId]) {
+              playerGroupsInLobby[groupId] = [];
+          }
+          playerGroupsInLobby[groupId].push(p);
+      });
 
-    // designate captains (function remains the same, but operates on group-aware teams)
+      // Assign entire groups to teams for balance
+      Object.values(playerGroupsInLobby).forEach(group => {
+          const targetTeamList = team1.length <= team2.length ? team1 : team2;
+          const targetTeamName = team1.length <= team2.length ? 'team1' : 'team2';
+          group.forEach(player => {
+              player.team = targetTeamName; // Set the team property on the player
+              targetTeamList.push(player);  // Add player to the correct team list
+          });
+      });
+    }
+
+    // Designate captains (function remains the same, operates on the assigned teams)
     function designateCaptain(team) {
       if (!team || team.length === 0) return null; // Handle empty team case
       const priorityCandidate = team.find(p => {
