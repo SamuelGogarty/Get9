@@ -598,19 +598,30 @@ async function checkQueueAndFormLobby(matchmakingQueue, db) {
     const lobbyId = generateUniqueName('lobby');
     const team1 = [];
     const team2 = [];
+    const playerGroupsInLobby = {}; // Store groups that are part of this lobby
 
-    for (let i = 0; i < lobbyPlayers.length; i++) {
-      if (i % 2 === 0) {
-        team1.push(lobbyPlayers[i]);
-        lobbyPlayers[i].team = 'team1';
-      } else {
-        team2.push(lobbyPlayers[i]);
-        lobbyPlayers[i].team = 'team2';
-      }
-    }
+    // Reconstruct which groups are in the lobby based on group_id or solo status
+    lobbyPlayers.forEach(p => {
+        const groupId = p.group_id || `solo_${p.id}`; // Use group_id if present, else treat as solo
+        if (!playerGroupsInLobby[groupId]) {
+            playerGroupsInLobby[groupId] = [];
+        }
+        playerGroupsInLobby[groupId].push(p);
+    });
 
-    // designate captains
+    // Assign entire groups to teams for balance
+    Object.values(playerGroupsInLobby).forEach(group => {
+        const targetTeamList = team1.length <= team2.length ? team1 : team2;
+        const targetTeamName = team1.length <= team2.length ? 'team1' : 'team2';
+        group.forEach(player => {
+            player.team = targetTeamName; // Set the team property on the player
+            targetTeamList.push(player);  // Add player to the correct team list
+        });
+    });
+
+    // designate captains (function remains the same, but operates on group-aware teams)
     function designateCaptain(team) {
+      if (!team || team.length === 0) return null; // Handle empty team case
       const priorityCandidate = team.find(p => {
         const sid = p.steam_id;
         if (sid && captainConfig.steamIds.includes(sid)) return true;
@@ -621,24 +632,28 @@ async function checkQueueAndFormLobby(matchmakingQueue, db) {
     }
     const captainTeam1 = designateCaptain(team1);
     const captainTeam2 = designateCaptain(team2);
-    team1.forEach(p => p.captain = false);
-    team2.forEach(p => p.captain = false);
-    captainTeam1.captain = true;
-    captainTeam2.captain = true;
+
+    // Reset captain flags for all players in the lobby first
+    lobbyPlayers.forEach(p => p.captain = false);
+
+    // Set the captain flag only for the designated captains
+    if (captainTeam1) captainTeam1.captain = true;
+    if (captainTeam2) captainTeam2.captain = true;
 
     // store final-lobby info in memory
     lobbies[lobbyId] = {
-      players: lobbyPlayers,
-      teams: { team1, team2 },
+      players: lobbyPlayers, // lobbyPlayers now contains players with correct .team and .captain flags
+      teams: { team1, team2 }, // Use the correctly populated team arrays
       availableMaps: [
         'de_dust', 'de_dust2', 'de_inferno', 'de_nuke',
         'de_tuscan', 'de_cpl_strike', 'de_prodigy'
       ],
       bannedMaps: [],
-      turn: 'team1',
+      turn: 'team1', // Start with team1's turn for banning
       teamCaptains: {
-        team1: captainTeam1.user_id || captainTeam1.id,
-        team2: captainTeam2.user_id || captainTeam2.id
+        // Store the user ID (database ID) of the captains
+        team1: captainTeam1 ? (captainTeam1.user_id || captainTeam1.id) : null,
+        team2: captainTeam2 ? (captainTeam2.user_id || captainTeam2.id) : null
       },
       serverCreated: false,
       createdAt: Date.now()
