@@ -278,9 +278,12 @@ const appRoutes = () => {
 
   app.get('/user/info', ensureAuthenticated, (req, res) => {
     const user = req.user;
+    // --- DEBUGGING ---
+    console.log(`[User Info] User object for ID ${user.id}:`, JSON.stringify(user, null, 2));
+    // --- END DEBUGGING ---
     res.json({
       id: user.id,
-      username: user.username,
+      username: user.username, // Still sending user.username
       steamId: user.steamId || null,
       email: user.email || null,
       profilePictureUrl: user.profile_picture || DEFAULT_PROFILE_PICTURE
