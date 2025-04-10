@@ -1476,7 +1476,7 @@ io.on('connection', (socket) => {
       availableMaps: check.availableMaps,
       bannedMaps: [],
       turn: 'team1',
-      teamCaptains: check.captains, // Use captains stored in check
+      teamCaptains: {}, // Will be set after team assignment
       serverCreated: false,
       createdAt: check.createdAt || Date.now()
     };
@@ -1506,13 +1506,14 @@ io.on('connection', (socket) => {
 
         // Update the players table
         await db.query(
-          'UPDATE players SET lobby_id = ?, team = ?, name = ?, profile_picture = ?, socket_id = ? WHERE id = ?',
+          'UPDATE players SET lobby_id = ?, team = ?, name = ?, profile_picture = ?, socket_id = ?, captain = ? WHERE id = ?',
           [ // Wrap parameters in an array
             lobbyId,
             pData.team,
             currentUserData.username, // Use fresh username
             finalProfilePic,          // Use fresh or default picture
             pData.socket_id,          // Use socket_id from check start (will be updated on join)
+            0,                        // Initialize captain as false (will be updated after team assignment)
             pData.id                  // Use players table PK from cleaned pData
           ]
         );
@@ -1563,6 +1564,41 @@ io.on('connection', (socket) => {
       console.log(`  Team1 (${lobbies[lobbyId].teams.team1.length} players):`, JSON.stringify(lobbies[lobbyId].teams.team1.map(p => ({id: p.id, name: p.name, team: p.team})), null, 2));
       console.log(`  Team2 (${lobbies[lobbyId].teams.team2.length} players):`, JSON.stringify(lobbies[lobbyId].teams.team2.map(p => ({id: p.id, name: p.name, team: p.team})), null, 2));
       // --- END DEBUGGING ---
+      
+      // Designate captains for both teams
+      function designateCaptain(team) {
+        if (!team || team.length === 0) return null;
+        
+        // First check config captains
+        const configCaptain = team.find(p => {
+          const sid = p.steam_id;
+          return (sid && captainConfig.steamIds.includes(sid)) || 
+                (p.email && captainConfig.emails.includes(p.email));
+        });
+        
+        // Then use first player as fallback
+        return configCaptain || team[0];
+      }
+
+      const captainTeam1 = designateCaptain(lobbies[lobbyId].teams.team1);
+      const captainTeam2 = designateCaptain(lobbies[lobbyId].teams.team2);
+
+      // Store captain user IDs in lobby object
+      lobbies[lobbyId].teamCaptains = {
+        team1: captainTeam1?.user_id || null,
+        team2: captainTeam2?.user_id || null
+      };
+
+      // Add captain flags to player objects
+      updatedPlayersForMemory.forEach(p => {
+        p.captain = (p.user_id === lobbies[lobbyId].teamCaptains.team1 || 
+                    p.user_id === lobbies[lobbyId].teamCaptains.team2);
+      });
+
+      console.log(`[Captain Assignment] Lobby ${lobbyId} Captains:`, {
+        team1: lobbies[lobbyId].teamCaptains.team1,
+        team2: lobbies[lobbyId].teamCaptains.team2
+      });
 
       console.log(`[Match Ready] Database updated and memory cache populated for lobby ${lobbyId} with ${updatedPlayersForMemory.length} players.`);
 
@@ -1577,6 +1613,17 @@ io.on('connection', (socket) => {
       return; // Stop execution here
     } finally {
       if (db) await db.end();
+    }
+
+    // Update captain status in database after assignment
+    for (const player of updatedPlayersForMemory) {
+      if (player.captain) {
+        await db.query(
+          'UPDATE players SET captain = ? WHERE id = ?',
+          [1, player.id]
+        );
+        console.log(`[Captain DB Update] Set player ${player.name} (ID: ${player.id}) as captain`);
+      }
     }
 
     // Notify players ONLY if DB updates were successful
