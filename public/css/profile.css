@@ -378,6 +378,7 @@ main {
 .chat-input {
   margin-top: 10px; /* Add space above the input area */
   display: flex;
+  align-items: center; /* Vertically center the input and button */
   gap: 10px;
   margin-top: auto;
 }
