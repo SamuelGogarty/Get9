@@ -796,6 +796,76 @@ nav li a:hover {
   }
 }
 
+/* Match Ready Check-in Popup Styles */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Dark semi-transparent background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ensure it's on top */
+}
+
+.vgui-popup {
+  width: 400px; /* Adjust width as needed */
+  min-height: 200px; /* Adjust height */
+  max-width: 90%;
+  position: relative; /* Ensure positioning context for children */
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
+
+.vgui-popup .content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  height: auto; /* Let content determine height */
+  background: #212121; /* Match window background */
+  border: 1px solid #323232; /* Match window border */
+}
+
+.vgui-popup p {
+  margin-bottom: 15px;
+  color: #d8ded3;
+}
+
+.ready-indicators {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 20px;
+}
+
+.indicator-box {
+  width: 20px;
+  height: 20px;
+  background-color: #080808; /* Dark background */
+  border: 1px solid #323232; /* Border like inset */
+}
+
+.indicator-box.accepted {
+  background-color: #F0B43F; /* Orange/Yellow color for accepted */
+  border-color: #E3E41F;
+}
+
+.accept-button {
+  min-width: 120px;
+  text-align: center; /* Center text in button */
+  margin-top: 10px;
+}
+
+.status-text {
+  margin-top: 15px;
+  font-size: 12px;
+  color: #7b8484; /* Dim color for status */
+  min-height: 1em; /* Reserve space */
+}
+
 /* Window sizing from new_home.css */
 .window.half,
 .window-row .window {
