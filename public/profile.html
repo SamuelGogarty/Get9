@@ -248,11 +248,11 @@
           return;
         }
       }
-      // Show progress for both group or solo
-      showQueueProgress();
+      // Progress bar is now shown via server event ('preLobbyQueued' or 'queued')
+      // showQueueProgress(); // Removed direct call
     });
-
-    // NEW: Cancel matchmaking event
+ 
+    // Cancel matchmaking event (only leader should see the button)
     const cancelMatchmakingBtn = document.getElementById('cancelMatchmakingBtn');
     cancelMatchmakingBtn.addEventListener('click', () => {
       socket.emit('stopMatchmaking');
@@ -271,11 +271,41 @@
       hideCancelSearchButton();
       window.location.href = url;
     });
+ 
+    // Event for SOLO queue confirmation
     socket.on('queued', () => {
-      console.log('We are queued.');
-      showCancelSearchButton();
+      if (!currentLobbyCode) { // Only for solo queue
+        console.log('Solo queue started.');
+        showQueueProgress();
+        showCancelSearchButton();
+      }
     });
-
+ 
+    // Event for PRE-LOBBY queue confirmation (room-wide)
+    socket.on('preLobbyQueued', ({ groupId }) => {
+      if (currentLobbyCode) { // Only if currently in a pre-lobby
+        console.log(`Pre-lobby ${currentLobbyCode} (Group ID: ${groupId}) queued.`);
+        showQueueProgress();
+        if (isLobbyLeader) { // Only leader sees cancel button
+          showCancelSearchButton();
+        }
+      }
+    });
+ 
+    // Event for queue stop (either solo or pre-lobby leader)
+    socket.on('soloQueueStopped', () => {
+      console.log('Solo queue stopped.');
+      hideQueueProgress();
+      hideCancelSearchButton();
+    });
+    socket.on('preLobbyQueueStopped', () => {
+      if (currentLobbyCode) { // Only if currently in a pre-lobby
+        console.log(`Pre-lobby ${currentLobbyCode} queue stopped.`);
+        hideQueueProgress();
+        hideCancelSearchButton();
+      }
+    });
+ 
     // ================================
     // CREATE / JOIN PRE-LOBBY
     // ================================

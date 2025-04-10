@@ -991,10 +991,28 @@ io.on('connection', (socket) => {
     let db;
     try {
       db = await mysql.createConnection(dbConfigMatchmaking);
-      const [players] = await db.query('SELECT id FROM players WHERE socket_id = ?', [socket.id]);
+      const [players] = await db.query('SELECT * FROM players WHERE socket_id = ?', [socket.id]); // Select * to get group_id
       if (players.length > 0) {
-        await db.query('DELETE FROM queue WHERE player_id = ?', [players[0].id]);
-        socket.emit('error', 'You have been removed from the matchmaking queue.');
+        const player = players[0];
+        const playerId = player.id;
+        const groupId = player.group_id; // Get the group ID if present
+
+        await db.query('DELETE FROM queue WHERE player_id = ?', [playerId]);
+
+        // If part of a group (pre-lobby), notify the whole group
+        if (groupId && groupId.startsWith('group-')) {
+           // Find the original invite code associated with this group/leader?
+           // This is tricky as the preLobby object is deleted.
+           // We might need to pass the inviteCode from the client or find another way.
+           // For now, just notify the individual who clicked.
+           // A better approach might be needed if group-wide notification is essential here.
+           socket.emit('preLobbyQueueStopped'); // Notify the leader who clicked
+           // TODO: Consider how to notify other group members if needed.
+        } else {
+           // Solo queue removal notification
+           socket.emit('soloQueueStopped'); // Use a different event for solo
+        }
+        console.log(`Player ${player.name || playerId} removed from queue.`);
       }
     } catch (err) {
       console.error('Error stopping matchmaking:', err);
@@ -1269,12 +1287,9 @@ io.on('connection', (socket) => {
       const matchmakingQueue = queue.map(q => ({ playerId: q.player_id }));
       await checkQueueAndFormLobby(matchmakingQueue, db);
 
-      // let them know they are queued
-      preLobby.players.forEach(u => {
-        if (u.socketId) {
-          io.to(u.socketId).emit('queued', { groupId });
-        }
-      });
+      // Let everyone in the pre-lobby know they are queued
+      io.to(`preLobby_${inviteCode}`).emit('preLobbyQueued', { groupId });
+
     } catch (error) {
       console.error('Error in startPreLobbyMatchmaking:', error);
       socket.emit('error', 'Error starting pre-lobby matchmaking.');
