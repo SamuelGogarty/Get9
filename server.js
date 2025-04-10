@@ -1105,7 +1105,8 @@ io.on('connection', (socket) => {
       return;
     }
 
-    if (requestingPlayer.id !== preLobby.leaderUserId) {
+    // Compare IDs as strings to avoid type mismatches (e.g., number vs string)
+    if (String(requestingPlayer.id) !== String(preLobby.leaderUserId)) {
       console.error(`[StartPreLobby Error] Requester ID ${requestingPlayer.id} (type: ${typeof requestingPlayer.id}) does not match Leader ID ${preLobby.leaderUserId} (type: ${typeof preLobby.leaderUserId}) for lobby ${inviteCode}`);
       socket.emit('error', 'Only the lobby leader can start matchmaking.');
       return;
