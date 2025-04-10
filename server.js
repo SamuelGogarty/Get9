@@ -1311,10 +1311,16 @@ io.on('connection', (socket) => {
     const inviteCode = userPreLobbyMap[socket.id];
     if (!inviteCode || !preLobbies[inviteCode]) return;
     const preLobby = preLobbies[inviteCode];
-    if (preLobby.leader !== socket.id) {
+
+    // Find the user making the request by their current socket.id
+    const requestingPlayer = preLobby.players.find(p => p.socketId === socket.id);
+
+    // Check if the requesting user's database ID matches the stored leader's database ID
+    if (!requestingPlayer || String(requestingPlayer.id) !== String(preLobby.leaderUserId)) {
       socket.emit('error', 'Only the lobby leader can kick players.');
       return;
     }
+    // Leader check passed, proceed to kick the target
     leavePreLobbyInternal(inviteCode, targetSocketId, true);
   });
 
