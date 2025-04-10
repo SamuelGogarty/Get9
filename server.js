@@ -1465,7 +1465,7 @@ io.on('connection', (socket) => {
             lobbyId,
             pData.team,
             user[0].username,
-            user[0].profile_picture,
+            user[0].profile_picture || DEFAULT_PROFILE_PICTURE, // Use default if null
             pData.id
           ]
         );
