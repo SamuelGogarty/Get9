@@ -992,11 +992,7 @@ io.on('connection', (socket) => {
 
       // see if we already have a players row
       let existingPlayer;
-      if (user.steamId) {
-        [existingPlayer] = await db.query('SELECT id FROM players WHERE steam_id = ?', [user.steamId]);
-      } else {
-        [existingPlayer] = await db.query('SELECT id FROM players WHERE email = ?', [user.email]);
-      }
+      [existingPlayer] = await db.query('SELECT id FROM players WHERE user_id = ?', [foundUserId]);
 
       let playerId;
       if (existingPlayer.length > 0) {
