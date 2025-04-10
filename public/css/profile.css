@@ -380,6 +380,11 @@ main {
   padding: 4px 8px;
 }
 
+/* Remove focus outline from chat input */
+.chat-input input:focus {
+  outline: none;
+}
+
 /* Player list styling */
 #preLobbyPlayerList {
   display: flex;
@@ -412,6 +417,14 @@ main {
 .player-elo {
   font-size: 0.9em;
   opacity: 0.8;
+}
+
+/* Kick button specific styling */
+.kick-button {
+  margin-left: auto; /* Push button to the right */
+  text-align: center; /* Center the text */
+  padding: 6px 10px !important; /* Adjust padding if needed */
+  min-width: 50px; /* Ensure minimum width */
 }
 
 /* Progress bar from new_home */

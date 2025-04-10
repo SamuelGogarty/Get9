@@ -529,8 +529,10 @@
         if (isLobbyLeader && idx !== 0) {
           const kickBtn = document.createElement('button');
           kickBtn.textContent = 'Kick';
-          kickBtn.className = 'greensteam-button';
-          kickBtn.style.marginLeft = '10px';
+          // Add both classes: general button style + specific kick style
+          kickBtn.className = 'greensteam-button kick-button';
+          // Remove inline margin-left as CSS now handles positioning
+          // kickBtn.style.marginLeft = '10px';
 
           // We'll rely on p.socketId from server
           if (p.socketId) {
