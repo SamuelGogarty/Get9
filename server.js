@@ -689,6 +689,14 @@ async function checkQueueAndFormLobby(matchmakingQueue, db) {
       });
     }
 
+    // --- DEBUGGING: Log assigned teams ---
+    console.log(`[Team Assign Debug - ${lobbyId}] Assigned teams:`);
+    lobbyPlayers.forEach((p, index) => {
+      console.log(`  Player ${index}: ID=${p.id}, UserID=${p.user_id}, Name=${p.name}, Assigned Team=${p.team}`);
+    });
+    console.log(`  Team1 Array Length: ${team1.length}, Team2 Array Length: ${team2.length}`);
+    // --- END DEBUGGING ---
+
     // Designate captains (function remains the same, operates on the assigned teams)
     function designateCaptain(team) {
       if (!team || team.length === 0) return null; // Handle empty team case
@@ -1492,6 +1500,10 @@ io.on('connection', (socket) => {
         const currentUserData = userRows[0];
         const finalProfilePic = currentUserData.profile_picture || DEFAULT_PROFILE_PICTURE;
 
+        // --- DEBUGGING: Log player data being processed ---
+        console.log(`[Confirm Debug - ${lobbyId}] Processing Player ID: ${pData.id}, UserID: ${pData.user_id}, Name: ${currentUserData.username}, Team from pData: ${pData.team}`);
+        // --- END DEBUGGING ---
+
         // Update the players table
         await db.query(
           'UPDATE players SET lobby_id = ?, team = ?, name = ?, profile_picture = ?, socket_id = ? WHERE id = ?',
@@ -1527,6 +1539,12 @@ io.on('connection', (socket) => {
           if (p.team === 'team1') lobbies[lobbyId].teams.team1.push(p);
           else if (p.team === 'team2') lobbies[lobbyId].teams.team2.push(p);
       });
+
+      // --- DEBUGGING: Log final reconstructed teams in memory ---
+      console.log(`[Confirm Debug - ${lobbyId}] Final reconstructed teams in memory:`);
+      console.log(`  Team1 (${lobbies[lobbyId].teams.team1.length} players):`, JSON.stringify(lobbies[lobbyId].teams.team1.map(p => ({id: p.id, name: p.name, team: p.team})), null, 2));
+      console.log(`  Team2 (${lobbies[lobbyId].teams.team2.length} players):`, JSON.stringify(lobbies[lobbyId].teams.team2.map(p => ({id: p.id, name: p.name, team: p.team})), null, 2));
+      // --- END DEBUGGING ---
 
       console.log(`[Match Ready] Database updated and memory cache populated for lobby ${lobbyId} with ${updatedPlayersForMemory.length} players.`);
 
