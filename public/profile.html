@@ -338,24 +338,24 @@
       document.getElementById('leavePreLobbyBtn').style.display = 'inline-block';
     });
 
-    socket.on('preLobbyUpdated', ({ inviteCode, players }) => {
+    socket.on('preLobbyUpdated', ({ inviteCode, players, leaderUserId }) => {
       if (inviteCode !== currentLobbyCode) return;
-      updatePlayerList(players);
+      updatePlayerList(players, leaderUserId); // Pass leaderUserId
     });
 
-    socket.on('preLobbyPlayers', ({ inviteCode, players }) => {
+    socket.on('preLobbyPlayers', ({ inviteCode, players, leaderUserId }) => {
       if (inviteCode === currentLobbyCode) {
-        updatePlayerList(players);
+        updatePlayerList(players, leaderUserId); // Pass leaderUserId
       }
     });
 
-    socket.on('preLobbyRestored', ({ inviteCode, players }) => {
+    socket.on('preLobbyRestored', ({ inviteCode, players, leaderUserId }) => {
       if (inviteCode === currentLobbyCode) {
         document.querySelector('.lobby-sections').style.display = 'grid';
         document.getElementById('inviteCodeDisplay').textContent = inviteCode;
         document.getElementById('inviteCodeSection').style.display = 'inline-flex';
         maskInviteCode();
-        updatePlayerList(players);
+        updatePlayerList(players, leaderUserId); // Pass leaderUserId
 
         // Show "Leave Lobby" button
         document.getElementById('leavePreLobbyBtn').style.display = 'inline-block';
@@ -426,20 +426,17 @@
     }
 
     // ================================
-    // Update Player List & Leader
+    // Update Player List & Leader Check
     // ================================
-    async function updatePlayerList(players) {
+    async function updatePlayerList(players, leaderUserId) { // Accept leaderUserId
       const container = document.getElementById('preLobbyPlayerList');
       container.innerHTML = '';
 
-      // Assume first is the leader
-      if (players.length > 0) {
-        await checkIfLeader(players[0]);
-      } else {
-        isLobbyLeader = false;
-      }
+      // Check leadership based on server-provided ID
+      await checkIfLeader(leaderUserId);
 
       players.forEach((p, idx) => {
+        const isCurrentLeader = (p.id === leaderUserId); // Check if this player is the leader
         const row = document.createElement('div');
         row.className = 'player-item';
         row.style.display = 'flex';
@@ -455,7 +452,8 @@
         pic.style.marginRight = '10px';
 
         const infoDiv = document.createElement('div');
-        let leaderSuffix = (idx === 0) ? ' (Leader)' : '';
+        // Use the isCurrentLeader flag determined above
+        let leaderSuffix = isCurrentLeader ? ' (Leader)' : '';
         infoDiv.innerHTML = `
           <div class="player-name" style="font-weight:bold;">${p.username}${leaderSuffix}</div>
           <div class="player-elo">ELO: ${p.skill || 'Unrated'}</div>
@@ -485,17 +483,25 @@
       });
     }
 
-    // More robust leader check using server-provided user ID
-    async function checkIfLeader(firstPlayer) {
+    // Leader check using server-provided leaderUserId
+    async function checkIfLeader(expectedLeaderUserId) { // Use expectedLeaderUserId
       try {
-        const meRes = await fetch('/user/session', {credentials: 'include'});
-        const {userId} = await meRes.json();
-        
-        // Compare by server-provided user ID instead of email/steamID
-        isLobbyLeader = (userId === firstPlayer.id);
-        
+        // Fetch current user's ID (assuming /user/info is correct endpoint)
+        const meRes = await fetch('/user/info', {credentials: 'include'});
+        if (!meRes.ok) throw new Error(`Failed to fetch user info: ${meRes.status}`);
+        const { id: myUserId } = await meRes.json(); // Get current user's ID
+
+        if (expectedLeaderUserId === undefined) {
+           console.warn('checkIfLeader called without expectedLeaderUserId. Assuming not leader.');
+           isLobbyLeader = false;
+        } else {
+           // Compare my ID with the ID the server says is the leader
+           isLobbyLeader = (myUserId === expectedLeaderUserId);
+        }
+
+        // Update button state based on the check
         startMatchmakingBtn.disabled = !isLobbyLeader;
-        startMatchmakingBtn.textContent = isLobbyLeader 
+        startMatchmakingBtn.textContent = isLobbyLeader
           ? 'Start Matchmaking' 
           : 'Waiting for Leader...';
       } catch (err) {

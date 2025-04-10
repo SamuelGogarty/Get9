@@ -523,20 +523,30 @@ function leavePreLobbyInternal(inviteCode, socketId, kicked = false) {
     }
 
     // if the leader left
-    if (preLobby.leader === socketId) {
+    if (preLobby.leaderSocketId === socketId) { // Check against leaderSocketId
       if (preLobby.players.length > 0) {
-        preLobby.leader = preLobby.players[0].socketId;
+        // Assign the *next* player (now the first) as the new leader
+        const newLeader = preLobby.players[0];
+        preLobby.leaderSocketId = newLeader.socketId;
+        preLobby.leaderUserId = newLeader.id; // <-- IMPORTANT: Update leaderUserId
+        console.log(`[PreLobby ${inviteCode}] Leader left. New leader assigned: User ID ${newLeader.id}, Socket ID ${newLeader.socketId}`);
       } else {
+        // Lobby is empty, delete it
+        console.log(`[PreLobby ${inviteCode}] Leader left. Lobby is now empty and will be deleted.`);
         delete preLobbies[inviteCode];
-        return;
+        // No need to broadcast update if lobby is deleted
+        return; // Exit early
       }
     }
 
-    // broadcast updated list
-    io.to(`preLobby_${inviteCode}`).emit('preLobbyUpdated', {
-      inviteCode,
-      players: preLobby.players
-    });
+    // broadcast updated list (only if lobby still exists)
+    if (preLobbies[inviteCode]) {
+      io.to(`preLobby_${inviteCode}`).emit('preLobbyUpdated', {
+        inviteCode,
+        players: preLobby.players,
+        leaderUserId: preLobby.leaderUserId // Include leader ID
+      });
+    }
   }
 }
 
@@ -993,10 +1003,11 @@ io.on('connection', (socket) => {
     // Leader ID is already set above (leaderUserId)
 
     socket.join(`preLobby_${inviteCode}`);
-    socket.emit('preLobbyCreated', { inviteCode });
+    socket.emit('preLobbyCreated', { inviteCode }); // Client knows it's leader here
     io.to(`preLobby_${inviteCode}`).emit('preLobbyUpdated', {
       inviteCode,
-      players: preLobbies[inviteCode].players
+      players: preLobbies[inviteCode].players,
+      leaderUserId: preLobbies[inviteCode].leaderUserId // Include leader ID
     });
   });
 
@@ -1046,11 +1057,13 @@ io.on('connection', (socket) => {
 
     socket.emit('preLobbyJoined', {
       inviteCode,
-      players: preLobby.players
-    });
-    io.to(`preLobby_${inviteCode}`).emit('preLobbyUpdated', {
       inviteCode,
       players: preLobby.players
+    }); // Client knows it's not leader here
+    io.to(`preLobby_${inviteCode}`).emit('preLobbyUpdated', {
+      inviteCode,
+      players: preLobby.players,
+      leaderUserId: preLobby.leaderUserId // Include leader ID
     });
   });
 
@@ -1063,7 +1076,8 @@ io.on('connection', (socket) => {
     }
     socket.emit('preLobbyPlayers', {
       inviteCode,
-      players: preLobby.players
+      players: preLobby.players,
+      leaderUserId: preLobby.leaderUserId // Include leader ID
     });
   });
 
@@ -1077,7 +1091,8 @@ io.on('connection', (socket) => {
     socket.join(`preLobby_${inviteCode}`);
     socket.emit('preLobbyRestored', {
       inviteCode,
-      players: preLobby.players
+      players: preLobby.players,
+      leaderUserId: preLobby.leaderUserId // Include leader ID
     });
   });
 
