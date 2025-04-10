@@ -698,10 +698,19 @@ async function checkQueueAndFormLobby(matchmakingQueue, db) {
     const checkId = lobbyId; // Use the potential lobbyId as the check ID
     const playersForCheck = {};
     lobbyPlayers.forEach(p => {
-      playersForCheck[p.socket_id] = { // Use socket_id as the key within the check
+      playersForCheck[p.socket_id] = { // Use socket_id as the key
         accepted: false,
-        userId: p.user_id || p.id, // Store user ID for potential re-queue
-        playerData: p // Store the full player data temporarily
+        userId: p.user_id, // Store user ID (from players table FK)
+        playerData: { // Store a *clean* subset of data needed later
+            id: p.id,                 // players table PK
+            user_id: p.user_id,       // users table FK
+            team: p.team,             // Assigned team
+            socket_id: p.socket_id,   // Socket ID at time of check start
+            name: p.name,             // Name from players table (might be stale)
+            steam_id: p.steam_id,     // Steam ID from users table (might be null)
+            // profile_picture: p.profile_picture // Don't store stale pic here
+            // Add captain flag if needed later: captain: p.captain
+        }
       };
     });
 
@@ -1432,58 +1441,97 @@ io.on('connection', (socket) => {
     if (!check) return; // Should not happen, but safety check
 
     const lobbyId = check.lobbyId;
-    const lobbyPlayers = Object.values(check.players).map(p => p.playerData); // Get the stored player data
+    // Get the *cleaned* playerData for accepted players
+    const acceptedPlayersData = Object.values(check.players).map(p => p.playerData);
 
-    // Create the actual lobby entry
+    // Create the actual lobby entry in memory - initialize players/teams empty
     lobbies[lobbyId] = {
-      players: lobbyPlayers,
-      teams: check.teams,
+      players: [], // Initialize empty, will be populated after DB updates
+      teams: { team1: [], team2: [] }, // Initialize empty
       availableMaps: check.availableMaps,
       bannedMaps: [],
-      turn: 'team1', // Start map ban phase
-      teamCaptains: check.captains,
+      turn: 'team1',
+      teamCaptains: check.captains, // Use captains stored in check
       serverCreated: false,
-      createdAt: check.createdAt || Date.now() // Use stored time or now
+      createdAt: check.createdAt || Date.now()
     };
 
-    // Update database: Assign lobby_id and team
     let db;
+    const updatedPlayersForMemory = []; // Store successfully updated players for memory cache
+
     try {
       db = await mysql.createConnection(dbConfigMatchmaking);
-      for (const pData of lobbyPlayers) {
-        // Get fresh user data from users table
-        const [user] = await db.query(
+      for (const pData of acceptedPlayersData) { // Iterate the cleaned data
+        // Get fresh user data (username, profile_picture)
+        const [userRows] = await db.query(
           'SELECT username, profile_picture FROM users WHERE id = ?',
-          [pData.user_id]
+          [pData.user_id] // Use user_id from the cleaned pData
         );
-        
+
+        if (!userRows || userRows.length === 0) {
+          console.error(`[Match Ready] CRITICAL: User not found in 'users' table for user_id ${pData.user_id} (player.id ${pData.id}) during lobby ${lobbyId} confirmation. Skipping update.`);
+          continue; // Skip this player
+        }
+        const currentUserData = userRows[0];
+        const finalProfilePic = currentUserData.profile_picture || DEFAULT_PROFILE_PICTURE;
+
+        // Update the players table
         await db.query(
-          'UPDATE players SET ' +
-          'lobby_id = ?, team = ?, name = ?, profile_picture = ? ' +
-          'WHERE id = ?',
-          [
+          'UPDATE players SET lobby_id = ?, team = ?, name = ?, profile_picture = ?, socket_id = ? WHERE id = ?',
             lobbyId,
             pData.team,
-            user[0].username,
-            user[0].profile_picture || DEFAULT_PROFILE_PICTURE, // Use default if null
-            pData.id
+            currentUserData.username, // Use fresh username
+            finalProfilePic,          // Use fresh or default picture
+            pData.socket_id,          // Use socket_id from check start (will be updated on join)
+            pData.id                  // Use players table PK from cleaned pData
           ]
         );
-      }
-      console.log(`[Match Ready] Database updated for lobby ${lobbyId}.`);
+
+        // Add successfully updated player info to list for memory cache
+        updatedPlayersForMemory.push({
+            id: pData.id,
+            user_id: pData.user_id,
+            lobby_id: lobbyId,
+            team: pData.team,
+            name: currentUserData.username, // Use the updated name
+            profile_picture: finalProfilePic, // Use the updated picture
+            socket_id: pData.socket_id, // Initial socket_id
+            steam_id: pData.steam_id, // Include steam_id if available
+            // Add other fields if needed by joinLobby/lobbyReady (e.g., captain status)
+        });
+
+      } // end for loop
+
+      // Update the in-memory lobby object *after* successful DB updates
+      lobbies[lobbyId].players = updatedPlayersForMemory;
+      // Reconstruct teams in memory based on updated data
+      updatedPlayersForMemory.forEach(p => {
+          if (p.team === 'team1') lobbies[lobbyId].teams.team1.push(p);
+          else if (p.team === 'team2') lobbies[lobbyId].teams.team2.push(p);
+      });
+
+      console.log(`[Match Ready] Database updated and memory cache populated for lobby ${lobbyId} with ${updatedPlayersForMemory.length} players.`);
+
     } catch (dbError) {
-      console.error(`[Match Ready] Error updating database for confirmed lobby ${lobbyId}:`, dbError);
-      // Handle potential DB error - maybe try to rollback or notify players?
+      console.error(`[Match Ready] Error updating database/populating memory for confirmed lobby ${lobbyId}:`, dbError);
+      // Consider cleanup or error notification
+      delete lobbies[lobbyId]; // Clear potentially inconsistent memory state
+      // Notify players of failure?
+      Object.keys(check.players).forEach(sid => {
+         io.to(sid).emit('matchReadyCheckFailed', { reason: 'Internal server error confirming match.' });
+      });
+      return; // Stop execution here
     } finally {
       if (db) await db.end();
     }
 
-    // Notify players that the match is confirmed and redirect to lobby page
+    // Notify players ONLY if DB updates were successful
     Object.keys(check.players).forEach(sid => {
-      io.to(sid).emit('matchReadyConfirmed'); // Client handles redirect on this event
+      // Send the lobbyId with the confirmation event
+      io.to(sid).emit('matchReadyConfirmed', { lobbyId: lobbyId });
     });
 
-    // Start the map ban countdown for the newly created lobby
+    // Start the map ban countdown
     startCountdown(lobbyId, 'team1');
   }
 

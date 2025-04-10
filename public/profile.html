@@ -747,17 +747,19 @@
    });
 
    // Listen for confirmation that all players are ready
-   socket.on('matchReadyConfirmed', () => {
-     console.log('All players ready! Redirecting to lobby.');
+   socket.on('matchReadyConfirmed', ({ lobbyId }) => { // Destructure lobbyId
+     console.log(`All players ready! Redirecting to lobby ${lobbyId}.`);
      readyCheckStatus.textContent = 'Match starting!';
      // Redirect after a short delay
      setTimeout(() => {
-       if (expectedLobbyUrl) {
-         window.location.href = expectedLobbyUrl;
+       if (lobbyId) { // Use the received lobbyId
+         // Construct the URL correctly
+         window.location.href = `/lobby.html?lobbyId=${lobbyId}`;
        } else {
-         console.error("Lobby URL was lost before redirect.");
+         console.error("Lobby ID was not received on confirmation.");
          // Fallback or error message
-         window.location.href = '/lobby.html'; // Attempt fallback
+         alert("Error starting match. Lobby ID missing.");
+         // window.location.href = '/profile.html'; // Stay on profile page?
        }
        hideMatchReadyPopup(); // Hide just in case redirect fails
      }, 500); // 0.5 second delay
