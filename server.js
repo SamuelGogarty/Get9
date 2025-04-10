@@ -745,6 +745,37 @@ async function checkQueueAndFormLobby(matchmakingQueue, db) {
 }
 
 // -----------------------------------------------------------------------
+// MATCH READY CHECK TIMEOUT HANDLER
+// -----------------------------------------------------------------------
+async function handleMatchReadyTimeout(checkId) {
+  const check = matchReadyChecks[checkId];
+  if (!check) return; // Already handled or cleaned up
+
+  console.log(`[Match Ready] Check ${checkId} timed out.`);
+
+  // Notify all players in the check about the failure
+  Object.keys(check.players).forEach(sid => {
+    io.to(sid).emit('matchReadyCheckFailed', { reason: 'Match timed out. Not all players accepted.' });
+  });
+
+  // Clean up the check entry
+  delete matchReadyChecks[checkId];
+  
+  // Ensure players are properly removed from queue if they haven't been already
+  try {
+    const db = await mysql.createConnection(dbConfigMatchmaking);
+    const playerIds = Object.values(check.players).map(p => p.playerData.id);
+    if (playerIds.length > 0) {
+      await db.query('DELETE FROM queue WHERE player_id IN (?)', [playerIds]);
+      console.log(`[Match Ready] Cleaned up ${playerIds.length} players from queue after timeout.`);
+    }
+    await db.end();
+  } catch (error) {
+    console.error('[Match Ready] Error cleaning up queue after timeout:', error);
+  }
+}
+
+// -----------------------------------------------------------------------
 // SOCKET.IO
 // -----------------------------------------------------------------------
 io.on('connection', (socket) => {
@@ -1440,33 +1471,7 @@ io.on('connection', (socket) => {
     startCountdown(lobbyId, 'team1');
   }
 
-  async function handleMatchReadyTimeout(checkId) {
-    const check = matchReadyChecks[checkId];
-    if (!check) return; // Already handled or cleaned up
-
-    console.log(`[Match Ready] Check ${checkId} timed out.`);
-
-    // Notify all players in the check about the failure
-    Object.keys(check.players).forEach(sid => {
-      io.to(sid).emit('matchReadyCheckFailed', { reason: 'Match timed out. Not all players accepted.' });
-    });
-
-    // Clean up the check entry
-    delete matchReadyChecks[checkId];
-    
-    // Ensure players are properly removed from queue if they haven't been already
-    try {
-      const db = await mysql.createConnection(dbConfigMatchmaking);
-      const playerIds = Object.values(check.players).map(p => p.playerData.id);
-      if (playerIds.length > 0) {
-        await db.query('DELETE FROM queue WHERE player_id IN (?)', [playerIds]);
-        console.log(`[Match Ready] Cleaned up ${playerIds.length} players from queue after timeout.`);
-      }
-      await db.end();
-    } catch (error) {
-      console.error('[Match Ready] Error cleaning up queue after timeout:', error);
-    }
-  }
+  // handleMatchReadyTimeout moved to outer scope
 
   async function handleMatchReadyDisconnect(socketId) {
       const checkId = Object.keys(matchReadyChecks).find(id => matchReadyChecks[id].players[socketId]);
