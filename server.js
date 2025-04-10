@@ -1534,11 +1534,29 @@ io.on('connection', (socket) => {
 
       // Update the in-memory lobby object *after* successful DB updates
       lobbies[lobbyId].players = updatedPlayersForMemory;
-      // Reconstruct teams in memory based on updated data
-      updatedPlayersForMemory.forEach(p => {
-          if (p.team === 'team1') lobbies[lobbyId].teams.team1.push(p);
-          else if (p.team === 'team2') lobbies[lobbyId].teams.team2.push(p);
-      });
+      
+      // Clear existing teams
+      lobbies[lobbyId].teams.team1 = [];
+      lobbies[lobbyId].teams.team2 = [];
+
+      // Check for 1v1 solo case
+      const isSolo1v1 = updatedPlayersForMemory.length === 2 && 
+                       updatedPlayersForMemory.every(p => !p.group_id || p.group_id.startsWith('solo_'));
+
+      if (isSolo1v1) {
+          // Direct 1v1 assignment
+          updatedPlayersForMemory[0].team = 'team1';
+          updatedPlayersForMemory[1].team = 'team2';
+          lobbies[lobbyId].teams.team1.push(updatedPlayersForMemory[0]);
+          lobbies[lobbyId].teams.team2.push(updatedPlayersForMemory[1]);
+          console.log(`[Confirm Debug - ${lobbyId}] Assigned 1v1 solo players to opposing teams`);
+      } else {
+          // Existing group-based assignment
+          updatedPlayersForMemory.forEach(p => {
+              if (p.team === 'team1') lobbies[lobbyId].teams.team1.push(p);
+              else if (p.team === 'team2') lobbies[lobbyId].teams.team2.push(p);
+          });
+      }
 
       // --- DEBUGGING: Log final reconstructed teams in memory ---
       console.log(`[Confirm Debug - ${lobbyId}] Final reconstructed teams in memory:`);
