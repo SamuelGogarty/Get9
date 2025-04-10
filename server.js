@@ -1504,16 +1504,15 @@ io.on('connection', (socket) => {
         console.log(`[Confirm Debug - ${lobbyId}] Processing Player ID: ${pData.id}, UserID: ${pData.user_id}, Name: ${currentUserData.username}, Team from pData: ${pData.team}`);
         // --- END DEBUGGING ---
 
-        // Update the players table
+        // Update the players table (removed captain field)
         await db.query(
-          'UPDATE players SET lobby_id = ?, team = ?, name = ?, profile_picture = ?, socket_id = ?, captain = ? WHERE id = ?',
+          'UPDATE players SET lobby_id = ?, team = ?, name = ?, profile_picture = ?, socket_id = ? WHERE id = ?',
           [ // Wrap parameters in an array
             lobbyId,
             pData.team,
             currentUserData.username, // Use fresh username
             finalProfilePic,          // Use fresh or default picture
             pData.socket_id,          // Use socket_id from check start (will be updated on join)
-            0,                        // Initialize captain as false (will be updated after team assignment)
             pData.id                  // Use players table PK from cleaned pData
           ]
         );
@@ -1618,17 +1617,6 @@ io.on('connection', (socket) => {
       return; // Stop execution here
     } finally {
       if (db) await db.end();
-    }
-
-    // Update captain status in database after assignment
-    for (const player of updatedPlayersForMemory) {
-      if (player.captain) {
-        await db.query(
-          'UPDATE players SET captain = ? WHERE id = ?',
-          [1, player.id]
-        );
-        console.log(`[Captain DB Update] Set player ${player.name} (ID: ${player.id}) as captain`);
-      }
     }
 
     // Notify players ONLY if DB updates were successful
