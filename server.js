@@ -979,13 +979,18 @@ io.on('connection', (socket) => {
     });
     if (!existingPlayer) {
       user.socketId = socket.id;
-      preLobbies[inviteCode].players.push(user);
+      // Ensure user object includes the id when pushed
+      preLobbies[inviteCode].players.push({ ...user, socketId: socket.id });
     } else {
+      // Update socketId and potentially other details if user re-creates
       existingPlayer.socketId = socket.id;
+      existingPlayer.id = user.id; // Ensure ID is up-to-date
+      existingPlayer.username = user.username;
+      existingPlayer.profilePictureUrl = user.profilePictureUrl;
     }
 
     userPreLobbyMap[socket.id] = inviteCode;
-    preLobbies[inviteCode].leader = socket.id;
+    // Leader ID is already set above (leaderUserId)
 
     socket.join(`preLobby_${inviteCode}`);
     socket.emit('preLobbyCreated', { inviteCode });
@@ -1028,9 +1033,12 @@ io.on('connection', (socket) => {
     });
     if (!existingPlayer) {
       user.socketId = socket.id;
-      preLobby.players.push(user);
+      // Ensure user object includes the id when pushed
+      preLobby.players.push({ ...user, socketId: socket.id });
     } else {
+      // Update socketId if user rejoins
       existingPlayer.socketId = socket.id;
+      existingPlayer.id = user.id; // Ensure ID is up-to-date
     }
 
     userPreLobbyMap[socket.id] = inviteCode;
