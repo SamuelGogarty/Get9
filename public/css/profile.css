@@ -807,7 +807,7 @@ nav li a:hover {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* Ensure it's on top */
+  z-index: 9999; /* Increased to ensure it's on top of everything */
 }
 
 .vgui-popup {
@@ -816,6 +816,7 @@ nav li a:hover {
   max-width: 90%;
   position: relative; /* Ensure positioning context for children */
   box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  z-index: 10000; /* Higher than overlay to ensure visibility */
 }
 
 .vgui-popup .content {
@@ -857,6 +858,11 @@ nav li a:hover {
   min-width: 120px;
   text-align: center; /* Center text in button */
   margin-top: 10px;
+}
+
+.accept-button.accepted {
+  background-color: #4CAF50 !important; /* Green background for accepted state */
+  border-color: #45a049 !important;
 }
 
 .status-text {

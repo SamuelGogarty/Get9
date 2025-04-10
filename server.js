@@ -731,11 +731,14 @@ async function checkQueueAndFormLobby(matchmakingQueue, db) {
 
     console.log(`[Match Ready] Initiating check ${checkId} for ${requiredPlayers} players.`);
 
-    // Emit event to all players in the check to show the popup
+    // Emit dedicated event to all players in the check to show the popup
     const socketIds = Object.keys(playersForCheck);
     socketIds.forEach(sid => {
-      // Using 'redirect' event as planned on client, but could be a new event name
-      io.to(sid).emit('redirect', '/lobby.html'); // Client interprets this as "show popup"
+      // Using dedicated event for match ready check
+      io.to(sid).emit('matchReadyCheckInitiated', {
+        checkId,
+        totalPlayers: requiredPlayers
+      });
     });
     // --- END MATCH READY CHECK ---
   }
@@ -1448,16 +1451,21 @@ io.on('connection', (socket) => {
       io.to(sid).emit('matchReadyCheckFailed', { reason: 'Match timed out. Not all players accepted.' });
     });
 
-    // Re-queue players who *did* accept (optional, depends on desired logic)
-    // For simplicity now, we just fail the match formation.
-    // If re-queuing: Need to add players back to the 'queue' table.
-    // const acceptedPlayers = Object.values(check.players).filter(p => p.accepted);
-    // if (acceptedPlayers.length > 0) {
-    //   // Add logic to re-insert acceptedPlayers into the queue table
-    // }
-
     // Clean up the check entry
     delete matchReadyChecks[checkId];
+    
+    // Ensure players are properly removed from queue if they haven't been already
+    try {
+      const db = await mysql.createConnection(dbConfigMatchmaking);
+      const playerIds = Object.values(check.players).map(p => p.playerData.id);
+      if (playerIds.length > 0) {
+        await db.query('DELETE FROM queue WHERE player_id IN (?)', [playerIds]);
+        console.log(`[Match Ready] Cleaned up ${playerIds.length} players from queue after timeout.`);
+      }
+      await db.end();
+    } catch (error) {
+      console.error('[Match Ready] Error cleaning up queue after timeout:', error);
+    }
   }
 
   async function handleMatchReadyDisconnect(socketId) {

@@ -281,6 +281,21 @@
         window.location.href = url;
       }
     });
+    
+    // Dedicated event for match ready check
+    socket.on('matchReadyCheckInitiated', ({ checkId, totalPlayers }) => {
+      console.log(`Match ready check initiated: ${checkId} with ${totalPlayers} players`);
+      hideQueueProgress();
+      hideCancelSearchButton();
+      showMatchReadyPopup();
+      
+      // Ensure we have the right number of indicator boxes
+      const indicators = document.getElementById('readyCheckIndicators');
+      // Only regenerate if needed (if not exactly totalPlayers boxes)
+      if (indicators.querySelectorAll('.indicator-box').length !== totalPlayers) {
+        indicators.innerHTML = Array(totalPlayers).fill('<div class="indicator-box"></div>').join('');
+      }
+    });
  
     // Event for SOLO queue confirmation
     socket.on('queued', () => {
@@ -639,12 +654,17 @@
      // Reset UI
      acceptMatchBtn.disabled = false;
      acceptMatchBtn.textContent = 'Accept';
+     acceptMatchBtn.classList.remove('accepted'); // Remove accepted styling
      readyCheckStatus.textContent = '';
-     // Reset indicators (assuming 10 boxes)
+     
+     // Reset indicators
      const indicators = readyCheckIndicators.querySelectorAll('.indicator-box');
      indicators.forEach(box => box.classList.remove('accepted'));
 
+     // Ensure the overlay is visible
      matchReadyOverlay.style.display = 'flex';
+     
+     console.log('Ready check popup displayed');
    }
 
    function hideMatchReadyPopup() {
@@ -657,6 +677,7 @@
      socket.emit('confirmMatchReady');
      acceptMatchBtn.disabled = true;
      acceptMatchBtn.textContent = 'Accepted';
+     acceptMatchBtn.classList.add('accepted'); // Add visual feedback class
      readyCheckStatus.textContent = 'Waiting for others...';
    });
 
@@ -664,20 +685,30 @@
    socket.on('matchReadyCheckUpdate', ({ acceptedCount, totalPlayers }) => {
      console.log(`Ready check update: ${acceptedCount}/${totalPlayers}`);
      const indicators = readyCheckIndicators.querySelectorAll('.indicator-box');
-     // Ensure we don't try to update more indicators than exist (should be 10)
-     const countToShow = Math.min(acceptedCount, indicators.length);
-     indicators.forEach((box, index) => {
-       if (index < countToShow) {
-         box.classList.add('accepted');
-       } else {
-         // This might not be needed if we reset properly, but good practice
-         box.classList.remove('accepted');
+     
+     // Ensure we have the right number of indicators
+     if (indicators.length !== totalPlayers) {
+       readyCheckIndicators.innerHTML = Array(totalPlayers).fill('<div class="indicator-box"></div>').join('');
+       // Re-query after regenerating
+       const newIndicators = readyCheckIndicators.querySelectorAll('.indicator-box');
+       for (let i = 0; i < acceptedCount; i++) {
+         if (i < newIndicators.length) {
+           newIndicators[i].classList.add('accepted');
+         }
        }
-     });
-     // Update status text if needed
-     if (document.getElementById('acceptMatchBtn').disabled) { // Only if *I* have accepted
-        readyCheckStatus.textContent = `Waiting for others... (${acceptedCount}/${totalPlayers})`;
+     } else {
+       // Update existing indicators
+       indicators.forEach((box, index) => {
+         if (index < acceptedCount) {
+           box.classList.add('accepted');
+         } else {
+           box.classList.remove('accepted');
+         }
+       });
      }
+     
+     // Always update status text with current count
+     readyCheckStatus.textContent = `Waiting for others... (${acceptedCount}/${totalPlayers})`;
    });
 
    // Listen for confirmation that all players are ready
