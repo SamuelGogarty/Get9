@@ -342,6 +342,18 @@ main {
   outline-offset: -4px;
 }
 
+/* Discord Button Style */
+.discord-button {
+  background-color: #5865F2 !important; /* Discord Purple */
+  color: white !important;
+  text-decoration: none;
+  display: inline-block; /* Make it behave like a button */
+  margin-left: 10px; /* Add some space */
+}
+.discord-button:hover {
+  background-color: #4752C4 !important; /* Darker purple on hover */
+}
+
 /* Chat section styling matching new_home */
 .member-list-container .content,
 .chat-container .content {
