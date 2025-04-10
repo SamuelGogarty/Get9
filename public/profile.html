@@ -330,7 +330,7 @@
       document.getElementById('inviteCodeSection').style.display = 'inline-flex';
 
       maskInviteCode();
-      updatePlayerList(players);
+      // updatePlayerList(players); // Removed: Rely on preLobbyUpdated event instead
 
       // NEW: Show "Leave Lobby" button
       document.getElementById('leavePreLobbyBtn').style.display = 'inline-block';
