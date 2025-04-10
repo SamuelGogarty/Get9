@@ -1478,6 +1478,7 @@ io.on('connection', (socket) => {
         // Update the players table
         await db.query(
           'UPDATE players SET lobby_id = ?, team = ?, name = ?, profile_picture = ?, socket_id = ? WHERE id = ?',
+          [ // Wrap parameters in an array
             lobbyId,
             pData.team,
             currentUserData.username, // Use fresh username
