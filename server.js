@@ -1569,15 +1569,20 @@ io.on('connection', (socket) => {
       function designateCaptain(team) {
         if (!team || team.length === 0) return null;
         
-        // First check config captains
-        const configCaptain = team.find(p => {
+        // First check for any configured captains in the team
+        const configCaptains = team.filter(p => {
           const sid = p.steam_id;
           return (sid && captainConfig.steamIds.includes(sid)) || 
-                (p.email && captainConfig.emails.includes(p.email));
+                 (p.email && captainConfig.emails.includes(p.email));
         });
-        
-        // Then use first player as fallback
-        return configCaptain || team[0];
+
+        // If we found config captains, pick one randomly
+        if (configCaptains.length > 0) {
+          return configCaptains[Math.floor(Math.random() * configCaptains.length)];
+        }
+
+        // If no configured captains, pick random team member
+        return team[Math.floor(Math.random() * team.length)];
       }
 
       const captainTeam1 = designateCaptain(lobbies[lobbyId].teams.team1);
