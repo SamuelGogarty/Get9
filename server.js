@@ -951,13 +951,24 @@ io.on('connection', (socket) => {
       return;
     }
 
+    // Ensure user has a database ID
+    if (!user.id) {
+        socket.emit('error', 'Cannot create pre-lobby without user ID.');
+        return;
+    }
+
     if (!preLobbies[inviteCode]) {
       preLobbies[inviteCode] = {
         inviteCode,
-        leader: socket.id,
+        leaderSocketId: socket.id, // Keep original socket id for reference if needed
+        leaderUserId: user.id,   // Store the leader's database ID
         players: [],
         locked: false
       };
+    } else {
+      // Update leader IDs if the lobby exists but leader might be re-creating
+      preLobbies[inviteCode].leaderSocketId = socket.id;
+      preLobbies[inviteCode].leaderUserId = user.id;
     }
 
     // ensure no duplicates if user tries again
@@ -1069,7 +1080,12 @@ io.on('connection', (socket) => {
       socket.emit('error', 'Pre-lobby not found.');
       return;
     }
-    if (preLobby.leader !== socket.id) {
+
+    // Find the user making the request by their current socket.id
+    const requestingPlayer = preLobby.players.find(p => p.socketId === socket.id);
+
+    // Check if the requesting user's database ID matches the stored leader's database ID
+    if (!requestingPlayer || requestingPlayer.id !== preLobby.leaderUserId) {
       socket.emit('error', 'Only the lobby leader can start matchmaking.');
       return;
     }

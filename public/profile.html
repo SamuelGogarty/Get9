@@ -252,6 +252,7 @@
         const userRes = await fetch('/user/info', { credentials: 'include' });
         const user = await userRes.json();
         socket.emit('createPreLobby', {
+          id: user.id, // Add user ID
           username: user.username,
           steamId: user.steamId,
           email: user.email,
@@ -290,6 +291,7 @@
         socket.emit('joinPreLobby', {
           inviteCode: code,
           user: {
+            id: user.id, // Add user ID
             username: user.username,
             steamId: user.steamId,
             email: user.email,
