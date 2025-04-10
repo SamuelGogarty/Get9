@@ -1500,8 +1500,26 @@ io.on('connection', (socket) => {
         const currentUserData = userRows[0];
         const finalProfilePic = currentUserData.profile_picture || DEFAULT_PROFILE_PICTURE;
 
+        // Fetch ELO for this player
+        let playerElo = 0;
+        let dbStats;
+        try {
+            dbStats = await mysql.createConnection(dbConfigStats);
+            // Use pData.steam_id if available, otherwise currentUserData.username (or email if needed)
+            const identifier = pData.steam_id || currentUserData.email || currentUserData.username;
+            const [eloRows] = await dbStats.query(
+                'SELECT skill FROM ultimate_stats WHERE steamid = ? OR name = ?',
+                [identifier, currentUserData.username] // Query by identifier (steam/email) or name
+            );
+            playerElo = eloRows[0]?.skill || 0;
+        } catch (eloError) {
+            console.error(`[Match Ready] Error fetching ELO for player ${pData.id} (User ID: ${pData.user_id}):`, eloError);
+        } finally {
+            if (dbStats) await dbStats.end();
+        }
+
         // --- DEBUGGING: Log player data being processed ---
-        console.log(`[Confirm Debug - ${lobbyId}] Processing Player ID: ${pData.id}, UserID: ${pData.user_id}, Name: ${currentUserData.username}, Team from pData: ${pData.team}`);
+        console.log(`[Confirm Debug - ${lobbyId}] Processing Player ID: ${pData.id}, UserID: ${pData.user_id}, Name: ${currentUserData.username}, Team from pData: ${pData.team}, Fetched ELO: ${playerElo}`);
         // --- END DEBUGGING ---
 
         // Update the players table (removed captain field)
@@ -1527,6 +1545,7 @@ io.on('connection', (socket) => {
             profile_picture: finalProfilePic, // Use the updated picture
             socket_id: pData.socket_id, // Initial socket_id
             steam_id: pData.steam_id, // Include steam_id if available
+            elo: playerElo // <-- ADDED ELO HERE
             // Add other fields if needed by joinLobby/lobbyReady (e.g., captain status)
         });
 
