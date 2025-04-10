@@ -1089,14 +1089,29 @@ io.on('connection', (socket) => {
       return;
     }
 
+    // --- DEBUGGING ---
+    console.log(`[StartPreLobby] Request from socket: ${socket.id}`);
+    console.log(`[StartPreLobby] Checking lobby: ${inviteCode}`);
+    console.log(`[StartPreLobby] Full preLobby object: ${JSON.stringify(preLobby, null, 2)}`);
+    // --- END DEBUGGING ---
+
     // Find the user making the request by their current socket.id
     const requestingPlayer = preLobby.players.find(p => p.socketId === socket.id);
 
-    // Check if the requesting user's database ID matches the stored leader's database ID
-    if (!requestingPlayer || requestingPlayer.id !== preLobby.leaderUserId) {
+    // Verify the player was found and their ID matches the stored leader ID
+    if (!requestingPlayer) {
+      console.error(`[StartPreLobby Error] Player not found for socket ${socket.id} in lobby ${inviteCode}`);
+      socket.emit('error', 'Could not identify you in the pre-lobby.');
+      return;
+    }
+
+    if (requestingPlayer.id !== preLobby.leaderUserId) {
+      console.error(`[StartPreLobby Error] Requester ID ${requestingPlayer.id} (type: ${typeof requestingPlayer.id}) does not match Leader ID ${preLobby.leaderUserId} (type: ${typeof preLobby.leaderUserId}) for lobby ${inviteCode}`);
       socket.emit('error', 'Only the lobby leader can start matchmaking.');
       return;
     }
+
+    console.log(`[StartPreLobby] Leader check passed for User ID: ${requestingPlayer.id}`);
     preLobby.locked = true;
 
     const groupId = generateUniqueName('group');
