@@ -496,6 +496,12 @@ let banTimers = {};     // for countdown
 let preLobbies = {};
 let userPreLobbyMap = {};
 
+// Structure to track ongoing match ready checks
+// Key: A unique check ID (can be the potential lobbyId)
+// Value: { players: { socketId: { accepted: boolean, userId: number, ...other data } }, timer: NodeJS.Timeout, lobbyId: string, totalPlayers: number }
+let matchReadyChecks = {};
+const MATCH_READY_TIMEOUT = 30000; // 30 seconds for check-in
+
 /**
  * startCountdown: calls autoBan if time runs out
  */
@@ -682,11 +688,29 @@ async function checkQueueAndFormLobby(matchmakingQueue, db) {
     if (captainTeam1) captainTeam1.captain = true;
     if (captainTeam2) captainTeam2.captain = true;
 
-    // store final-lobby info in memory
-    lobbies[lobbyId] = {
-      players: lobbyPlayers, // lobbyPlayers now contains players with correct .team and .captain flags
-      teams: { team1, team2 }, // Use the correctly populated team arrays
-      availableMaps: [
+    // --- START MATCH READY CHECK ---
+    const checkId = lobbyId; // Use the potential lobbyId as the check ID
+    const playersForCheck = {};
+    lobbyPlayers.forEach(p => {
+      playersForCheck[p.socket_id] = { // Use socket_id as the key within the check
+        accepted: false,
+        userId: p.user_id || p.id, // Store user ID for potential re-queue
+        playerData: p // Store the full player data temporarily
+      };
+    });
+
+    matchReadyChecks[checkId] = {
+      players: playersForCheck,
+      lobbyId: lobbyId, // Store the intended lobbyId
+      totalPlayers: requiredPlayers,
+      teams: { team1, team2 }, // Store proposed teams
+      captains: { // Store proposed captains
+        team1: captainTeam1 ? (captainTeam1.user_id || captainTeam1.id) : null,
+        team2: captainTeam2 ? (captainTeam2.user_id || captainTeam2.id) : null
+      },
+      timer: setTimeout(() => handleMatchReadyTimeout(checkId), MATCH_READY_TIMEOUT),
+      // Store other necessary info temporarily if needed
+      availableMaps: [ // Store map pool for when lobby is confirmed
         'de_dust', 'de_dust2', 'de_inferno', 'de_nuke',
         'de_tuscan', 'de_cpl_strike', 'de_prodigy'
       ],
@@ -698,27 +722,22 @@ async function checkQueueAndFormLobby(matchmakingQueue, db) {
         team2: captainTeam2 ? (captainTeam2.user_id || captainTeam2.id) : null
       },
       serverCreated: false,
-      createdAt: Date.now()
+      createdAt: Date.now() // Store creation time for potential cleanup
     };
 
-    // mark DB players as assigned
+    // Remove players from queue immediately, but don't assign lobby_id yet
     const playerIds = lobbyPlayers.map(p => p.id);
-    for (let p of lobbyPlayers) {
-      await db.query(
-        'UPDATE players SET lobby_id = ?, team = ? WHERE id = ?',
-        [lobbyId, p.team, p.id]
-      );
-    }
     await db.query('DELETE FROM queue WHERE player_id IN (?)', [playerIds]);
 
-    // Let them know it's time for map banning
-    io.to(lobbyId).emit('turnChanged', { currentTurn: 'team1' });
+    console.log(`[Match Ready] Initiating check ${checkId} for ${requiredPlayers} players.`);
 
-    // redirect each occupant to /lobby
-    const socketIds = lobbyPlayers.map(p => p.socket_id);
+    // Emit event to all players in the check to show the popup
+    const socketIds = Object.keys(playersForCheck);
     socketIds.forEach(sid => {
-      io.to(sid).emit('redirect', `/lobby.html?lobbyId=${lobbyId}`);
+      // Using 'redirect' event as planned on client, but could be a new event name
+      io.to(sid).emit('redirect', '/lobby.html'); // Client interprets this as "show popup"
     });
+    // --- END MATCH READY CHECK ---
   }
 }
 
@@ -1337,9 +1356,139 @@ io.on('connection', (socket) => {
     });
   });
 
+  // ================================
+  // MATCH READY CHECK-IN HANDLERS
+  // ================================
+  socket.on('confirmMatchReady', async () => {
+    const checkId = Object.keys(matchReadyChecks).find(id => matchReadyChecks[id].players[socket.id]);
+    if (!checkId || !matchReadyChecks[checkId]) {
+      console.warn(`[Match Ready] Received confirmMatchReady from socket ${socket.id} but no active check found.`);
+      return;
+    }
+
+    const check = matchReadyChecks[checkId];
+    if (check.players[socket.id]) {
+      check.players[socket.id].accepted = true;
+      console.log(`[Match Ready] Player ${check.players[socket.id].userId} (socket ${socket.id}) accepted check ${checkId}.`);
+
+      const acceptedCount = Object.values(check.players).filter(p => p.accepted).length;
+
+      // Broadcast update
+      Object.keys(check.players).forEach(sid => {
+        io.to(sid).emit('matchReadyCheckUpdate', {
+          acceptedCount,
+          totalPlayers: check.totalPlayers
+        });
+      });
+
+      // Check if all accepted
+      if (acceptedCount === check.totalPlayers) {
+        console.log(`[Match Ready] All players accepted for check ${checkId}. Confirming match.`);
+        clearTimeout(check.timer); // Stop the timeout timer
+        await confirmMatchFormation(checkId); // Finalize lobby creation
+        delete matchReadyChecks[checkId]; // Clean up the check entry
+      }
+    }
+  });
+
+  async function confirmMatchFormation(checkId) {
+    const check = matchReadyChecks[checkId];
+    if (!check) return; // Should not happen, but safety check
+
+    const lobbyId = check.lobbyId;
+    const lobbyPlayers = Object.values(check.players).map(p => p.playerData); // Get the stored player data
+
+    // Create the actual lobby entry
+    lobbies[lobbyId] = {
+      players: lobbyPlayers,
+      teams: check.teams,
+      availableMaps: check.availableMaps,
+      bannedMaps: [],
+      turn: 'team1', // Start map ban phase
+      teamCaptains: check.captains,
+      serverCreated: false,
+      createdAt: check.createdAt || Date.now() // Use stored time or now
+    };
+
+    // Update database: Assign lobby_id and team
+    let db;
+    try {
+      db = await mysql.createConnection(dbConfigMatchmaking);
+      for (const player of lobbyPlayers) {
+        await db.query(
+          'UPDATE players SET lobby_id = ?, team = ? WHERE id = ?',
+          [lobbyId, player.team, player.id] // player.team should be set during check creation
+        );
+      }
+      console.log(`[Match Ready] Database updated for lobby ${lobbyId}.`);
+    } catch (dbError) {
+      console.error(`[Match Ready] Error updating database for confirmed lobby ${lobbyId}:`, dbError);
+      // Handle potential DB error - maybe try to rollback or notify players?
+    } finally {
+      if (db) await db.end();
+    }
+
+    // Notify players that the match is confirmed and redirect to lobby page
+    Object.keys(check.players).forEach(sid => {
+      io.to(sid).emit('matchReadyConfirmed'); // Client handles redirect on this event
+    });
+
+    // Start the map ban countdown for the newly created lobby
+    startCountdown(lobbyId, 'team1');
+  }
+
+  async function handleMatchReadyTimeout(checkId) {
+    const check = matchReadyChecks[checkId];
+    if (!check) return; // Already handled or cleaned up
+
+    console.log(`[Match Ready] Check ${checkId} timed out.`);
+
+    // Notify all players in the check about the failure
+    Object.keys(check.players).forEach(sid => {
+      io.to(sid).emit('matchReadyCheckFailed', { reason: 'Match timed out. Not all players accepted.' });
+    });
+
+    // Re-queue players who *did* accept (optional, depends on desired logic)
+    // For simplicity now, we just fail the match formation.
+    // If re-queuing: Need to add players back to the 'queue' table.
+    // const acceptedPlayers = Object.values(check.players).filter(p => p.accepted);
+    // if (acceptedPlayers.length > 0) {
+    //   // Add logic to re-insert acceptedPlayers into the queue table
+    // }
+
+    // Clean up the check entry
+    delete matchReadyChecks[checkId];
+  }
+
+  async function handleMatchReadyDisconnect(socketId) {
+      const checkId = Object.keys(matchReadyChecks).find(id => matchReadyChecks[id].players[socketId]);
+      if (!checkId || !matchReadyChecks[checkId]) {
+          return; // Player wasn't in an active check
+      }
+
+      const check = matchReadyChecks[checkId];
+      console.log(`[Match Ready] Player ${check.players[socketId]?.userId} (socket ${socketId}) disconnected during check ${checkId}. Failing check.`);
+
+      clearTimeout(check.timer); // Stop the timeout
+
+      // Notify remaining players
+      Object.keys(check.players).forEach(sid => {
+          if (sid !== socketId) { // Don't notify the disconnected player
+              io.to(sid).emit('matchReadyCheckFailed', { reason: 'A player disconnected during the ready check.' });
+          }
+      });
+
+      // Clean up the check entry
+      delete matchReadyChecks[checkId];
+
+      // Optional: Re-queue remaining players? Similar logic to timeout.
+  }
+
+
   // On disconnect
   socket.on('disconnect', async () => {
     console.log(`Socket ${socket.id} disconnected.`);
+    await handleMatchReadyDisconnect(socket.id); // Handle disconnect during ready check
     const inviteCode = userPreLobbyMap[socket.id];
     if (inviteCode) {
       leavePreLobbyInternal(inviteCode, socket.id);
