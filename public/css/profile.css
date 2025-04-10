@@ -803,11 +803,12 @@ nav li a:hover {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.7); /* Dark semi-transparent background */
+  background-color: rgba(0, 0, 0, 0.85); /* Darker backdrop */
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999; /* Increased to ensure it's on top of everything */
+  transform: translateZ(0); /* Force hardware acceleration */
 }
 
 .vgui-popup {
@@ -817,6 +818,22 @@ nav li a:hover {
   position: relative; /* Ensure positioning context for children */
   box-shadow: 0 0 15px rgba(0,0,0,0.5);
   z-index: 10000; /* Higher than overlay to ensure visibility */
+  transform: translateZ(100px); /* Force hardware acceleration */
+  animation: popupSlideIn 0.3s ease-out;
+}
+
+@keyframes popupSlideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Temporary debug styles */
+#matchReadyOverlay {
+  border: 3px solid limegreen !important;
+}
+
+.vgui-popup {
+  box-shadow: 0 0 30px rgba(255,0,0,0.5) !important;
 }
 
 .vgui-popup .content {
