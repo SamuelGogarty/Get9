@@ -130,6 +130,10 @@
         }
         const [user, eloData] = await Promise.all([userRes.json(), eloRes.json()]);
 
+        // --- DEBUGGING ---
+        console.log('User data received:', JSON.stringify(user, null, 2));
+        // --- END DEBUGGING ---
+
         const profileImg = document.getElementById('navbarProfile');
         profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
         profileImg.onerror = () => { profileImg.src = '/img/fallback-pfp.png'; };
