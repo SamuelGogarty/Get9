@@ -291,11 +291,26 @@ const appRoutes = () => {
     const user = req.user;
     const db = await mysql.createConnection(dbConfigStats);
     try {
-      const [rows] = await db.query(
-        `SELECT skill FROM ultimate_stats
-         WHERE steamid = ? OR name = ?`,
-        [user.steamId || '', user.username || '']
-      );
+      let query;
+      let params;
+
+      if (user.steamId) {
+        // Steam user: Look up by steamId (primary) or username (fallback)
+        query = `SELECT skill FROM ultimate_stats WHERE steamid = ? OR name = ?`;
+        params = [user.steamId, user.username || ''];
+      } else if (user.email) {
+        // Local user: Look up by email (stored in steamid column during registration) or username (fallback)
+        query = `SELECT skill FROM ultimate_stats WHERE steamid = ? OR name = ?`;
+        params = [user.email, user.username || ''];
+      } else {
+        // Should not happen if authenticated, but handle defensively
+        res.status(404).json({ message: 'Player skill not found (no identifier)' });
+        await db.end();
+        return;
+      }
+
+      const [rows] = await db.query(query, params);
+
       if (rows.length > 0) {
         res.json({ skill: rows[0].skill });
       } else {
