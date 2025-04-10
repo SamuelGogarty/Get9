@@ -1038,6 +1038,19 @@ io.on('connection', (socket) => {
       preLobbies[inviteCode].leaderUserId = user.id;
     }
 
+    // Fetch skill before adding/updating player
+    let skill = 0;
+    let dbStats;
+    try {
+      dbStats = await mysql.createConnection(dbConfigStats);
+      skill = await getPlayerSkill(user, dbStats);
+    } catch (skillError) {
+      console.error("Error connecting to stats DB for skill fetch:", skillError);
+    } finally {
+      if (dbStats) await dbStats.end();
+    }
+    user.skill = skill; // Add skill to the user object
+
     // ensure no duplicates if user tries again
     const existingPlayer = preLobbies[inviteCode].players.find((p) => {
       if (user.steamId && p.steamId === user.steamId) return true;
@@ -1046,8 +1059,8 @@ io.on('connection', (socket) => {
     });
     if (!existingPlayer) {
       user.socketId = socket.id;
-      // Ensure user object includes the id when pushed
-      preLobbies[inviteCode].players.push({ ...user, socketId: socket.id });
+      // Ensure user object includes the id and skill when pushed
+      preLobbies[inviteCode].players.push({ ...user, socketId: socket.id }); // user already has .skill
     } else {
       // Update socketId, skill, and potentially other details if user re-creates
       existingPlayer.socketId = socket.id;
@@ -1094,6 +1107,19 @@ io.on('connection', (socket) => {
       return;
     }
 
+    // Fetch skill before adding/updating player
+    let skill = 0;
+    let dbStats;
+    try {
+      dbStats = await mysql.createConnection(dbConfigStats);
+      skill = await getPlayerSkill(user, dbStats);
+    } catch (skillError) {
+      console.error("Error connecting to stats DB for skill fetch:", skillError);
+    } finally {
+      if (dbStats) await dbStats.end();
+    }
+    user.skill = skill; // Add skill to the user object
+
     // find or push
     const existingPlayer = preLobby.players.find((p) => {
       if (user.steamId && p.steamId === user.steamId) return true;
@@ -1102,8 +1128,8 @@ io.on('connection', (socket) => {
     });
     if (!existingPlayer) {
       user.socketId = socket.id;
-      // Ensure user object includes the id when pushed
-      preLobby.players.push({ ...user, socketId: socket.id });
+      // Ensure user object includes the id and skill when pushed
+      preLobby.players.push({ ...user, socketId: socket.id }); // user already has .skill
     } else {
       // Update socketId and skill if user rejoins
       existingPlayer.socketId = socket.id;
