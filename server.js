@@ -548,6 +548,7 @@ async function autoBan(lobbyId, currentTurn) {
   // switch turn
   lobby.turn = (lobby.turn === 'team1') ? 'team2' : 'team1';
   io.to(lobbyId).emit('turnChanged', { currentTurn: lobby.turn });
+  // Start countdown for the *next* turn
   startCountdown(lobbyId, lobby.turn);
 }
 
@@ -986,6 +987,7 @@ io.on('connection', (socket) => {
     // switch turn
     lobby.turn = (lobby.turn === 'team1') ? 'team2' : 'team1';
     io.to(lobbyId).emit('turnChanged', { currentTurn: lobby.turn });
+    // Start countdown for the *next* turn
     startCountdown(lobbyId, lobby.turn);
   });
 
@@ -1547,8 +1549,8 @@ io.on('connection', (socket) => {
       io.to(sid).emit('matchReadyConfirmed', { lobbyId: lobbyId });
     });
 
-    // Start the map ban countdown
-    startCountdown(lobbyId, 'team1');
+    // Map ban countdown will start *after* the first ban
+    // startCountdown(lobbyId, 'team1'); // Removed initial start
   }
 
   // handleMatchReadyTimeout moved to outer scope

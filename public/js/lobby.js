@@ -99,7 +99,13 @@ socket.on('lobbyReady', ({ teams, currentTurn, players }) => {
   renderTeam(team1Container, teams.team1, 'team1');
   renderTeam(team2Container, teams.team2, 'team2');
 
-  if (currentTurn) updateOverlayAndCountdown(currentTurn);
+  // Initial setup: Update overlay based on turn, but hide countdown elements
+  if (currentTurn) {
+      updateOverlayAndCountdown(currentTurn); // Update overlay visibility
+      // Explicitly hide countdown elements initially
+      document.getElementById('banProgressBar').style.width = '100%'; // Reset progress bar visually
+      document.getElementById('banCountdown').style.display = 'none'; // Hide countdown text
+  }
 });
 
 socket.on('turnChanged', ({ currentTurn }) => {
@@ -120,8 +126,10 @@ function updateOverlayAndCountdown(currentTurn) {
       : "Waiting for the other captain...";
   }
 
-  countdown.style.display = 'block';
-  countdown.textContent = '';
+  // Ensure countdown elements are visible when a timed turn starts
+  document.getElementById('banProgressBar').style.width = '100%'; // Reset progress bar
+  countdown.style.display = 'block'; // Show countdown text container
+  countdown.textContent = ''; // Clear previous time
 }
 
 socket.on('countdownTick', ({ time, currentTurn }) => {
@@ -153,9 +161,12 @@ socket.on('mapBanned', ({ mapName }) => {
     btn.style.opacity = '0.5';
   }
 
+  // Reset countdown display elements after a ban
   const progressBar = document.getElementById('banProgressBar');
-  progressBar.style.width = '100%';
-  document.getElementById('banCountdown').textContent = 'TIME REMAINING';
+  progressBar.style.width = '100%'; // Reset progress bar visually
+  const countdownText = document.getElementById('banCountdown');
+  countdownText.textContent = ''; // Clear text
+  countdownText.style.display = 'none'; // Hide until next turn starts
 });
 
 // Updated map vote button listener: checks if button is already disabled.
