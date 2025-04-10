@@ -200,6 +200,30 @@ function generateInviteCode() {
   return crypto.randomBytes(4).toString('hex');
 }
 
+// Helper to fetch player skill
+async function getPlayerSkill(user, dbStats) {
+  if (!user) return 0;
+  try {
+    let query;
+    let params;
+    if (user.steamId) {
+      query = `SELECT skill FROM ultimate_stats WHERE steamid = ? OR name = ?`;
+      params = [user.steamId, user.username || ''];
+    } else if (user.email) {
+      query = `SELECT skill FROM ultimate_stats WHERE steamid = ? OR name = ?`;
+      params = [user.email, user.username || ''];
+    } else {
+      // Fallback if no identifier, though should have one by this point
+      return 0;
+    }
+    const [rows] = await dbStats.query(query, params);
+    return rows.length > 0 ? rows[0].skill : 0;
+  } catch (error) {
+    console.error(`Error fetching skill for user ${user.id || user.username}:`, error);
+    return 0; // Return default skill on error
+  }
+}
+
 // K8s job creation
 async function createOrUpdateCsServerJob(lobbyId, mapName) {
   const port = getRandomPort();
@@ -1025,11 +1049,12 @@ io.on('connection', (socket) => {
       // Ensure user object includes the id when pushed
       preLobbies[inviteCode].players.push({ ...user, socketId: socket.id });
     } else {
-      // Update socketId and potentially other details if user re-creates
+      // Update socketId, skill, and potentially other details if user re-creates
       existingPlayer.socketId = socket.id;
       existingPlayer.id = user.id; // Ensure ID is up-to-date
       existingPlayer.username = user.username;
       existingPlayer.profilePictureUrl = user.profilePictureUrl;
+      existingPlayer.skill = user.skill; // Update skill
     }
 
     userPreLobbyMap[socket.id] = inviteCode;
@@ -1080,9 +1105,10 @@ io.on('connection', (socket) => {
       // Ensure user object includes the id when pushed
       preLobby.players.push({ ...user, socketId: socket.id });
     } else {
-      // Update socketId if user rejoins
+      // Update socketId and skill if user rejoins
       existingPlayer.socketId = socket.id;
       existingPlayer.id = user.id; // Ensure ID is up-to-date
+      existingPlayer.skill = user.skill; // Update skill
     }
 
     userPreLobbyMap[socket.id] = inviteCode;
