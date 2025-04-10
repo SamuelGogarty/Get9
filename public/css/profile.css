@@ -349,17 +349,22 @@ main {
   min-height: 300px; /* Prevent collapse */
   display: flex;
   flex-direction: column;
+  background: none; /* Remove default background */
+  border: none; /* Remove default border */
+  padding: 0; /* Remove default padding */
 }
 
 #preLobbyChatMessages {
   flex: 1;
   overflow-y: auto;
   margin: 0;
-  padding: 0;
+  padding: 10px; /* Add padding inside the inset message list */
   list-style: none;
+  margin-bottom: 0; /* Ensure no extra space below list */
 }
 
 .chat-input {
+  margin-top: 10px; /* Add space above the input area */
   display: flex;
   gap: 10px;
   margin-top: auto;
