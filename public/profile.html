@@ -120,47 +120,74 @@
     }
 
     async function initNavbar() {
+      let user = null; // Store user data here
+
+      // Step 1: Fetch User Info
       try {
-        const [userRes, eloRes] = await Promise.all([
-          fetch('/user/info', { credentials: 'include' }),
-          fetch('/user/skill', { credentials: 'include' })
-        ]);
-        if (!userRes.ok || !eloRes.ok) {
-          throw new Error(`User data fetch failed: ${userRes.status}, ${eloRes.status}`);
+        const userRes = await fetch('/user/info', { credentials: 'include' });
+        if (!userRes.ok) {
+          throw new Error(`User info fetch failed: ${userRes.status}`);
         }
-        const [user, eloData] = await Promise.all([userRes.json(), eloRes.json()]);
+        user = await userRes.json();
 
         // --- DEBUGGING ---
         console.log('User data received:', JSON.stringify(user, null, 2));
         // --- END DEBUGGING ---
 
+        // Update profile picture and username immediately
         const profileImg = document.getElementById('navbarProfile');
         profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
         profileImg.onerror = () => { profileImg.src = '/img/fallback-pfp.png'; };
-
-        // Use username directly, consistent with player.html and lobby.js
         document.getElementById('navbarUsername').textContent = user.username;
-        document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
 
-        // Matchmaking welcome
         const mmProfile = document.getElementById('matchmakingProfile');
         mmProfile.src = user.profilePictureUrl || '/img/fallback-pfp.png';
         mmProfile.onerror = () => { mmProfile.src = '/img/fallback-pfp.png'; };
-        // Use username directly, consistent with player.html and lobby.js
         document.getElementById('matchmakingUsername').textContent = user.username;
 
-        // Extra server stats
+      } catch (err) {
+        console.error('User info fetch failed:', err);
+        // Set defaults if user info fails
+        document.getElementById('navbarProfile').src = '/img/fallback-pfp.png';
+        document.getElementById('navbarUsername').textContent = 'Player';
+        document.getElementById('matchmakingProfile').src = '/img/fallback-pfp.png';
+        document.getElementById('matchmakingUsername').textContent = 'Commando'; // Keep HTML default
+        document.getElementById('navbarElo').textContent = 'ELO: 0';
+        document.getElementById('playersWaiting').textContent = '0';
+        document.getElementById('activeMatches').textContent = '0';
+        return; // Stop if user info failed
+      }
+
+      // Step 2: Fetch Skill Info (separately, so failure doesn't break username)
+      try {
+        const eloRes = await fetch('/user/skill', { credentials: 'include' });
+        if (!eloRes.ok) {
+          // Don't throw, just log and use default ELO
+          console.warn(`User skill fetch failed: ${eloRes.status}`);
+          document.getElementById('navbarElo').textContent = 'ELO: 0';
+        } else {
+          const eloData = await eloRes.json();
+          document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
+        }
+      } catch (err) {
+        console.error('Skill fetch failed:', err);
+        document.getElementById('navbarElo').textContent = 'ELO: 0'; // Default ELO on error
+      }
+
+      // Step 3: Fetch Server Stats (also separately)
+      try {
         const statsRes = await fetch('/api/server/stats', { credentials: 'include' });
         if (statsRes.ok) {
           const stats = await statsRes.json();
           document.getElementById('playersWaiting').textContent = stats.queuedPlayers ?? 0;
           document.getElementById('activeMatches').textContent = stats.activeMatches ?? 0;
+        } else {
+          console.warn(`Server stats fetch failed: ${statsRes.status}`);
+          document.getElementById('playersWaiting').textContent = '0';
+          document.getElementById('activeMatches').textContent = '0';
         }
       } catch (err) {
-        console.error('Navbar init failed:', err);
-        document.getElementById('navbarProfile').src = '/img/fallback-pfp.png';
-        document.getElementById('navbarUsername').textContent = 'Player';
-        document.getElementById('navbarElo').textContent = 'ELO: 0';
+        console.error('Server stats fetch failed:', err);
         document.getElementById('playersWaiting').textContent = '0';
         document.getElementById('activeMatches').textContent = '0';
       }
