@@ -138,14 +138,16 @@
         profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
         profileImg.onerror = () => { profileImg.src = '/img/fallback-pfp.png'; };
 
-        document.getElementById('navbarUsername').textContent = user.username || 'Player';
+        // Use username directly, consistent with player.html and lobby.js
+        document.getElementById('navbarUsername').textContent = user.username;
         document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
 
         // Matchmaking welcome
         const mmProfile = document.getElementById('matchmakingProfile');
         mmProfile.src = user.profilePictureUrl || '/img/fallback-pfp.png';
         mmProfile.onerror = () => { mmProfile.src = '/img/fallback-pfp.png'; };
-        document.getElementById('matchmakingUsername').textContent = user.username || 'Player';
+        // Use username directly, consistent with player.html and lobby.js
+        document.getElementById('matchmakingUsername').textContent = user.username;
 
         // Extra server stats
         const statsRes = await fetch('/api/server/stats', { credentials: 'include' });
