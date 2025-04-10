@@ -85,7 +85,7 @@ socket.on('lobbyReady', ({ teams, currentTurn, players }) => {
         <div class="player-name">
           <a href="/player.html?id=${player.user_id}" class="player-profile-link">${player.username || player.name}${player.captain ? " (Captain)" : ""}</a>
         </div>
-        <div class="player-elo">${player.elo}</div>
+        <div class="player-elo">${player.elo || 0}</div>
       `;
       container.appendChild(row);
 
