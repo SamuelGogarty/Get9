@@ -882,32 +882,50 @@ io.on('connection', (socket) => {
       await db.end();
     }
 
-    // transform players to add ELO
+    // Transform players to add ELO
     const lob = lobbies[lobbyId];
     if (lob && lob.players) {
-      const transformed = await Promise.all(
+      const transformedPlayers = await Promise.all( // Renamed for clarity
         lob.players.map(async (p) => {
           const dbs = await mysql.createConnection(dbConfigStats);
+          // Use existing identifiers (steam_id, email, name) from the player object 'p'
+          const identifier = p.steam_id || p.email || p.name; // Prioritize steam_id, then email, then name
           const [eloRows] = await dbs.query(
             'SELECT skill FROM ultimate_stats WHERE steamid = ? OR name = ?',
-            [p.steam_id || '', p.name || '']
+            [identifier, p.name || ''] // Query by identifier or name
           );
           await dbs.end();
           return {
-            ...p,
+            ...p, // Spread original player data
             profile_picture: p.profile_picture || DEFAULT_PROFILE_PICTURE,
-            elo: eloRows[0]?.skill || 0
+            elo: eloRows[0]?.skill || 0 // Add/overwrite ELO
           };
         })
       );
+
+      // Reconstruct the teams object using the transformed players
+      const updatedTeams = { team1: [], team2: [] };
+      transformedPlayers.forEach(p => {
+        if (p.team === 'team1') {
+          updatedTeams.team1.push(p);
+        } else if (p.team === 'team2') {
+          updatedTeams.team2.push(p);
+        }
+      });
+
+      // Update the lobby object in memory with the transformed data
+      lob.players = transformedPlayers;
+      lob.teams = updatedTeams;
+
+      // Emit with the updated data including ELO in teams
       socket.emit('lobbyReady', {
         lobbyId,
-        players: transformed,
-        teams: lob.teams,
+        players: transformedPlayers, // Send players with ELO
+        teams: updatedTeams,         // Send teams with ELO
         currentTurn: lob.turn
       });
     } else {
-      socket.emit('error', 'Lobby not found or no players');
+      socket.emit('lobbyError', { message: 'Lobby not found or contains no players.', code: 'LOBBY_NOT_FOUND' }); // Use lobbyError for client handling
     }
   });
 
