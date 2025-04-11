@@ -632,7 +632,7 @@ async function checkQueueAndFormLobby(matchmakingQueue, db) {
   }
 
   // for a simple test, requiring 4 players total
-  const requiredPlayers = 2;
+  const requiredPlayers = 4;
 
   const groups = Object.values(groupedPlayers);
   let lobbyPlayers = [];
