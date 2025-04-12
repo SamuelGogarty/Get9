@@ -678,6 +678,7 @@
 
    function showMatchReadyPopup() {
      console.log('[DEBUG] showMatchReadyPopup called');
+     hideQueueProgress(); // Ensure progress bar is hidden
      expectedLobbyUrl = '/lobby.html'; // Store the target URL
      // Reset UI
      acceptMatchBtn.disabled = false;
