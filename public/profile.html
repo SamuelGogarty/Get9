@@ -106,8 +106,8 @@
   <!-- Match Ready Check-in Popup -->
   <div id="matchReadyOverlay" class="overlay" style="display: none;">
     <div class="window vgui-popup" name="Match Ready!">
-      <!-- Add looping audio element -->
-      <audio id="matchReadySound" src="/sounds/blip2.wav" loop preload="auto"></audio> 
+      <!-- Audio element (looping handled by JS) -->
+      <audio id="matchReadySound" src="/sounds/blip2.wav" preload="auto"></audio> 
       <div class="content">
         <p>Your match is ready. Click Accept to join!</p>
         <div id="readyCheckIndicators" class="ready-indicators">
@@ -139,6 +139,7 @@
     let progressInterval = null;  // For the que-in-progress bar
     let readyCheckTimerInterval = null; // For the match ready countdown
     let matchReadyAudio = null; // For the popup sound effect
+    let soundLoopTimeout = null; // Timeout ID for delayed sound loop
 
     // ================================
     // ONLOAD & NAVBAR
@@ -678,6 +679,23 @@
    const readyCheckStatus = document.getElementById('readyCheckStatus');
    const readyCheckTimer = document.getElementById('readyCheckTimer'); // Get timer element
    matchReadyAudio = document.getElementById('matchReadySound'); // Get audio element
+   
+   // Add event listener for delayed looping
+   if (matchReadyAudio && !matchReadyAudio.hasAttribute('data-listener-added')) {
+     matchReadyAudio.addEventListener('ended', () => {
+       // Only loop if the popup is still visible
+       if (matchReadyOverlay.style.display === 'flex') {
+         clearTimeout(soundLoopTimeout); // Clear previous timeout just in case
+         soundLoopTimeout = setTimeout(() => {
+           if (matchReadyAudio && matchReadyOverlay.style.display === 'flex') { // Double check visibility
+             matchReadyAudio.play().catch(e => console.warn("Delayed sound play prevented:", e));
+           }
+         }, 500); // 500ms delay
+       }
+     });
+     matchReadyAudio.setAttribute('data-listener-added', 'true'); // Prevent adding multiple listeners
+   }
+   
    let expectedLobbyUrl = null; // Store the lobby URL when popup shows
 
    function showMatchReadyPopup() {
@@ -737,6 +755,8 @@
       
      // Play the sound effect
      if (matchReadyAudio) {
+       clearTimeout(soundLoopTimeout); // Clear any pending loop before starting fresh
+       matchReadyAudio.currentTime = 0; // Ensure it starts from the beginning
        matchReadyAudio.play().catch(error => {
          // Autoplay was prevented, log it but don't crash
          console.warn("Match ready sound autoplay prevented:", error);
@@ -750,10 +770,11 @@
        clearInterval(readyCheckTimerInterval);
        readyCheckTimerInterval = null;
      }
-     // Stop the sound effect
+     // Stop the sound effect and clear loop timeout
      if (matchReadyAudio) {
        matchReadyAudio.pause();
        matchReadyAudio.currentTime = 0; // Reset to start
+       clearTimeout(soundLoopTimeout); // Clear the loop delay timeout
      }
      matchReadyOverlay.style.display = 'none';
      expectedLobbyUrl = null;
@@ -768,10 +789,11 @@
        readyCheckTimerInterval = null;
        document.getElementById('readyCheckTimer').textContent = ''; // Clear timer display
      }
-     // Stop the sound effect
+     // Stop the sound effect and clear loop timeout
      if (matchReadyAudio) {
        matchReadyAudio.pause();
        matchReadyAudio.currentTime = 0;
+       clearTimeout(soundLoopTimeout); // Clear the loop delay timeout
      }
     
      acceptMatchBtn.disabled = true;
@@ -821,10 +843,11 @@
        readyCheckTimerInterval = null;
        document.getElementById('readyCheckTimer').textContent = ''; // Clear timer display
      }
-     // Stop the sound effect
+     // Stop the sound effect and clear loop timeout
      if (matchReadyAudio) {
        matchReadyAudio.pause();
        matchReadyAudio.currentTime = 0;
+       clearTimeout(soundLoopTimeout); // Clear the loop delay timeout
      }
       
      // Redirect after a short delay
@@ -852,10 +875,11 @@
        clearInterval(readyCheckTimerInterval);
        readyCheckTimerInterval = null;
      }
-     // Stop the sound effect (hideMatchReadyPopup also does this, but good practice)
+     // Stop the sound effect and clear loop timeout (hideMatchReadyPopup also does this, but good practice)
      if (matchReadyAudio) {
        matchReadyAudio.pause();
        matchReadyAudio.currentTime = 0;
+       clearTimeout(soundLoopTimeout); // Clear the loop delay timeout
      }
       
      alert(`Matchmaking failed: ${reason || 'A player did not accept.'}`);
