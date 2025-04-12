@@ -820,6 +820,8 @@ nav li a:hover {
   z-index: 10000; /* Higher than overlay to ensure visibility */
   transform: translateZ(100px); /* Force hardware acceleration */
   animation: popupSlideIn 0.3s ease-out;
+  /* Add a subtle orange glow */
+  box-shadow: 0 0 20px rgba(240, 180, 63, 0.4); /* Orange glow, similar to HL/VGUI */
 }
 
 @keyframes popupSlideIn {
@@ -827,14 +829,7 @@ nav li a:hover {
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* Temporary debug styles */
-#matchReadyOverlay {
-  border: 3px solid limegreen !important;
-}
-
-.vgui-popup {
-  box-shadow: 0 0 30px rgba(255,0,0,0.5) !important;
-}
+/* Removed temporary debug styles */
 
 .vgui-popup .content {
   display: flex;
