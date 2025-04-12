@@ -122,6 +122,7 @@
           <div class="indicator-box"></div>
         </div>
         <button id="acceptMatchBtn" class="greensteam-button accept-button">Accept</button>
+        <p id="readyCheckTimer" class="timer-text"></p> <!-- Timer display -->
         <p id="readyCheckStatus" class="status-text"></p> <!-- Optional status text -->
       </div>
     </div>
@@ -134,6 +135,7 @@
     let currentLobbyCode = null;  // If user is in a pre-lobby
     let isLobbyLeader = false;    // Whether I'm the leader
     let progressInterval = null;  // For the que-in-progress bar
+    let readyCheckTimerInterval = null; // For the match ready countdown
 
     // ================================
     // ONLOAD & NAVBAR
@@ -671,6 +673,7 @@
    const acceptMatchBtn = document.getElementById('acceptMatchBtn');
    const readyCheckIndicators = document.getElementById('readyCheckIndicators');
    const readyCheckStatus = document.getElementById('readyCheckStatus');
+   const readyCheckTimer = document.getElementById('readyCheckTimer'); // Get timer element
    let expectedLobbyUrl = null; // Store the lobby URL when popup shows
 
    function showMatchReadyPopup() {
@@ -681,7 +684,8 @@
      acceptMatchBtn.textContent = 'Accept';
      acceptMatchBtn.classList.remove('accepted'); // Remove accepted styling
      readyCheckStatus.textContent = '';
-     
+     readyCheckTimer.textContent = ''; // Clear timer text initially
+      
      // Reset indicators
      const indicators = readyCheckIndicators.querySelectorAll('.indicator-box');
      indicators.forEach(box => box.classList.remove('accepted'));
@@ -695,11 +699,44 @@
      } else {
        console.error('[DEBUG] Overlay element not found!');
      }
-     
+      
      console.log('Ready check popup displayed');
+      
+     // Start the 45-second countdown timer
+     let timeLeft = 45;
+     readyCheckTimer.textContent = `Time left: ${timeLeft}s`; // Initial display
+      
+     // Clear any previous timer
+     if (readyCheckTimerInterval) clearInterval(readyCheckTimerInterval);
+      
+     readyCheckTimerInterval = setInterval(() => {
+       timeLeft--;
+       if (timeLeft >= 0) {
+         readyCheckTimer.textContent = `Time left: ${timeLeft}s`;
+       } 
+        
+       if (timeLeft < 0) { // Timer expired
+         clearInterval(readyCheckTimerInterval);
+         readyCheckTimerInterval = null;
+         console.log('Match ready check timed out (client-side).');
+         // Simulate failure - hide popup and show alert
+         // Note: Server timeout might trigger 'matchReadyCheckFailed' first
+         if (matchReadyOverlay.style.display !== 'none') { // Only alert if popup still visible
+            alert('Matchmaking failed: You did not accept in time.');
+            hideMatchReadyPopup(); 
+            // Optionally emit a decline event if the server supports it
+            // socket.emit('declineMatchReady'); 
+         }
+       }
+     }, 1000);
    }
-
+ 
    function hideMatchReadyPopup() {
+     // Clear the timer interval when hiding the popup
+     if (readyCheckTimerInterval) {
+       clearInterval(readyCheckTimerInterval);
+       readyCheckTimerInterval = null;
+     }
      matchReadyOverlay.style.display = 'none';
      expectedLobbyUrl = null;
    }
@@ -707,6 +744,13 @@
    acceptMatchBtn.addEventListener('click', () => {
      console.log('Accept button clicked.');
      socket.emit('confirmMatchReady');
+     // Clear the countdown timer when accepted
+     if (readyCheckTimerInterval) {
+       clearInterval(readyCheckTimerInterval);
+       readyCheckTimerInterval = null;
+       document.getElementById('readyCheckTimer').textContent = ''; // Clear timer display
+     }
+     
      acceptMatchBtn.disabled = true;
      acceptMatchBtn.textContent = 'Accepted';
      acceptMatchBtn.classList.add('accepted'); // Add visual feedback class
@@ -747,6 +791,14 @@
    socket.on('matchReadyConfirmed', ({ lobbyId }) => { // Destructure lobbyId
      console.log(`All players ready! Redirecting to lobby ${lobbyId}.`);
      readyCheckStatus.textContent = 'Match starting!';
+      
+     // Clear the countdown timer on confirmation
+     if (readyCheckTimerInterval) {
+       clearInterval(readyCheckTimerInterval);
+       readyCheckTimerInterval = null;
+       document.getElementById('readyCheckTimer').textContent = ''; // Clear timer display
+     }
+      
      // Redirect after a short delay
      setTimeout(() => {
        if (lobbyId) { // Use the received lobbyId
@@ -764,7 +816,15 @@
 
    // Listen for check-in failure (timeout, decline)
    socket.on('matchReadyCheckFailed', ({ reason }) => {
+     console.log(`[DEBUG] Received 'matchReadyCheckFailed' event. Reason: ${reason}. Closing popup.`); // Added debug log
      console.log(`Match ready check failed: ${reason}`);
+      
+     // Clear the countdown timer on failure (hideMatchReadyPopup also does this, but good practice)
+     if (readyCheckTimerInterval) {
+       clearInterval(readyCheckTimerInterval);
+       readyCheckTimerInterval = null;
+     }
+      
      alert(`Matchmaking failed: ${reason || 'A player did not accept.'}`);
      hideMatchReadyPopup();
      // Optionally re-enable matchmaking buttons if needed
