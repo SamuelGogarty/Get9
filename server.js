@@ -500,7 +500,7 @@ let userPreLobbyMap = {};
 // Key: A unique check ID (can be the potential lobbyId)
 // Value: { players: { socketId: { accepted: boolean, userId: number, ...other data } }, timer: NodeJS.Timeout, lobbyId: string, totalPlayers: number }
 let matchReadyChecks = {};
-const MATCH_READY_TIMEOUT = 45000; // 45 seconds for check-in (Increased from 30s)
+const MATCH_READY_TIMEOUT = 47000; // 47 seconds for check-in (Increased from 45s to allow for client desync)
 
 /**
  * startCountdown: calls autoBan if time runs out
