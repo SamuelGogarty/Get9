@@ -884,6 +884,15 @@ nav li a:hover {
   min-height: 1em; /* Reserve space */
 }
 
+/* Timer text styling */
+.timer-text {
+  margin-top: 10px; /* Space above timer */
+  margin-bottom: 5px; /* Space below timer */
+  font-size: 14px;
+  font-weight: bold;
+  color: #F0B43F; /* Orange color */
+}
+
 /* Window sizing from new_home.css */
 .window.half,
 .window-row .window {
