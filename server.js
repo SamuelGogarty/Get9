@@ -1433,10 +1433,19 @@ io.on('connection', (socket) => {
 
   // Pre-lobby chat
   socket.on('preLobbyChatMessage', ({ message, inviteCode }) => {
-    if (!inviteCode || !preLobbies[inviteCode]) return;
+    console.log(`[PreLobby Chat] Received message for invite code ${inviteCode} from socket ${socket.id}: "${message}"`); // DEBUG
+    if (!inviteCode || !preLobbies[inviteCode]) {
+      console.log(`[PreLobby Chat] Error: Invalid invite code (${inviteCode}) or pre-lobby not found.`); // DEBUG
+      return;
+    }
     const preLobby = preLobbies[inviteCode];
+    console.log(`[PreLobby Chat] Found pre-lobby object for ${inviteCode}.`); // DEBUG
     const player = preLobby.players.find(p => p.socketId === socket.id);
-    if (!player) return;
+    if (!player) {
+      console.log(`[PreLobby Chat] Error: Player with socket ID ${socket.id} not found in pre-lobby ${inviteCode}.`); // DEBUG
+      return;
+    }
+    console.log(`[PreLobby Chat] Found player: ${player.username}. Broadcasting to room preLobby_${inviteCode}`); // DEBUG
     io.to(`preLobby_${inviteCode}`).emit('preLobbyChatMessage', {
       username: player.username,
       message,
