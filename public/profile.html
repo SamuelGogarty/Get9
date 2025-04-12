@@ -615,10 +615,12 @@
            console.warn('checkIfLeader called without expectedLeaderUserId. Assuming not leader.');
            isLobbyLeader = false;
         } else {
-           // Compare my ID with the ID the server says is the leader
-           isLobbyLeader = (myUserId === expectedLeaderUserId);
+           // Compare my ID with the ID the server says is the leader (convert to string for robust comparison)
+           console.log(`[Leader Check] My User ID: ${myUserId} (Type: ${typeof myUserId}), Expected Leader ID: ${expectedLeaderUserId} (Type: ${typeof expectedLeaderUserId})`);
+           isLobbyLeader = (String(myUserId) === String(expectedLeaderUserId));
+           console.log(`[Leader Check] Result: isLobbyLeader = ${isLobbyLeader}`);
         }
-
+ 
         // Update button state based on the check
         startMatchmakingBtn.disabled = !isLobbyLeader;
         startMatchmakingBtn.textContent = isLobbyLeader
@@ -627,6 +629,9 @@
       } catch (err) {
         console.error('Leader check failed:', err);
         isLobbyLeader = false;
+        // Ensure button reflects error state
+        startMatchmakingBtn.disabled = true; // Disable on error
+        startMatchmakingBtn.textContent = 'Error checking status';
       }
     }
 
