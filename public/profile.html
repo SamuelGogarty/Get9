@@ -690,7 +690,7 @@
            if (matchReadyAudio && matchReadyOverlay.style.display === 'flex') { // Double check visibility
              matchReadyAudio.play().catch(e => console.warn("Delayed sound play prevented:", e));
            }
-         }, 500); // 500ms delay
+         }, 1000); // 1000ms (1 second) delay
        }
      });
      matchReadyAudio.setAttribute('data-listener-added', 'true'); // Prevent adding multiple listeners
