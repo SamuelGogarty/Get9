@@ -1,8 +1,5 @@
 /* public/css/styles.css */
 
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
-
 /* Global Styles */
 * {
   margin: 0;
@@ -11,12 +8,146 @@
 }
 
 body {
-  font-family: 'Montserrat', sans-serif;
-  background-color: #121212;
-  color: #e0e0e0;
+  font-family: Tahoma, Geneva, sans-serif; /* VGUI typical font */
+  background-color: #3B3B3B; /* Dark grey background */
+  color: #E0E0E0; /* Light text color */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
 }
 
-/* Navigation Bar */
+a {
+  color: #66C0F4; /* Steam blue for links */
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* VGUI Panel Styling */
+.vgui-panel-container {
+  width: 100%;
+  max-width: 600px; /* Limit panel width */
+}
+
+.vgui-panel {
+  background-color: #2B2B2B; /* Slightly lighter grey for panel */
+  border: 1px solid #555555;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  padding: 25px;
+  text-align: center;
+  border-radius: 3px; /* Subtle rounding */
+}
+
+.vgui-panel h1 {
+  font-size: 24px;
+  color: #E0E0E0;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #444;
+  padding-bottom: 10px;
+  font-weight: normal; /* VGUI often uses normal weight */
+}
+
+.vgui-panel h2 {
+    font-size: 18px;
+    color: #CCCCCC;
+    margin-top: 20px;
+    margin-bottom: 15px;
+    font-weight: normal;
+}
+
+.vgui-panel p.description {
+  font-size: 14px;
+  color: #B0B0B0;
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+/* Login Options */
+.login-options {
+  margin-top: 20px;
+}
+
+.divider {
+  border: 0;
+  height: 1px;
+  background-color: #444;
+  margin: 25px 0;
+}
+
+/* VGUI Button Styling */
+.vgui-button {
+  font-family: Tahoma, Geneva, sans-serif;
+  background-color: #4D4D4D;
+  color: #E0E0E0;
+  border: 1px solid #666666;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+  border-radius: 2px;
+  display: inline-block; /* Ensure buttons behave well */
+  margin-top: 10px; /* Spacing */
+  min-width: 150px; /* Minimum width */
+  text-align: center;
+}
+
+.vgui-button:hover {
+  background-color: #5A5A5A;
+  border-color: #777777;
+}
+
+.vgui-button:active {
+  background-color: #404040;
+  border-color: #555555;
+}
+
+.vgui-button.steam {
+  background-color: #5C7E10; /* Steam green */
+  border-color: #7A9A20;
+}
+
+.vgui-button.steam:hover {
+  background-color: #6B8F14;
+  border-color: #8AB528;
+}
+
+/* VGUI Input Styling */
+.vgui-input {
+  font-family: Tahoma, Geneva, sans-serif;
+  background-color: #222222;
+  border: 1px solid #555555;
+  color: #E0E0E0;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  width: 100%; /* Full width within form */
+  border-radius: 2px;
+  font-size: 14px;
+}
+
+.vgui-input:focus {
+  outline: none;
+  border-color: #66C0F4; /* Highlight focus with Steam blue */
+}
+
+.email-form {
+  margin-top: 15px;
+}
+
+.register-link {
+  margin-top: 20px;
+  font-size: 13px;
+  color: #B0B0B0;
+}
+
+
+/* --- Existing Styles (Review/Remove/Adapt as needed) --- */
+/* Keep relevant ones, remove/comment out unused ones like .hero, .matchmaking etc. */
+
+/* Navigation Bar (Keep if used globally, adapt if needed) */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -45,90 +176,31 @@ body {
 }
 
 .nav-links a:hover {
-  color: #bb86fc;
+  color: #66C0F4; /* Adjusted hover color */
 }
 
-/* Hero Section */
-.hero {
-  text-align: center;
-  padding: 100px 20px;
-  background: linear-gradient(rgba(18, 18, 18, 0.8), rgba(18, 18, 18, 0.8)), url('/images/hero-bg.jpg') no-repeat center center/cover;
-}
-
-.hero h1 {
-  font-size: 48px;
-  margin-bottom: 20px;
-}
-
-.hero p {
-  font-size: 18px;
-  margin-bottom: 40px;
-}
-
-.btn-primary {
-  padding: 15px 30px;
-  background-color: #bb86fc;
-  color: #121212;
-  border: none;
-  border-radius: 5px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.3s;
-}
-
-.btn-primary:hover {
-  background-color: #9a67ea;
-  transform: translateY(-2px);
-}
-
-/* Main Content */
-.matchmaking {
-  display: flex;
-  justify-content: center;
-  padding: 50px 20px;
-}
-
-.match-card {
-  background-color: #1f1f1f;
-  padding: 30px;
-  border-radius: 10px;
-  text-align: center;
-  max-width: 400px;
-}
-
-.match-card h2 {
-  margin-bottom: 15px;
-}
-
-.match-card p {
-  margin-bottom: 25px;
-}
-
-/* Lobby Section */
-.lobby {
-  padding: 50px 20px;
-  text-align: center;
-}
-
-.lobby ul {
-  list-style: none;
-  margin-bottom: 20px;
-}
-
-.lobby li {
-  margin-bottom: 10px;
-}
-
-/* Footer */
+/* Footer (Keep if used globally, adapt if needed) */
 footer {
   text-align: center;
   padding: 20px;
-  background-color: #1f1f1f;
+  background-color: #1f1f1f; /* Keep or adjust as needed */
   color: #777;
+  margin-top: 40px; /* Add some space if needed */
 }
 
-/* Responsive Styles */
+/* Responsive Styles (Adapt as needed) */
 @media (max-width: 768px) {
+  .vgui-panel {
+    padding: 15px;
+  }
+
+  .vgui-panel h1 {
+    font-size: 20px;
+  }
+
+  .vgui-panel p.description {
+    font-size: 13px;
+  }
   .nav-links {
     flex-direction: column;
     display: none;

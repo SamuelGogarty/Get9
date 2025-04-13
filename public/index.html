@@ -2,21 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Counter-Strike Matchmaking</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>CS Matchmaking - Welcome</title>
+    <link rel="stylesheet" href="css/styles.css"> <!-- Adjusted path -->
 </head>
 <body>
-    <div class="container">
-        <h1>Counter-Strike Matchmaking</h1>
-        <button id="steamLoginBtn">Login with Steam</button>
+    <div class="vgui-panel-container">
+        <div class="vgui-panel">
+            <h1>Welcome to CS Matchmaking</h1>
+            <p class="description">
+                Experience competitive Counter-Strike like never before. Join our community
+                for balanced matches, detailed stats, and a seamless matchmaking experience.
+                Log in using your Steam account or create an account with your email to get started.
+            </p>
 
-        <h2>Or Login with Email</h2>
-        <form action="/login" method="POST">
-            <input type="email" name="email" placeholder="Email" required><br>
-            <input type="password" name="password" placeholder="Password" required><br>
-            <button type="submit">Login</button>
-        </form>
-        <p>Don't have an account? <a href="/register">Register here</a>.</p>
+            <div class="login-options">
+                <h2>Login / Register</h2>
+                <button id="steamLoginBtn" class="vgui-button steam">Login with Steam</button>
+
+                <hr class="divider">
+
+                <form action="/login" method="POST" class="email-form">
+                    <input type="email" name="email" placeholder="Email" required class="vgui-input"><br>
+                    <input type="password" name="password" placeholder="Password" required class="vgui-input"><br>
+                    <button type="submit" class="vgui-button">Login with Email</button>
+                </form>
+                <p class="register-link">Don't have an account? <a href="/register">Register here</a>.</p>
+            </div>
+        </div>
     </div>
 
     <script>
