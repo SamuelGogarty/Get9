@@ -670,11 +670,15 @@
     // window.addEventListener('beforeunload', () => { ... });
  
     // Handle server disconnect
-    socket.on('disconnect', () => {
-      if (currentLobbyCode) {
-        alert('Lost connection to server - returning to lobby');
-        window.location.reload();
-      }
+    socket.on('disconnect', (reason) => {
+      console.warn(`Socket disconnected: ${reason}. Attempting to reconnect...`);
+      // Don't force reload here. Let Socket.IO's reconnection logic handle it.
+      // The 'connect' event listener will trigger 'requestPreLobbyRestore' upon successful reconnection.
+      // if (currentLobbyCode) {
+      //   alert('Lost connection to server. Attempting to reconnect...');
+      // }
+      // Optionally, show a visual indicator of disconnection status
+      // updateConnectionStatusIndicator(false); 
     });
 
    // ================================
