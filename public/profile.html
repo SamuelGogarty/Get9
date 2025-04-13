@@ -472,15 +472,20 @@
         updatePlayerList(players, leaderUserId); // Pass leaderUserId
       }
     });
-
+ 
     socket.on('preLobbyRestored', ({ inviteCode, players, leaderUserId }) => {
-      if (inviteCode === currentLobbyCode) {
+      // Check if we are restoring into a lobby (inviteCode is valid)
+      if (inviteCode) {
+        console.log(`[Restore] Restoring pre-lobby state for ${inviteCode}`);
+        currentLobbyCode = inviteCode; // Set the code FIRST
+ 
+        // Now update UI elements
         document.querySelector('.lobby-sections').style.display = 'grid';
         document.getElementById('inviteCodeDisplay').textContent = inviteCode;
         document.getElementById('inviteCodeSection').style.display = 'inline-flex';
         maskInviteCode();
-        updatePlayerList(players, leaderUserId); // Pass leaderUserId
-
+        updatePlayerList(players, leaderUserId); // Update player list (which calls leader check)
+ 
         // Show "Leave Lobby" button
         document.getElementById('leavePreLobbyBtn').style.display = 'inline-block';
       }
