@@ -499,6 +499,8 @@ let banTimers = {};     // for countdown
 // pre-lobby structure
 let preLobbies = {};
 let userPreLobbyMap = {};
+// Store chat history for pre-lobbies
+const preLobbyChatHistory = {};
 
 // Structure to track ongoing match ready checks
 // Key: A unique check ID (can be the potential lobbyId)
