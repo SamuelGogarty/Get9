@@ -40,6 +40,14 @@ const MAX_SERVER_AGE = 7200000; // 2 hours in ms
 
 const app = express();
 const server = http.createServer(app);
+
+// Create session middleware
+const sessionMiddleware = session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false
+});
+
 const io = socketIo(server);
 
 // K8s
@@ -67,11 +75,7 @@ const dbConfigStats = {
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Sessions & body parser
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false
-}));
+app.use(sessionMiddleware);
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // Passport
@@ -817,6 +821,21 @@ async function handleMatchReadyTimeout(checkId) {
 // -----------------------------------------------------------------------
 // SOCKET.IO
 // -----------------------------------------------------------------------
+// Add session middleware to Socket.IO
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
+});
+
+// Add authentication middleware
+io.use((socket, next) => {
+  if (socket.request.session && socket.request.session.passport) {
+    next();
+  } else {
+    console.log(`Unauthenticated socket connection from ${socket.id}`);
+    next(); // Allow connection but track as unauthenticated
+  }
+});
+
 io.on('connection', (socket) => {
   // Heartbeat from final-lobby
   socket.on('heartbeat', ({ lobbyId }) => {
@@ -1462,9 +1481,10 @@ io.on('connection', (socket) => {
  
   // Restore pre-lobby state on reconnect
   socket.on('requestPreLobbyRestore', () => {
-    const user = socket.request.user; // Assumes user is attached by middleware
+    const user = socket.request.session?.passport?.user;
     if (!user || !user.id) {
       console.log(`[Restore] No authenticated user found for socket ${socket.id}. Cannot restore.`);
+      socket.emit('preLobbyRestoreError', { message: 'Not authenticated' });
       return;
     }
  

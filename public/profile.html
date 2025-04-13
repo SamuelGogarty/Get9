@@ -136,8 +136,25 @@
  
     // Request pre-lobby state restoration on connection
     socket.on('connect', () => {
-      console.log('Socket connected, requesting pre-lobby restore...');
-      socket.emit('requestPreLobbyRestore');
+      console.log('Socket connected, waiting for user auth...');
+      // Wait until we have user data before attempting restoration
+      fetch('/user/info', { credentials: 'include' })
+        .then(response => {
+          if (!response.ok) throw new Error('Not authenticated');
+          return response.json();
+        })
+        .then(userData => {
+          console.log('User authenticated, requesting pre-lobby restore...');
+          socket.emit('requestPreLobbyRestore');
+        })
+        .catch(error => {
+          console.log('User not authenticated, skipping restoration:', error);
+        });
+    });
+    
+    // Handle restoration errors
+    socket.on('preLobbyRestoreError', ({ message }) => {
+      console.warn('Pre-lobby restore error:', message);
     });
  
     let currentLobbyCode = null;  // If user is in a pre-lobby
