@@ -461,3 +461,13 @@ button:hover {
   transition: width 0.3s ease;
   animation: none !important; /* Remove all animations */
 }
+
+/* Style for the small Steam login button in the navbar */
+.steam-nav-button {
+  padding: 4px 12px !important; /* Smaller padding */
+  font-size: 11px !important; /* Smaller font */
+  min-width: auto !important; /* Allow smaller width */
+  height: auto !important; /* Allow natural height */
+  margin: 0 !important; /* Remove extra margin */
+  vertical-align: middle; /* Align with nav text */
+}

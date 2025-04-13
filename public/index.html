@@ -3,18 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <title>CS Matchmaking - Welcome</title>
-  <link rel="stylesheet" href="css/lobby.css">
+  <link rel="stylesheet" href="css/lobby_style.css"> <!-- Use lobby styles for navbar -->
   <link rel="stylesheet" href="css/styles.css"> <!-- Optional: your own overrides -->
 </head>
 <body>
 
-  <!-- VGUI NAVBAR -->
+  <!-- NAVBAR -->
   <nav>
     <ul>
       <li><a href="index.html">Home</a></li>
       <li><a href="about.html">About</a></li>
       <li><a href="/forums">Forums</a></li>
       <li><a href="/contact">Contact</a></li>
+      <!-- Removed Discord link for welcome page -->
+      <li class="right-nav">
+         <!-- Steam Login Button in Navbar -->
+         <button id="steamLoginBtnNav" class="greensteam-button steam-nav-button">
+           Sign in with Steam
+         </button>
+      </li>
     </ul>
   </nav>
 
@@ -86,7 +93,12 @@
   </footer>
 
   <script>
+    // Listener for the main Steam login button
     document.getElementById('steamLoginBtn').addEventListener('click', function () {
+      window.location.href = '/auth/steam';
+    });
+    // Listener for the navbar Steam login button
+    document.getElementById('steamLoginBtnNav').addEventListener('click', function () {
       window.location.href = '/auth/steam';
     });
   </script>
