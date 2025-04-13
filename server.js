@@ -566,8 +566,15 @@ function leavePreLobbyInternal(inviteCode, socketId, kicked = false) {
   // remove user from array
   const idx = preLobby.players.findIndex(p => p.socketId === socketId);
   if (idx >= 0) {
-    const removedPlayer = preLobby.players.splice(idx, 1)[0];
-    delete userPreLobbyMap[socketId];
+    // Only remove if socket is completely disconnected
+    // This allows for page refreshes without losing state
+    if (!io.sockets.sockets.has(socketId)) {
+      const removedPlayer = preLobby.players.splice(idx, 1)[0];
+      delete userPreLobbyMap[socketId];
+      console.log(`[PreLobby ${inviteCode}] Player with socket ${socketId} fully disconnected and removed.`);
+    } else {
+      console.log(`[PreLobby ${inviteCode}] Player with socket ${socketId} still connected, not removing.`);
+    }
 
     if (kicked) {
       io.to(socketId).emit('kickedFromPreLobby', { inviteCode });
@@ -587,6 +594,7 @@ function leavePreLobbyInternal(inviteCode, socketId, kicked = false) {
         // Lobby is empty, delete it
         console.log(`[PreLobby ${inviteCode}] Leader left. Lobby is now empty and will be deleted.`);
         delete preLobbies[inviteCode];
+        delete preLobbyChatHistory[inviteCode]; // Clean up chat history
         // No need to broadcast update if lobby is deleted
         return; // Exit early
       }
@@ -1472,11 +1480,41 @@ io.on('connection', (socket) => {
       return;
     }
     console.log(`[PreLobby Chat] Found player: ${player.username}. Broadcasting to room preLobby_${inviteCode}`); // DEBUG
-    io.to(`preLobby_${inviteCode}`).emit('preLobbyChatMessage', {
+    
+    // Create message object
+    const msgObj = {
+      id: Date.now().toString(),
       username: player.username,
       message,
-      profilePictureUrl: player.profilePictureUrl || DEFAULT_PROFILE_PICTURE
-    });
+      profilePictureUrl: player.profilePictureUrl || DEFAULT_PROFILE_PICTURE,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Store in chat history
+    if (!preLobbyChatHistory[inviteCode]) {
+      preLobbyChatHistory[inviteCode] = [];
+    }
+    preLobbyChatHistory[inviteCode].push(msgObj);
+    
+    // Keep only last 50 messages
+    if (preLobbyChatHistory[inviteCode].length > 50) {
+      preLobbyChatHistory[inviteCode].shift();
+    }
+    
+    // Broadcast to all in the room
+    io.to(`preLobby_${inviteCode}`).emit('preLobbyChatMessage', msgObj);
+  });
+  
+  // New handler for chat history requests
+  socket.on('requestPreLobbyChatHistory', ({ inviteCode }) => {
+    console.log(`[PreLobby Chat] History requested for invite code ${inviteCode} from socket ${socket.id}`);
+    if (preLobbyChatHistory[inviteCode]) {
+      socket.emit('preLobbyChatHistory', { 
+        messages: preLobbyChatHistory[inviteCode] 
+      });
+    } else {
+      socket.emit('preLobbyChatHistory', { messages: [] });
+    }
   });
  
   // Restore pre-lobby state on reconnect
@@ -1789,15 +1827,21 @@ io.on('connection', (socket) => {
     console.log(`Socket ${socket.id} disconnected.`);
     await handleMatchReadyDisconnect(socket.id); // Handle disconnect during ready check
      
-    // Remove the automatic leavePreLobbyInternal call.
-    // Player state remains in preLobbies until explicitly left, kicked, or lobby starts.
-    // The stale socket ID will be updated on reconnect via requestPreLobbyRestore.
-    // const inviteCode = userPreLobbyMap[socket.id];
-    // if (inviteCode && preLobbies[inviteCode]) {
-    //   console.log(`[Disconnect] Socket ${socket.id} was in pre-lobby ${inviteCode}. State retained.`);
-    //   // leavePreLobbyInternal(inviteCode, socket.id); // No longer called here
-    // }
-    // Clean up the map entry regardless, it will be repopulated on restore/join
+    // Mark the socket as disconnected but don't remove from pre-lobby yet
+    // This allows for page refreshes without losing state
+    const inviteCode = userPreLobbyMap[socket.id];
+    if (inviteCode && preLobbies[inviteCode]) {
+      console.log(`[Disconnect] Socket ${socket.id} was in pre-lobby ${inviteCode}. Marking as disconnected.`);
+      // Update player status to disconnected but keep in list
+      const player = preLobbies[inviteCode].players.find(p => p.socketId === socket.id);
+      if (player) {
+        player.disconnected = true;
+        player.disconnectTime = Date.now();
+        console.log(`[Disconnect] Player ${player.username} marked as disconnected in pre-lobby ${inviteCode}`);
+      }
+    }
+    
+    // Clean up the map entry, it will be repopulated on restore/join
     delete userPreLobbyMap[socket.id];
  
     let db;

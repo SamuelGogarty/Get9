@@ -501,12 +501,52 @@
         document.getElementById('inviteCodeDisplay').textContent = inviteCode;
         document.getElementById('inviteCodeSection').style.display = 'inline-flex';
         maskInviteCode();
-        updatePlayerList(players, leaderUserId); // Update player list (which calls leader check)
+        
+        // Update player list with preserveExisting flag to maintain DOM elements
+        updatePlayerList(players, leaderUserId, true); // Pass true to preserve existing elements
  
         // Show "Leave Lobby" button
         document.getElementById('leavePreLobbyBtn').style.display = 'inline-block';
+        
+        // Request chat history
+        socket.emit('requestPreLobbyChatHistory', { inviteCode });
       }
     });
+    
+    // Handle chat history restoration
+    socket.on('preLobbyChatHistory', ({ messages }) => {
+      console.log(`[Restore] Received chat history with ${messages.length} messages`);
+      const ul = document.getElementById('preLobbyChatMessages');
+      
+      // Clear existing messages if we're getting a full history
+      if (messages.length > 0) {
+        ul.innerHTML = '';
+      }
+      
+      // Add all messages to the chat
+      messages.forEach(msg => {
+        appendChatMessage(msg);
+      });
+      
+      // Scroll to bottom
+      ul.scrollTop = ul.scrollHeight;
+    });
+    
+    // Helper function to append chat messages consistently
+    function appendChatMessage(msg) {
+      const ul = document.getElementById('preLobbyChatMessages');
+      const li = document.createElement('li');
+      li.dataset.messageId = msg.id || Date.now().toString(); // Use provided ID or generate one
+      li.innerHTML = `
+        <img src="${msg.profilePictureUrl || '/img/fallback-pfp.png'}" alt="${msg.username}"
+             style="width:24px;height:24px;">
+        <strong>${msg.username}:</strong> ${msg.message}
+      `;
+      li.style.display = 'flex';
+      li.style.alignItems = 'center';
+      li.style.gap = '8px';
+      ul.appendChild(li);
+    }
 
     socket.on('joinPreLobbyError', ({ message }) => {
       alert('Join Pre-Lobby Error: ' + (message || 'Unknown'));
@@ -541,18 +581,9 @@
       msgInput.value = '';
     });
 
-    socket.on('preLobbyChatMessage', ({ username, message, profilePictureUrl }) => {
+    socket.on('preLobbyChatMessage', (msg) => {
+      appendChatMessage(msg);
       const ul = document.getElementById('preLobbyChatMessages');
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <img src="${profilePictureUrl || '/img/fallback-pfp.png'}" alt="${username}"
-             style="width:24px;height:24px;">
-        <strong>${username}:</strong> ${message}
-      `;
-      li.style.display = 'flex';
-      li.style.alignItems = 'center';
-      li.style.gap = '8px';
-      ul.appendChild(li);
       ul.scrollTop = ul.scrollHeight;
     });
 
@@ -574,60 +605,99 @@
     // ================================
     // Update Player List & Leader Check
     // ================================
-    async function updatePlayerList(players, leaderUserId) { // Accept leaderUserId
+    async function updatePlayerList(players, leaderUserId, preserveExisting = false) { // Accept leaderUserId and preserveExisting flag
       const container = document.getElementById('preLobbyPlayerList');
-      container.innerHTML = '';
+      
+      // Keep track of existing players if preserving
+      const existingPlayers = new Map();
+      if (preserveExisting) {
+        container.querySelectorAll('.player-item').forEach(item => {
+          if (item.dataset.userId) {
+            existingPlayers.set(item.dataset.userId, item);
+          }
+        });
+      } else {
+        container.innerHTML = ''; // Clear if not preserving
+      }
 
       // Check leadership based on server-provided ID
       await checkIfLeader(leaderUserId);
 
       players.forEach((p, idx) => {
-        const isCurrentLeader = (p.id === leaderUserId); // Check if this player is the leader
-        const row = document.createElement('div');
-        row.className = 'player-item';
-        row.style.display = 'flex';
-        row.style.alignItems = 'center';
-        row.style.marginBottom = '6px';
-
-        const pic = document.createElement('img');
-        pic.src = p.profilePictureUrl || '/img/fallback-pfp.png';
-        pic.onerror = () => { pic.src = '/img/fallback-pfp.png'; };
-        pic.style.width = '32px';
-        pic.style.height = '32px';
-        pic.style.borderRadius = '4px';
-        pic.style.marginRight = '10px';
-
-        const infoDiv = document.createElement('div');
-        // Use the isCurrentLeader flag determined above
+        // Try to find existing row for this player
+        let row = existingPlayers.get(String(p.id));
+        const isCurrentLeader = (String(p.id) === String(leaderUserId)); // Check if this player is the leader
+        
+        if (!row) {
+          // Create new row if not found
+          row = document.createElement('div');
+          row.className = 'player-item';
+          row.dataset.userId = p.id; // Store user ID for future lookups
+          row.dataset.socketId = p.socketId; // Store socket ID for kick functionality
+          row.style.display = 'flex';
+          row.style.alignItems = 'center';
+          row.style.marginBottom = '6px';
+          
+          // Create player image
+          const pic = document.createElement('img');
+          pic.className = 'player-avatar';
+          pic.src = p.profilePictureUrl || '/img/fallback-pfp.png';
+          pic.onerror = () => { pic.src = '/img/fallback-pfp.png'; };
+          pic.style.width = '32px';
+          pic.style.height = '32px';
+          pic.style.borderRadius = '4px';
+          pic.style.marginRight = '10px';
+          
+          // Create info div
+          const infoDiv = document.createElement('div');
+          infoDiv.className = 'player-info';
+          
+          row.appendChild(pic);
+          row.appendChild(infoDiv);
+          
+          // Add to container
+          container.appendChild(row);
+        }
+        
+        // Always update content (whether new or existing row)
+        const infoDiv = row.querySelector('.player-info') || row.appendChild(document.createElement('div'));
+        infoDiv.className = 'player-info';
+        
+        // Update leader status and player info
         let leaderSuffix = isCurrentLeader ? ' (Leader)' : '';
+        let disconnectedStatus = p.disconnected ? ' <span style="color:#ff6b6b">(Disconnected)</span>' : '';
         infoDiv.innerHTML = `
-          <div class="player-name" style="font-weight:bold;">${p.username}${leaderSuffix}</div>
+          <div class="player-name" style="font-weight:bold;">${p.username}${leaderSuffix}${disconnectedStatus}</div>
           <div class="player-elo">ELO: ${p.skill || 'Unrated'}</div>
         `;
-
-        row.appendChild(pic);
-        row.appendChild(infoDiv);
-
-        // NEW: Kick button if I'm leader and this is not the first (leader) slot
-        if (isLobbyLeader && idx !== 0) {
-          const kickBtn = document.createElement('button');
-          kickBtn.textContent = 'Kick';
-          // Add both classes: general button style + specific kick style
-          kickBtn.className = 'greensteam-button kick-button';
-          // Remove inline margin-left as CSS now handles positioning
-          // kickBtn.style.marginLeft = '10px';
-
-          // We'll rely on p.socketId from server
-          if (p.socketId) {
-            kickBtn.addEventListener('click', () => {
-              socket.emit('kickFromPreLobby', p.socketId);
-            });
+        
+        // Update or add kick button
+        let kickBtn = row.querySelector('.kick-button');
+        if (isLobbyLeader && String(p.id) !== String(leaderUserId)) { // If I'm leader and this isn't me
+          if (!kickBtn) {
+            kickBtn = document.createElement('button');
+            kickBtn.textContent = 'Kick';
+            kickBtn.className = 'greensteam-button kick-button';
+            
+            row.appendChild(kickBtn);
           }
-
-          row.appendChild(kickBtn);
+          
+          // Always update click handler with latest socketId
+          kickBtn.onclick = () => {
+            socket.emit('kickFromPreLobby', p.socketId);
+          };
+        } else if (kickBtn) {
+          // Remove kick button if it exists but shouldn't
+          kickBtn.remove();
         }
-
-        container.appendChild(row);
+        
+        // Remove from map to track which ones to remove
+        existingPlayers.delete(String(p.id));
+      });
+      
+      // Remove any players that are no longer in the list
+      existingPlayers.forEach((row) => {
+        row.remove();
       });
     }
 
@@ -694,13 +764,36 @@
     // Handle server disconnect
     socket.on('disconnect', (reason) => {
       console.warn(`Socket disconnected: ${reason}. Attempting to reconnect...`);
-      // Don't force reload here. Let Socket.IO's reconnection logic handle it.
-      // The 'connect' event listener will trigger 'requestPreLobbyRestore' upon successful reconnection.
-      // if (currentLobbyCode) {
-      //   alert('Lost connection to server. Attempting to reconnect...');
-      // }
-      // Optionally, show a visual indicator of disconnection status
-      // updateConnectionStatusIndicator(false); 
+      // Don't clean up UI on disconnect - we'll restore on reconnect
+      
+      // Show a visual indicator of disconnection status
+      const statusIndicator = document.createElement('div');
+      statusIndicator.id = 'connection-status';
+      statusIndicator.textContent = 'Disconnected from server. Reconnecting...';
+      statusIndicator.style.position = 'fixed';
+      statusIndicator.style.top = '0';
+      statusIndicator.style.left = '0';
+      statusIndicator.style.right = '0';
+      statusIndicator.style.backgroundColor = 'rgba(255, 0, 0, 0.7)';
+      statusIndicator.style.color = 'white';
+      statusIndicator.style.padding = '5px';
+      statusIndicator.style.textAlign = 'center';
+      statusIndicator.style.zIndex = '9999';
+      document.body.appendChild(statusIndicator);
+    });
+    
+    // Handle reconnection
+    socket.on('connect', () => {
+      // Remove disconnection indicator if it exists
+      const statusIndicator = document.getElementById('connection-status');
+      if (statusIndicator) {
+        statusIndicator.remove();
+      }
+      
+      // If we were in a pre-lobby before, request restoration
+      if (currentLobbyCode) {
+        console.log(`Reconnected. Requesting restoration for pre-lobby ${currentLobbyCode}`);
+      }
     });
 
    // ================================
