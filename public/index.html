@@ -1,47 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>CS Matchmaking - Welcome</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <!-- Optional: Add link to profile.css if reusing many styles directly, -->
-    <!-- but current approach copies needed styles into styles.css -->
-    <!-- <link rel="stylesheet" href="css/profile.css"> -->
+  <meta charset="UTF-8">
+  <title>CS Matchmaking - Welcome</title>
+  <link rel="stylesheet" href="css/lobby.css">
+  <link rel="stylesheet" href="css/styles.css"> <!-- Optional: your own overrides -->
 </head>
 <body>
-    <div class="container"> <!-- Added container like profile.html -->
-        <div class="window" name="Welcome"> <!-- Changed to window with name -->
-            <div class="content"> <!-- Added content wrapper -->
-                <h1>Welcome to CS Matchmaking</h1> <!-- Heading inside content -->
-                <p class="description">
-                    Experience competitive Counter-Strike like never before. Join our community
-                for balanced matches, detailed stats, and a seamless matchmaking experience.
-                Log in using your Steam account or create an account with your email to get started.
-                </p>
 
-                <div class="login-options">
-                    <h2>Login / Register</h2>
-                    <button id="steamLoginBtn" class="greensteam-button steam">Login with Steam</button>
+  <!-- VGUI NAVBAR -->
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="/forums">Forums</a></li>
+      <li><a href="/contact">Contact</a></li>
+    </ul>
+  </nav>
 
-                    <hr class="divider">
+  <!-- Main Container -->
+  <div class="container">
+    <div class="window" name="Welcome">
+      <div class="content">
+        <h1 style="color: #E3E41F;">Welcome to RetroMatch!</h1>
+        <p class="description">
+          Experience competitive Counter-Strike like never before. Join our community
+          for balanced matches, detailed stats, and a seamless matchmaking experience. 
+          Log in using your Steam account or create an account with your email.
+        </p>
 
-                    <form action="/login" method="POST" class="email-form">
-                        <!-- Changed input class -->
-                        <input type="email" name="email" placeholder="Email" required class="login-input"><br>
-                        <input type="password" name="password" placeholder="Password" required class="login-input"><br>
-                        <!-- Changed button class -->
-                        <button type="submit" class="greensteam-button">Login with Email</button>
-                    </form>
-                    <p class="register-link">Don't have an account? <a href="/register">Register here</a>.</p>
-                </div>
-            </div> <!-- Close content -->
-        </div> <!-- Close window -->
-    </div> <!-- Close container -->
+        <ul class="feature-list">
+          <li>Automatic matchmaking with skill-based balance</li>
+          <li>Track your stats</li>
+        </ul>
 
-    <script>
-        document.getElementById('steamLoginBtn').addEventListener('click', function() {
-            window.location.href = '/auth/steam';
-        });
-    </script>
+        <div class="login-options">
+
+          <!-- Steam Login Button -->
+          <button id="steamLoginBtn" class="greensteam-button">
+            LOGIN WITH STEAM
+          </button>
+
+          <hr class="divider" style="margin: 20px 0; border: 0; border-top: 1px solid #323232;">
+
+          <!-- Email Login Form -->
+          <form action="/login" method="POST" class="email-form">
+            <input 
+              type="email"
+              name="email"
+              placeholder="Email"
+              required
+              class="login-input"
+            >
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              required
+              class="login-input"
+            >
+
+            <div class="form-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+              <label class="remember-me" style="color: #d8ded3; font-size: 13px;">
+                <input type="checkbox" name="remember" value="1">
+                Remember Me
+              </label>
+              <a href="/forgot-password" class="forgot-password" style="font-size: 13px; color: #F0B43F;">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="mapvotebutton" style="margin-top: 15px;">
+              LOGIN WITH EMAIL
+            </button>
+          </form>
+
+          <p class="register-link" style="margin-top: 15px; font-size: 13px;">
+            Don't have an account? <a href="/register">Register here</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer style="margin-top: 40px; font-size: 12px; color: #666;">
+    <p>© 2025 RetroMatch. All rights reserved.</p>
+  </footer>
+
+  <script>
+    document.getElementById('steamLoginBtn').addEventListener('click', function () {
+      window.location.href = '/auth/steam';
+    });
+  </script>
 </body>
 </html>
