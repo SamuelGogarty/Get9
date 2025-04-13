@@ -1171,6 +1171,12 @@ io.on('connection', (socket) => {
       socket.emit('error', 'Cannot create pre-lobby without steamId or email.');
       return;
     }
+    
+    // Check if the lobby already exists and is full (for restoration cases)
+    if (preLobbies[inviteCode] && preLobbies[inviteCode].players.length >= 5) {
+      socket.emit('error', 'Pre-lobby is already full.');
+      return;
+    }
 
     // Ensure user has a database ID
     if (!user.id) {
@@ -1243,6 +1249,12 @@ io.on('connection', (socket) => {
     const preLobby = preLobbies[inviteCode];
     if (!preLobby) {
       socket.emit('joinPreLobbyError', { message: 'Invalid invite code.' });
+      return;
+    }
+
+    // Add player limit check here
+    if (preLobby.players.length >= 5) {
+      socket.emit('joinPreLobbyError', { message: 'Pre-lobby is full (max 5 players).' });
       return;
     }
 

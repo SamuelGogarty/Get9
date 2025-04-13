@@ -425,6 +425,13 @@
         alert('Please enter an invite code.');
         return;
       }
+      
+      // Client-side validation for current lobby
+      if (currentLobbyCode) {
+        alert('You are already in a pre-lobby. Leave it first to join another.');
+        return;
+      }
+      
       try {
         const userRes = await fetch('/user/info', { credentials: 'include' });
         const user = await userRes.json();
@@ -481,6 +488,12 @@
     socket.on('preLobbyUpdated', ({ inviteCode, players, leaderUserId }) => {
       if (inviteCode !== currentLobbyCode) return;
       updatePlayerList(players, leaderUserId); // Pass leaderUserId
+      
+      // Update UI to show player count
+      const playerCount = players.length;
+      const maxPlayers = 5;
+      document.getElementById('preLobbyPlayerList').parentElement.setAttribute('name', 
+        `Pre-Lobby Members (${playerCount}/${maxPlayers})`);
     });
 
     socket.on('preLobbyPlayers', ({ inviteCode, players, leaderUserId }) => {
@@ -549,6 +562,8 @@
 
     socket.on('joinPreLobbyError', ({ message }) => {
       alert('Join Pre-Lobby Error: ' + (message || 'Unknown'));
+      // Reset the input field on error for better UX
+      document.getElementById('inviteCodeInput').value = '';
     });
 
     // If user is kicked or leaves
