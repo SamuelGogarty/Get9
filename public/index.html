@@ -3,33 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <title>CS Matchmaking - Welcome</title>
-    <link rel="stylesheet" href="css/styles.css"> <!-- Adjusted path -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Optional: Add link to profile.css if reusing many styles directly, -->
+    <!-- but current approach copies needed styles into styles.css -->
+    <!-- <link rel="stylesheet" href="css/profile.css"> -->
 </head>
 <body>
-    <div class="vgui-panel-container">
-        <div class="vgui-panel">
-            <h1>Welcome to CS Matchmaking</h1>
-            <p class="description">
-                Experience competitive Counter-Strike like never before. Join our community
+    <div class="container"> <!-- Added container like profile.html -->
+        <div class="window" name="Welcome"> <!-- Changed to window with name -->
+            <div class="content"> <!-- Added content wrapper -->
+                <h1>Welcome to CS Matchmaking</h1> <!-- Heading inside content -->
+                <p class="description">
+                    Experience competitive Counter-Strike like never before. Join our community
                 for balanced matches, detailed stats, and a seamless matchmaking experience.
                 Log in using your Steam account or create an account with your email to get started.
-            </p>
+                </p>
 
-            <div class="login-options">
-                <h2>Login / Register</h2>
-                <button id="steamLoginBtn" class="vgui-button steam">Login with Steam</button>
+                <div class="login-options">
+                    <h2>Login / Register</h2>
+                    <button id="steamLoginBtn" class="greensteam-button steam">Login with Steam</button>
 
-                <hr class="divider">
+                    <hr class="divider">
 
-                <form action="/login" method="POST" class="email-form">
-                    <input type="email" name="email" placeholder="Email" required class="vgui-input"><br>
-                    <input type="password" name="password" placeholder="Password" required class="vgui-input"><br>
-                    <button type="submit" class="vgui-button">Login with Email</button>
-                </form>
-                <p class="register-link">Don't have an account? <a href="/register">Register here</a>.</p>
-            </div>
-        </div>
-    </div>
+                    <form action="/login" method="POST" class="email-form">
+                        <!-- Changed input class -->
+                        <input type="email" name="email" placeholder="Email" required class="login-input"><br>
+                        <input type="password" name="password" placeholder="Password" required class="login-input"><br>
+                        <!-- Changed button class -->
+                        <button type="submit" class="greensteam-button">Login with Email</button>
+                    </form>
+                    <p class="register-link">Don't have an account? <a href="/register">Register here</a>.</p>
+                </div>
+            </div> <!-- Close content -->
+        </div> <!-- Close window -->
+    </div> <!-- Close container -->
 
     <script>
         document.getElementById('steamLoginBtn').addEventListener('click', function() {
