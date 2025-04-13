@@ -133,7 +133,13 @@
   <!-- The actual JS logic below -->
   <script>
     const socket = io();
-
+ 
+    // Request pre-lobby state restoration on connection
+    socket.on('connect', () => {
+      console.log('Socket connected, requesting pre-lobby restore...');
+      socket.emit('requestPreLobbyRestore');
+    });
+ 
     let currentLobbyCode = null;  // If user is in a pre-lobby
     let isLobbyLeader = false;    // Whether I'm the leader
     let progressInterval = null;  // For the que-in-progress bar
@@ -659,14 +665,10 @@
       // Hide leave button
       document.getElementById('leavePreLobbyBtn').style.display = 'none';
     }
-
-    // Handle page unload
-    window.addEventListener('beforeunload', () => {
-      if (currentLobbyCode) {
-        socket.emit('leavePreLobby', { inviteCode: currentLobbyCode });
-      }
-    });
-
+ 
+    // Handle page unload (REMOVED - Server disconnect handles temporary loss)
+    // window.addEventListener('beforeunload', () => { ... });
+ 
     // Handle server disconnect
     socket.on('disconnect', () => {
       if (currentLobbyCode) {

@@ -1186,8 +1186,10 @@ io.on('connection', (socket) => {
       user.socketId = socket.id;
       // Ensure user object includes the id and skill when pushed
       preLobbies[inviteCode].players.push({ ...user, socketId: socket.id }); // user already has .skill
+      console.log(`[Create PreLobby ${inviteCode}] New player added: User ID ${user.id}, Socket ID ${socket.id}`);
     } else {
-      // Update socketId, skill, and potentially other details if user re-creates
+      // Update socketId, skill, and potentially other details if user re-creates/rejoins
+      console.log(`[Create PreLobby ${inviteCode}] Updating existing player: User ID ${user.id}, Old Socket ${existingPlayer.socketId}, New Socket ${socket.id}`);
       existingPlayer.socketId = socket.id;
       existingPlayer.id = user.id; // Ensure ID is up-to-date
       existingPlayer.username = user.username;
@@ -1255,11 +1257,16 @@ io.on('connection', (socket) => {
       user.socketId = socket.id;
       // Ensure user object includes the id and skill when pushed
       preLobby.players.push({ ...user, socketId: socket.id }); // user already has .skill
+      console.log(`[Join PreLobby ${inviteCode}] New player added: User ID ${user.id}, Socket ID ${socket.id}`);
     } else {
       // Update socketId and skill if user rejoins
+      console.log(`[Join PreLobby ${inviteCode}] Updating existing player: User ID ${user.id}, Old Socket ${existingPlayer.socketId}, New Socket ${socket.id}`);
       existingPlayer.socketId = socket.id;
       existingPlayer.id = user.id; // Ensure ID is up-to-date
       existingPlayer.skill = user.skill; // Update skill
+      // Update other details if necessary (username, profile pic)
+      existingPlayer.username = user.username;
+      existingPlayer.profilePictureUrl = user.profilePictureUrl;
     }
 
     userPreLobbyMap[socket.id] = inviteCode;
@@ -1452,7 +1459,62 @@ io.on('connection', (socket) => {
       profilePictureUrl: player.profilePictureUrl || DEFAULT_PROFILE_PICTURE
     });
   });
-
+ 
+  // Restore pre-lobby state on reconnect
+  socket.on('requestPreLobbyRestore', () => {
+    const user = socket.request.user; // Assumes user is attached by middleware
+    if (!user || !user.id) {
+      console.log(`[Restore] No authenticated user found for socket ${socket.id}. Cannot restore.`);
+      return;
+    }
+ 
+    console.log(`[Restore] Attempting restore for User ID: ${user.id}, Socket ID: ${socket.id}`);
+ 
+    let foundLobbyCode = null;
+    let playerIndex = -1;
+ 
+    // Search all pre-lobbies for this user ID
+    for (const code in preLobbies) {
+      const lobby = preLobbies[code];
+      const index = lobby.players.findIndex(p => String(p.id) === String(user.id));
+      if (index !== -1) {
+        foundLobbyCode = code;
+        playerIndex = index;
+        break;
+      }
+    }
+ 
+    if (foundLobbyCode && playerIndex !== -1) {
+      const lobby = preLobbies[foundLobbyCode];
+      const player = lobby.players[playerIndex];
+ 
+      console.log(`[Restore] Found User ID ${user.id} in pre-lobby ${foundLobbyCode}. Updating socket ID from ${player.socketId} to ${socket.id}.`);
+ 
+      // Update the socket ID for the player
+      player.socketId = socket.id;
+      userPreLobbyMap[socket.id] = foundLobbyCode; // Update the reverse map
+ 
+      // Re-join the socket room
+      socket.join(`preLobby_${foundLobbyCode}`);
+ 
+      // Emit restore event to the specific client
+      socket.emit('preLobbyRestored', {
+        inviteCode: foundLobbyCode,
+        players: lobby.players,
+        leaderUserId: lobby.leaderUserId
+      });
+ 
+      // Optionally notify others in the lobby about the updated player list (socket ID change)
+      // io.to(`preLobby_${foundLobbyCode}`).emit('preLobbyUpdated', {
+      //   inviteCode: foundLobbyCode,
+      //   players: lobby.players,
+      //   leaderUserId: lobby.leaderUserId
+      // });
+    } else {
+      console.log(`[Restore] User ID ${user.id} not found in any active pre-lobby.`);
+    }
+  });
+ 
   // ================================
   // MATCH READY CHECK-IN HANDLERS
   // ================================
@@ -1706,11 +1768,18 @@ io.on('connection', (socket) => {
   socket.on('disconnect', async () => {
     console.log(`Socket ${socket.id} disconnected.`);
     await handleMatchReadyDisconnect(socket.id); // Handle disconnect during ready check
-    const inviteCode = userPreLobbyMap[socket.id];
-    if (inviteCode) {
-      leavePreLobbyInternal(inviteCode, socket.id);
-    }
-
+     
+    // Remove the automatic leavePreLobbyInternal call.
+    // Player state remains in preLobbies until explicitly left, kicked, or lobby starts.
+    // The stale socket ID will be updated on reconnect via requestPreLobbyRestore.
+    // const inviteCode = userPreLobbyMap[socket.id];
+    // if (inviteCode && preLobbies[inviteCode]) {
+    //   console.log(`[Disconnect] Socket ${socket.id} was in pre-lobby ${inviteCode}. State retained.`);
+    //   // leavePreLobbyInternal(inviteCode, socket.id); // No longer called here
+    // }
+    // Clean up the map entry regardless, it will be repopulated on restore/join
+    delete userPreLobbyMap[socket.id];
+ 
     let db;
     try {
       db = await mysql.createConnection(dbConfigMatchmaking);
