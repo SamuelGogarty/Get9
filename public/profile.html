@@ -665,9 +665,8 @@
         
         // Update leader status and player info
         let leaderSuffix = isCurrentLeader ? ' (Leader)' : '';
-        let disconnectedStatus = p.disconnected ? ' <span style="color:#ff6b6b">(Disconnected)</span>' : '';
         infoDiv.innerHTML = `
-          <div class="player-name" style="font-weight:bold;">${p.username}${leaderSuffix}${disconnectedStatus}</div>
+          <div class="player-name" style="font-weight:bold;">${p.username}${leaderSuffix}</div>
           <div class="player-elo">ELO: ${p.skill || 'Unrated'}</div>
         `;
         

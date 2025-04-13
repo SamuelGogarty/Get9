@@ -1829,18 +1829,12 @@ io.on('connection', (socket) => {
     console.log(`Socket ${socket.id} disconnected.`);
     await handleMatchReadyDisconnect(socket.id); // Handle disconnect during ready check
      
-    // Mark the socket as disconnected but don't remove from pre-lobby yet
+    // Socket disconnected but don't remove from pre-lobby yet
     // This allows for page refreshes without losing state
     const inviteCode = userPreLobbyMap[socket.id];
     if (inviteCode && preLobbies[inviteCode]) {
-      console.log(`[Disconnect] Socket ${socket.id} was in pre-lobby ${inviteCode}. Marking as disconnected.`);
-      // Update player status to disconnected but keep in list
-      const player = preLobbies[inviteCode].players.find(p => p.socketId === socket.id);
-      if (player) {
-        player.disconnected = true;
-        player.disconnectTime = Date.now();
-        console.log(`[Disconnect] Player ${player.username} marked as disconnected in pre-lobby ${inviteCode}`);
-      }
+      console.log(`[Disconnect] Socket ${socket.id} was in pre-lobby ${inviteCode}.`);
+      // Player remains in list without disconnected status
     }
     
     // Clean up the map entry, it will be repopulated on restore/join
