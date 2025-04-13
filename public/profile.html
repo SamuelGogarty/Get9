@@ -82,6 +82,10 @@
           <div class="content" id="preLobbyPlayerList">
             <!-- Member rows (via JS) -->
           </div>
+          <!-- Add this button container at the bottom of the member list -->
+          <div class="lobby-leave-container">
+            <button class="greensteam-button" id="leavePreLobbyBtn" style="display:none;">Leave Lobby</button>
+          </div>
         </div>
 
         <!-- Pre-Lobby Chat -->
@@ -93,11 +97,6 @@
               <button class="greensteam-button" id="sendPreLobbyMessage">Send</button>
             </div>
           </div>
-        </div>
-
-        <!-- NEW: Leave Lobby Button -->
-        <div style="margin-top: 10px;">
-          <button class="greensteam-button" id="leavePreLobbyBtn" style="display:none;">Leave Lobby</button>
         </div>
       </div>
     </main>
@@ -754,7 +753,7 @@
       startMatchmakingBtn.textContent = 'Start Matchmaking';
       
       // Hide leave button
-      document.getElementById('leavePreLobbyBtn').style.display = 'none';
+      document.querySelector('.lobby-leave-container #leavePreLobbyBtn').style.display = 'none';
     }
  
     // Handle page unload (REMOVED - Server disconnect handles temporary loss)

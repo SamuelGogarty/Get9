@@ -406,6 +406,26 @@ main {
   overflow-y: auto;
   flex: 1;
   min-height: 0;
+  margin-bottom: 10px;
+}
+
+.member-list-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.lobby-leave-container {
+  margin-top: auto;
+  padding: 10px;
+  border-top: 1px solid #323232;
+  background: #181818;
+}
+
+#leavePreLobbyBtn {
+  width: 100%;
+  text-align: center;
+  padding: 8px;
 }
 
 .player-item {
