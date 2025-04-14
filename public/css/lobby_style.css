@@ -25,7 +25,9 @@ nav {
 
 nav ul {
   display: flex;
-  justify-content: space-between;
+  /* justify-content: space-between; /* Replaced with flex-start and gap */
+  justify-content: flex-start; /* Align items to the start */
+  gap: 5px; /* Add consistent spacing between items */
   align-items: center;
   padding: 0;
   margin: 0;
