@@ -4,9 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>About - Retromatch</title>
+  <link rel="stylesheet" href="/css/lobby_style.css"> <!-- Added for navbar styles -->
   <link rel="stylesheet" href="/css/about.css">
 </head>
 <body class="vgui-window">
+
+  <!-- NAVBAR -->
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="/forums">Forums</a></li>
+      <li><a href="/contact">Contact</a></li>
+      <!-- Removed Discord link for welcome page -->
+      <li class="right-nav">
+         <!-- Steam Login Button in Navbar -->
+         <button id="steamLoginBtnNav" class="greensteam-button steam-nav-button">
+           Sign in with Steam
+         </button>
+      </li>
+    </ul>
+  </nav>
   <div class="container window" name="About">
     <div class="vgui-titlebar">About Retromatch</div>
 
@@ -69,5 +87,12 @@
     <p>Join our <a href="#">Discord</a> or old-school <a href="#">IRC (#retromatch)</a>. Follow us on <a href="#">Twitter</a>, <a href="#">Reddit</a>, or <a href="#">YouTube</a> for updates.</p>
     <p>We’re excited to bring CS 1.6 back — the way it should be played.</p>
   </div>
+
+  <script>
+    // Listener for the navbar Steam login button
+    document.getElementById('steamLoginBtnNav').addEventListener('click', function () {
+      window.location.href = '/auth/steam';
+    });
+  </script>
 </body>
 </html>
