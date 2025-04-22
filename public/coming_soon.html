@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Coming Soon!</title>
-  <link rel="stylesheet" href="css/profile.css">
+  <link rel="stylesheet" href="css/styles.css"> <!-- Use the main VGUI styles -->
   <style>
-    /* Additional styles for centering the single window */
+    /* Keep body centering styles if needed, or rely on styles.css */
+    /* Centering is handled by styles.css body and .container rules */
     body {
       display: flex;
       justify-content: center;
@@ -26,9 +27,9 @@
         justify-content: center;
         align-items: center;
     }
-    .window[name="Coming Soon"] p {
-        margin-bottom: 15px; /* Add space between paragraphs */
-    }
+    /* Remove window-specific styles, rely on styles.css */
+    /* .window[name="Coming Soon"] .content { ... } */
+    /* .window[name="Coming Soon"] p { ... } */
   </style>
 </head>
 <body>
@@ -39,7 +40,8 @@
         <p>Our new matchmaking platform is launching soon.</p>
         <p>Stay tuned for updates!</p>
         <!-- Optional: Add a link to Discord or other social media -->
-        <a href="https://discord.gg/8m4xG8sjXm" target="_blank" class="greensteam-button discord-button">Join our Discord</a>
+        <!-- Use the standard button class from styles.css -->
+        <a href="https://discord.gg/8m4xG8sjXm" target="_blank" class="greensteam-button">Join our Discord</a>
       </div>
     </div>
   </div>
