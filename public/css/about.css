@@ -1,0 +1,68 @@
+body {
+  background-color: #0a0a0a;
+  font-family: "Trebuchet MS", "Verdana", sans-serif;
+  color: #d8ded3;
+  font-size: 15px;
+  margin: 0;
+  padding: 40px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.container {
+  width: 900px;
+  padding: 20px;
+  background-color: #1c1c1c;
+  border: 1px solid #323232;
+  margin-bottom: 30px;
+}
+
+.vgui-titlebar {
+  background: #080808;
+  border-bottom: 1px solid #323232;
+  color: #E3E41F;
+  font-size: 14px;
+  padding: 10px 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+}
+
+h1, h2, h3 {
+  color: #E3E41F;
+  font-family: "Trebuchet MS", "Verdana", sans-serif;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+ul {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin-bottom: 20px;
+}
+
+ul li {
+  margin-bottom: 8px;
+}
+
+a {
+  color: #F0B43F;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #E3E41F;
+  text-decoration: underline;
+}
+
+p {
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.faq-question {
+  margin-top: 20px;
+  color: #E3E41F;
+  font-weight: bold;
+}
