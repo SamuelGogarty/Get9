@@ -1,5 +1,9 @@
 /*** Navbar ***/
 nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
   border-top: solid 1px #323232;
   border-bottom: solid 1px #080808;
   border-left: solid 1px #323232;
@@ -591,6 +595,7 @@ body {
   font-size: 14px;
   image-rendering: pixelated;
   margin: 20px 20px;
+  padding-top: 60px !important;
 }
 ::selection {
   background-color: #96892D;

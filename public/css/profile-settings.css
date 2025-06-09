@@ -2,15 +2,6 @@
 
 body {
   background-color: #080808;
-  padding-top: 60px; /* Navbar height */
-}
-
-/* Add this new rule */
-#navbar-container {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 1000;
 }
 
 /*  Main container with VGUI window chrome  */
@@ -20,7 +11,7 @@ body {
   background-color: #212121;
   border: 1px solid #323232;
   box-shadow: 0 0 12px rgba(0,0,0,.5);
-  margin: 80px auto 0; /* Added top margin */
+  margin: 20px auto;
 }
 
 /*  Title bar created via ::before to match Half‑Life windows  */

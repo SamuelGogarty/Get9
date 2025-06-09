@@ -31,11 +31,18 @@
       
       const user = await res.json();
       document.getElementById('navbarUsername').textContent = user.username;
-      document.getElementById('navbarProfile').src = user.profilePictureUrl;
+      
+      // Set profile picture with error fallback
+      const profileImg = document.getElementById('navbarProfile');
+      profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
+      profileImg.onerror = function() {
+        this.src = '/img/fallback-pfp.png';
+      };
       
       // Update Home link to go to profile page
       document.getElementById('nav-home').href = '/profile.html';
 
+      // Fetch ELO rating
       const eloRes = await fetch('/user/skill');
       if (eloRes.ok) {
         const eloData = await eloRes.json();
@@ -48,5 +55,6 @@
     }
   }
   
-  document.addEventListener('DOMContentLoaded', initNavbar);
+  // Initialize immediately on script load
+  initNavbar();
 </script>

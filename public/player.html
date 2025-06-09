@@ -389,6 +389,7 @@
       .then(response => response.text())
       .then(html => {
         document.getElementById('navbar-container').innerHTML = html;
+        // No need to call initNavbar again - it runs automatically
       });
   </script>
 </body>
