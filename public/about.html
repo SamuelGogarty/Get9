@@ -9,22 +9,7 @@
 </head>
 <body class="vgui-window">
 
-  <!-- NAVBAR -->
-  <nav>
-    <ul>
-      <li><a href="index.html">Home</a></li>
-      <li><a href="about.html">About</a></li>
-      <li><a href="/forums">Forums</a></li>
-      <li><a href="/contact">Contact</a></li>
-      <!-- Removed Discord link for welcome page -->
-      <li class="right-nav">
-         <!-- Steam Login Button in Navbar -->
-         <button id="steamLoginBtnNav" class="greensteam-button steam-nav-button">
-           Sign in with Steam
-         </button>
-      </li>
-    </ul>
-  </nav>
+  <div id="navbar-container"></div>
   <div class="container window" name="About">
     <div class="vgui-titlebar">About Retromatch</div>
 
@@ -89,10 +74,11 @@
   </div>
 
   <script>
-    // Listener for the navbar Steam login button
-    document.getElementById('steamLoginBtnNav').addEventListener('click', function () {
-      window.location.href = '/auth/steam';
-    });
+    fetch('/navbar.html')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('navbar-container').innerHTML = html;
+      });
   </script>
 </body>
 </html>
