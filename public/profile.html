@@ -9,7 +9,7 @@
 <body>
   <div id="navbar-container"></div>
 
-  <div class="container">
+  <div class="container" style="margin-top: 20px;">
     <main class="main-grid">
       <!-- Top Matchmaking Window -->
       <div class="window matchmaking-header" name="Matchmaking">
@@ -187,7 +187,10 @@
         // Update profile picture and username immediately
         const profileImg = document.getElementById('navbarProfile');
         profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
-        profileImg.onerror = () => { profileImg.src = '/img/fallback-pfp.png'; };
+        // Add error handling for profile images
+        profileImg.onerror = function() {
+          this.src = '/img/fallback-pfp.png';
+        };
         document.getElementById('navbarUsername').textContent = user.username;
 
         const mmProfile = document.getElementById('matchmakingProfile');

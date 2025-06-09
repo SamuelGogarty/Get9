@@ -1,12 +1,14 @@
-<nav>
+<nav class="retromatch-navbar">
   <ul>
     <li><a href="/profile.html" class="nav-item" id="nav-home">Home</a></li>
-    <li><a href="/profile.html">Profile</a></li>
-    <li><a href="/lobby.html">Lobby</a></li>
-    <li><a href="/player.html">My Stats</a></li>
-    <li><a href="/profile-settings.html">Profile Settings</a></li>
-    <li><a href="/about.html">About</a></li>
-    <li><a href="https://discord.gg/8m4xG8sjXm" target="_blank">Discord</a></li>
+    <li><a href="/lobby.html" class="nav-item">Lobby</a></li>
+    <li><a href="/player.html" class="nav-item">My Stats</a></li>
+    <li><a href="https://discord.gg/8m4xG8sjXm" class="nav-item" target="_blank">Discord</a></li>
+    <li><a href="/profile-settings.html" class="nav-item">Profile Settings</a></li>
+    <li><a href="/about.html" class="nav-item">About</a></li>
+    <li><a href="/contact.html" class="nav-item">Contact</a></li>
+    <li><a href="/store.html" class="nav-item">Store</a></li>
+    <li><a href="/forums.html" class="nav-item">Forums</a></li>
     <li class="right-nav">
       <div class="nav-player-name">
         <img id="navbarProfile" src="/img/fallback-pfp.png" alt="Avatar">
@@ -16,6 +18,68 @@
     </li>
   </ul>
 </nav>
+
+<style>
+.retromatch-navbar {
+  background: #2c3e50;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.retromatch-navbar ul {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.retromatch-navbar ul li {
+  margin: 0 5px;
+}
+
+.retromatch-navbar ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 10px 15px;
+  border-radius: 4px;
+  transition: background 0.3s;
+  font-size: 14px;
+}
+
+.retromatch-navbar ul li a:hover {
+  background: #3498db;
+}
+
+.right-nav {
+  margin-left: auto;
+}
+
+.nav-player-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+}
+
+.nav-player-name img {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.elo-display {
+  background: #3498db;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+</style>
 
 <script>
   async function initNavbar() {
