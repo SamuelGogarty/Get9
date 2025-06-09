@@ -122,6 +122,9 @@
 
   <!-- The actual JS logic below -->
   <script>
+    // Add this at the top of the script section
+    window.skipNavbarInit = true;
+    
     const socket = io();
  
     // Request pre-lobby state restoration on connection

@@ -280,6 +280,9 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
+    // Add this at the top of the script section
+    window.skipNavbarInit = true;
+    
     async function loadPlayerStats(playerId) {
       try {
         document.querySelector('.loading-spinner').style.display = 'block';

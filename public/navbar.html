@@ -21,8 +21,11 @@
 
 <script>
   async function initNavbar() {
+    // Add this check at the top
+    if (window.skipNavbarInit) return;
+    
     try {
-      const res = await fetch('/user/info');
+      const res = await fetch('/user/info', { credentials: 'include' });
       if (!res.ok) {
         // User not logged in - change Home to root
         document.getElementById('nav-home').href = '/';
@@ -43,7 +46,7 @@
       document.getElementById('nav-home').href = '/profile.html';
 
       // Fetch ELO rating
-      const eloRes = await fetch('/user/skill');
+      const eloRes = await fetch('/user/skill', { credentials: 'include' });
       if (eloRes.ok) {
         const eloData = await eloRes.json();
         document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
@@ -55,6 +58,8 @@
     }
   }
   
-  // Initialize immediately on script load
-  initNavbar();
+  // Change initialization to use DOMContentLoaded
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initNavbar, 100);
+  });
 </script>
