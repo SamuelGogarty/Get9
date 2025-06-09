@@ -14,6 +14,9 @@ const crypto = require('crypto');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
+const { ensureAuthenticated } = require('./middleware/auth');
+const nosteamRoutes        = require('./routes/nosteam');
+
 
 // Steam ID conversion utility
 function steam64ToLegacy(steamId64) {
@@ -70,6 +73,12 @@ const dbConfigStats = {
   password: process.env.DB_PASSWORD,
   database: 'stats'
 };
+const dbConfigNoSteam = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: 'nosteam_users'
+};
 
 // Serve static
 app.use(express.static(path.join(__dirname, 'public')));
@@ -77,6 +86,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Sessions & body parser
 app.use(sessionMiddleware);
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.json());
 
 // Passport
 app.use(passport.initialize());
@@ -183,10 +193,6 @@ passport.deserializeUser(async (obj, done) => {
 });
 
 // Helpers
-function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) return next();
-  res.redirect('/login');
-}
 function ensureAdmin(req, res, next) {
   if (req.isAuthenticated() && req.user.role === 'admin') return next();
   res.redirect('/login');
@@ -844,6 +850,10 @@ io.use((socket, next) => {
     console.log(`Unauthenticated socket connection from ${socket.id}`);
     next(); // Allow connection but track as unauthenticated
   }
+});
+
+app.get('/profile-settings', ensureAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'profile-settings.html'));
 });
 
 io.on('connection', (socket) => {
@@ -1896,7 +1906,7 @@ io.on('connection', (socket) => {
 
 // Attach routes
 appRoutes();
-
+app.use('/nosteam', nosteamRoutes);
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

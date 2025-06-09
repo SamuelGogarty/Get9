@@ -1,0 +1,68 @@
+/*  Page‑specific tweaks – assumes vgui.css is already linked  */
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 60px;        /* pushes window away from very top */
+  background-color: #080808;
+}
+
+/*  Main container with VGUI window chrome  */
+.settings-window {
+  width: 480px;
+  padding: 20px;
+  background-color: #212121;
+  border: 1px solid #323232;
+  box-shadow: 0 0 12px rgba(0,0,0,.5);
+}
+
+/*  Title bar created via ::before to match Half‑Life windows  */
+.settings-window::before {
+  content: "Profile Settings";
+  display: block;
+  height: 18px;
+  line-height: 18px;
+  text-indent: 24px;
+  background-image: url("steamico.png"), url("minimize.png"), url("close.png");
+  background-repeat: no-repeat;
+  background-position: top left, top right 20px, top right;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+
+/*  Form layout  */
+#nosteam-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#nosteam-form label {
+  color: #F0B43F;
+  font-weight: bold;
+}
+
+#nosteam-form input[type="text"] {
+  padding: 6px 10px;
+  font-size: 14px;
+  background-color: #080808;
+  color: #d8ded3;
+  border-top: 1px solid #080808;
+  border-left: 1px solid #080808;
+  border-right: 1px solid #323232;
+  border-bottom: 1px solid #323232;
+}
+
+#nosteam-form button {
+  align-self: flex-start;   /* keep classic left‑aligned VGUI button */
+}
+
+#status-message {
+  font-size: 13px;
+  margin-top: 10px;
+}

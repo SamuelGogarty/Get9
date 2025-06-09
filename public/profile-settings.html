@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Profile Settings – RetroMatch</title>
+
+  <!-- Base VGUI look‑&‑feel -->
+  <link rel="stylesheet" href="/css/blacksteam.css">
+
+  <!-- Page‑specific tweaks -->
+  <link rel="stylesheet" href="/css/profile-settings.css">
+</head>
+<body>
+  <main>
+    <div class="settings-window">
+      <form id="nosteam-form" autocomplete="off">
+        <label for="steamid">Enter your NoSteam SteamID (HWID‑based only):</label>
+        <input type="text"
+               id="steamid"
+               name="steamid"
+               placeholder="STEAM_0:1:123456"
+               required>
+
+        <button type="submit">Save SteamID</button>
+      </form>
+
+      <p id="status-message"></p>
+    </div>
+  </main>
+
+  <script>
+    /* Prefill the field with the user’s current binding (if any) */
+    fetch('/nosteam/my-steamid')
+      .then(r => r.ok ? r.json() : {})
+      .then(d => { if (d.steamid) document.getElementById('steamid').value = d.steamid; })
+      .catch(console.error);
+
+    /* Handle form submission */
+    document.getElementById('nosteam-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const steamid = document.getElementById('steamid').value.trim();
+      const res = await fetch('/nosteam/bind-steamid', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ steamid })
+      });
+
+      const msg = document.getElementById('status-message');
+      if (res.ok) {
+        msg.textContent = '✅  SteamID saved successfully.';
+        msg.style.color = '#F0B43F';
+      } else {
+        const { error } = await res.json();
+        msg.textContent = `❌  ${error}`;
+        msg.style.color = '#e03644';
+      }
+    });
+  </script>
+</body>
+</html>
