@@ -5,47 +5,62 @@ nav {
   border-left: solid 1px #323232;
   border-right: solid 1px #080808;
   padding: 0;
-  list-style: none;
   background: #212121;
   margin-bottom: 20px;
+  height: 60px;
+  display: flex;
+  align-items: center;
 }
-nav li {
-  display: inline-block;
-  position: relative;
-  line-height: 21px;
-  text-align: left;
-  cursor: pointer;
+
+nav ul {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }
-nav li a {
-  display: block;
-  padding: 8px 25px;
+
+nav ul li {
+  margin: 0 5px;
+}
+
+nav ul li a {
   color: #F0B43F;
   text-decoration: none;
+  padding: 8px 15px;
+  font-weight: bold;
+  display: block;
 }
-nav li a:hover {
+
+nav ul li a:hover {
   color: #E3E41F;
   background: #181818;
 }
-nav li:hover ul.dropdown {
-  display: block;
+
+.right-nav {
+  margin-left: auto;
 }
-nav li ul.dropdown {
-  display: none;
-  list-style: none;
-  border-top: solid 1px #323232;
-  border-bottom: solid 1px #080808;
-  border-left: solid 1px #323232;
-  border-right: solid 1px #080808;
-  border-top: none;
-  padding: 0;
-  min-width: 150px;
-  background: #212121;
-  position: absolute;
-  top: 23px;
-  z-index: 1;
+
+.nav-player-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  padding: 0 15px;
 }
-nav li ul.dropdown li {
-  display: block;
+
+.nav-player-name img {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.elo-display {
+  background: #3498db;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 14px;
 }
 /*** Form Controls: Buttons, Checkboxes, Radio Buttons, Text Fields, etc. ***/
 button,
