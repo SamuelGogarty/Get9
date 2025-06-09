@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/css/profile-settings.css">
 </head>
 <body>
+  <div id="navbar-container"></div>
   <main>
     <div class="settings-window">
       <form id="nosteam-form" autocomplete="off">
@@ -55,6 +56,12 @@
         msg.style.color = '#e03644';
       }
     });
+
+    fetch('/navbar.html')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('navbar-container').innerHTML = html;
+      });
   </script>
 </body>
 </html>

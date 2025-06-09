@@ -8,22 +8,7 @@
 <body>
   <div class="container">
     <!-- NAV -->
-    <nav>
-      <ul>
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Services</a></li>
-        <li><a href="#">Contact</a></li>
-        <li><a href="/player.html">My Stats</a></li>
-        <li><a href="https://discord.gg/8m4xG8sjXm" target="_blank" class="greensteam-button discord-button">Discord</a></li>
-        <li class="right-nav">
-          <div class="nav-player-name">
-            <img id="navbarProfile" src="/img/fallback-pfp.png" alt="Avatar" />
-            <span id="navbarUsername">Player Name</span>
-            <span id="navbarElo" class="elo-display">ELO: 0</span>
-          </div>
-        </li>
-      </ul>
-    </nav>
+    <div id="navbar-container"></div>
 
     <!-- GRID -->
     <div class="lobby-grid">
@@ -90,6 +75,13 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script>
+    fetch('/navbar.html')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('navbar-container').innerHTML = html;
+      });
+  </script>
   <script src="/js/lobby.js"></script>
 </body>
 </html>

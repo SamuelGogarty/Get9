@@ -164,21 +164,7 @@
 </head>
 <body>
   <div class="container">
-    <nav>
-      <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/profile.html">Profile</a></li>
-        <li><a href="/lobby.html">Lobby</a></li>
-        <li><a href="https://discord.gg/8m4xG8sjXm" target="_blank" class="greensteam-button discord-button">Discord</a></li>
-        <li class="right-nav">
-          <div class="nav-player-name">
-            <img id="navbarProfile" src="/img/fallback-pfp.png" alt="Avatar">
-            <span id="navbarUsername">Player Name</span>
-            <span id="navbarElo" class="elo-display">ELO: 0</span>
-          </div>
-        </li>
-      </ul>
-    </nav>
+    <div id="navbar-container"></div>
 
     <div class="stats-container">
       <div class="stats-main">
@@ -399,26 +385,11 @@
   
   
   <script>
-    // Initialize navbar immediately
-    async function initNavbar() {
-      try {
-        const res = await fetch('/user/info');
-        if (!res.ok) return;
-        const user = await res.json();
-        document.getElementById('navbarUsername').textContent = user.username;
-        document.getElementById('navbarProfile').src = user.profilePictureUrl;
-        const eloRes = await fetch('/user/skill');
-        if (eloRes.ok) {
-          const eloData = await eloRes.json();
-          document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
-        }
-      } catch (error) {
-        console.error('Navbar init error:', error);
-      }
-    }
-    
-    // Call on page load
-    document.addEventListener('DOMContentLoaded', initNavbar);
+    fetch('/navbar.html')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('navbar-container').innerHTML = html;
+      });
   </script>
 </body>
 </html>
