@@ -1,6 +1,6 @@
 <nav>
   <ul>
-    <li><a href="/">Home</a></li>
+    <li><a href="/profile.html" class="nav-item" id="nav-home">Home</a></li>
     <li><a href="/profile.html">Profile</a></li>
     <li><a href="/lobby.html">Lobby</a></li>
     <li><a href="/player.html">My Stats</a></li>
@@ -21,10 +21,19 @@
   async function initNavbar() {
     try {
       const res = await fetch('/user/info');
-      if (!res.ok) return;
+      if (!res.ok) {
+        // User not logged in - change Home to root
+        document.getElementById('nav-home').href = '/';
+        return;
+      }
+      
       const user = await res.json();
       document.getElementById('navbarUsername').textContent = user.username;
       document.getElementById('navbarProfile').src = user.profilePictureUrl;
+      
+      // Update Home link to go to profile page
+      document.getElementById('nav-home').href = '/profile.html';
+
       const eloRes = await fetch('/user/skill');
       if (eloRes.ok) {
         const eloData = await eloRes.json();
@@ -32,6 +41,8 @@
       }
     } catch (error) {
       console.error('Navbar init error:', error);
+      // Keep default Home link on error
+      document.getElementById('nav-home').href = '/';
     }
   }
   
