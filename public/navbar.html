@@ -1,7 +1,7 @@
 <style>
   body {
     /* Add padding to the top of the body to prevent content from being hidden by the fixed navbar */
-    padding-top: 145px; /* Banner (80px) + Nav (~50px) + padding */
+    padding-top: 150px; /* Banner (80px) + Nav (~50px) + padding/gap */
   }
 
   .header-container {
@@ -9,18 +9,20 @@
     top: 0;
     left: 0;
     width: 100%;
-    background-color: #1b2838; /* Dark background to match Steam-like theme */
+    background-color: #000; /* Black background */
     z-index: 1000;
-    text-align: center;
-    border-bottom: 1px solid #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-bottom: 1px solid #222; /* Slightly lighter border on black */
     box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-    padding-bottom: 5px;
+    padding: 5px 0; /* 5px top/bottom padding */
+    gap: 5px; /* Space between banner and nav */
   }
 
   .banner-image {
     max-height: 80px; /* Scale down the banner */
     width: auto;
-    margin-top: 5px;
   }
 
   nav {
@@ -121,10 +123,8 @@
     }
   }
   
-  // Change initialization to use DOMContentLoaded
-  document.addEventListener('DOMContentLoaded', () => {
-    // A short timeout can help ensure the rest of the page's scripts have a moment to run,
-    // for instance, to set `skipNavbarInit` if needed.
-    setTimeout(initNavbar, 0);
-  });
+  // The script is executed when this HTML is injected into the DOM.
+  // We can call initNavbar directly. A timeout helps ensure the elements are parsed
+  // and avoids race conditions with other scripts.
+  setTimeout(initNavbar, 0);
 </script>
