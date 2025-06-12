@@ -133,7 +133,6 @@
         if (userResponse.ok) {
           user = await userResponse.json();
         } else {
-          // If not authenticated, redirect to login
           window.location.href = '/';
           return;
         }
@@ -143,11 +142,31 @@
         return;
       }
 
-      // Dispatch a custom event with the user data.
-      // The navbar and profile scripts will listen for this.
-      document.dispatchEvent(new CustomEvent('userDataReady', {
-        detail: { user }
-      }));
+      // Directly call the function from navbar.html
+      if (typeof populateNavbar === 'function') {
+        populateNavbar(user);
+      } else {
+        console.error('populateNavbar function not found.');
+      }
+
+      // Populate the main profile page content with the same user data
+      if (user) {
+        const mmProfile = document.getElementById('matchmakingProfile');
+        mmProfile.src = user.profilePictureUrl || '/img/fallback-pfp.png';
+        mmProfile.onerror = () => { mmProfile.src = '/img/fallback-pfp.png'; };
+        document.getElementById('matchmakingUsername').textContent = user.username;
+
+        // Fetch server stats
+        fetch('/api/server/stats', { credentials: 'include' })
+          .then(statsRes => statsRes.ok ? statsRes.json() : null)
+          .then(stats => {
+            if (stats) {
+              document.getElementById('playersWaiting').textContent = stats.queuedPlayers ?? 0;
+              document.getElementById('activeMatches').textContent = stats.activeMatches ?? 0;
+            }
+          })
+          .catch(err => console.error('Server stats fetch failed:', err));
+      }
     })();
   </script>
   <script src="/js/profile.js" defer></script>

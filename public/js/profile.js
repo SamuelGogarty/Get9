@@ -31,49 +31,6 @@ let matchReadyAudio = null; // For the popup sound effect
 let soundLoopTimeout = null; // Timeout ID for delayed sound loop
 
 // ================================
-// PAGE INITIALIZATION
-// ================================
-function initializeProfilePage(user) {
-    if (!user) {
-        console.error("User data not provided for profile page initialization.");
-        // The parent HTML should have already redirected, but as a fallback:
-        window.location.href = '/';
-        return;
-    }
-
-    hideQueueProgress();
-
-    // Populate Profile Page Content
-    const mmProfile = document.getElementById('matchmakingProfile');
-    mmProfile.src = user.profilePictureUrl || '/img/fallback-pfp.png';
-    mmProfile.onerror = () => { mmProfile.src = '/img/fallback-pfp.png'; };
-    document.getElementById('matchmakingUsername').textContent = user.username;
-
-    // Fetch server stats
-    fetch('/api/server/stats', { credentials: 'include' })
-        .then(statsRes => {
-            if (statsRes.ok) {
-                return statsRes.json();
-            }
-        })
-        .then(stats => {
-            if (stats) {
-                document.getElementById('playersWaiting').textContent = stats.queuedPlayers ?? 0;
-                document.getElementById('activeMatches').textContent = stats.activeMatches ?? 0;
-            }
-        })
-        .catch(err => {
-            console.error('Server stats fetch failed:', err);
-        });
-}
-
-// Listen for the userDataReady event from the main page
-document.addEventListener('userDataReady', (event) => {
-    initializeProfilePage(event.detail.user);
-});
-
-
-// ================================
 // PROGRESS BAR & CANCEL BUTTON
 // ================================
 function showQueueProgress() {

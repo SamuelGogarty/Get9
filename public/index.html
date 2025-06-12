@@ -106,11 +106,12 @@
         console.error('Failed to fetch user info for navbar:', error);
       }
 
-      // Dispatch a custom event with the user data.
-      // The navbar script will listen for this.
-      document.dispatchEvent(new CustomEvent('userDataReady', {
-        detail: { user }
-      }));
+      // Directly call the function from navbar.html
+      if (typeof populateNavbar === 'function') {
+        populateNavbar(user);
+      } else {
+        console.error('populateNavbar function not found.');
+      }
     })();
   </script>
 </body>
