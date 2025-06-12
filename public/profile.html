@@ -132,7 +132,6 @@
         const userResponse = await fetch('/user/info', { credentials: 'include' });
         if (userResponse.ok) {
           user = await userResponse.json();
-          window.currentUser = user; // Make user data available to other scripts
         } else {
           // If not authenticated, redirect to login
           window.location.href = '/';
@@ -144,20 +143,11 @@
         return;
       }
 
-      // Populate navbar
-      if (typeof populateNavbar === 'function') {
-        await populateNavbar(user);
-      } else {
-        // This is a fallback in case the script from navbar.html hasn't run yet.
-        // We'll wait a moment and try again.
-        setTimeout(async () => {
-            if(typeof populateNavbar === 'function') {
-                await populateNavbar(user);
-            } else {
-                console.error('populateNavbar function is still not available.');
-            }
-        }, 100);
-      }
+      // Dispatch a custom event with the user data.
+      // The navbar and profile scripts will listen for this.
+      document.dispatchEvent(new CustomEvent('userDataReady', {
+        detail: { user }
+      }));
     })();
   </script>
   <script src="/js/profile.js" defer></script>

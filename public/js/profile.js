@@ -33,15 +33,13 @@ let soundLoopTimeout = null; // Timeout ID for delayed sound loop
 // ================================
 // PAGE INITIALIZATION
 // ================================
-function initializeProfilePage() {
-    if (!window.currentUser) {
-        console.error("User data not available for profile page initialization. Waiting...");
-        // Since this script is deferred, DOM is ready, but the async fetch in the inline script might not be.
-        // A small timeout can help wait for window.currentUser.
-        setTimeout(initializeProfilePage, 100);
+function initializeProfilePage(user) {
+    if (!user) {
+        console.error("User data not provided for profile page initialization.");
+        // The parent HTML should have already redirected, but as a fallback:
+        window.location.href = '/';
         return;
     }
-    const user = window.currentUser;
 
     hideQueueProgress();
 
@@ -69,8 +67,10 @@ function initializeProfilePage() {
         });
 }
 
-// Run initialization
-initializeProfilePage();
+// Listen for the userDataReady event from the main page
+document.addEventListener('userDataReady', (event) => {
+    initializeProfilePage(event.detail.user);
+});
 
 
 // ================================

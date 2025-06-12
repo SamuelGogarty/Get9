@@ -97,10 +97,11 @@
         console.error('Failed to fetch user info for navbar:', error);
       }
 
-      // Populate navbar
-      if (typeof populateNavbar === 'function') {
-        await populateNavbar(user);
-      }
+      // Dispatch a custom event with the user data.
+      // The navbar script will listen for this.
+      document.dispatchEvent(new CustomEvent('userDataReady', {
+        detail: { user }
+      }));
     })();
   </script>
   <script src="/js/lobby.js"></script>

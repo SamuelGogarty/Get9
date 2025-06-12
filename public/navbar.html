@@ -55,8 +55,7 @@
 </div>
 
 <script>
-  // This function is called by the parent page after it fetches user data.
-  // It populates the navbar with the provided user information.
+  // This function populates the navbar with the provided user information.
   async function populateNavbar(user) {
     const rightNavLi = document.querySelector('.right-nav');
     const navHome = document.getElementById('nav-home');
@@ -112,4 +111,10 @@
       document.getElementById('navbarElo').textContent = 'ELO: 0';
     }
   }
+
+  // Listen for the custom event dispatched by the parent page.
+  document.addEventListener('userDataReady', (event) => {
+    const user = event.detail.user;
+    populateNavbar(user);
+  });
 </script>
