@@ -55,15 +55,26 @@
 </div>
 
 <script>
-  async function initNavbar() {
-    // Add this check at the top
-    if (window.skipNavbarInit) return;
+  // Use an IIFE to avoid polluting the global scope and ensure execution on load.
+  (async function initializeNavbar() {
+    // A small delay to ensure the DOM elements this script needs are available after injection.
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    if (window.skipNavbarInit) {
+      return;
+    }
 
     const rightNavLi = document.querySelector('.right-nav');
     const navHome = document.getElementById('nav-home');
     const navLobby = document.querySelector('a[href="/lobby.html"]');
     const navMyStats = document.querySelector('a[href="/player.html"]');
     const navProfileSettings = document.querySelector('a[href="/profile-settings.html"]');
+
+    // Safety check
+    if (!rightNavLi || !navHome) {
+      console.error("Navbar DOM elements not found. The script might have run too early.");
+      return;
+    }
     
     try {
       const res = await fetch('/user/info', { credentials: 'include' });
@@ -71,12 +82,10 @@
         // User not logged in
         navHome.href = '/';
         
-        // Hide links that require login
         if (navLobby) navLobby.parentElement.style.display = 'none';
         if (navMyStats) navMyStats.parentElement.style.display = 'none';
         if (navProfileSettings) navProfileSettings.parentElement.style.display = 'none';
 
-        // Replace player info with a login button
         rightNavLi.innerHTML = `
           <a href="/auth/steam" style="text-decoration: none;">
             <button class="greensteam-button" style="padding: 8px 16px; vertical-align: middle;">
@@ -88,43 +97,43 @@
       }
       
       const user = await res.json();
+      
+      // Check for null user or username
+      if (!user || !user.username) {
+          throw new Error("User data received is invalid.");
+      }
+
       document.getElementById('navbarUsername').textContent = user.username;
       
-      // Set profile picture with error fallback
       const profileImg = document.getElementById('navbarProfile');
       profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
       profileImg.onerror = function() {
         this.src = '/img/fallback-pfp.png';
       };
       
-      // Update Home link to go to profile page
       navHome.href = '/profile.html';
 
-      // Fetch ELO rating
       const eloRes = await fetch('/user/skill', { credentials: 'include' });
       if (eloRes.ok) {
         const eloData = await eloRes.json();
         document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
       }
     } catch (error) {
-      console.error('Navbar init error:', error);
+      console.error('Navbar initialization failed:', error);
       // Fallback for non-logged-in state on error
-      navHome.href = '/';
+      if (navHome) navHome.href = '/';
       if (navLobby) navLobby.parentElement.style.display = 'none';
       if (navMyStats) navMyStats.parentElement.style.display = 'none';
       if (navProfileSettings) navProfileSettings.parentElement.style.display = 'none';
-      rightNavLi.innerHTML = `
-        <a href="/auth/steam" style="text-decoration: none;">
-          <button class="greensteam-button" style="padding: 8px 16px; vertical-align: middle;">
-            Sign in with Steam
-          </button>
-        </a>
-      `;
+      if (rightNavLi) {
+        rightNavLi.innerHTML = `
+          <a href="/auth/steam" style="text-decoration: none;">
+            <button class="greensteam-button" style="padding: 8px 16px; vertical-align: middle;">
+              Sign in with Steam
+            </button>
+          </a>
+        `;
+      }
     }
-  }
-  
-  // The script is executed when this HTML is injected into the DOM.
-  // We can call initNavbar directly. A timeout helps ensure the elements are parsed
-  // and avoids race conditions with other scripts.
-  setTimeout(initNavbar, 0);
+  })();
 </script>
