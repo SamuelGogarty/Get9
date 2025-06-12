@@ -1,7 +1,7 @@
 <style>
   body {
     /* Add padding to the top of the body to prevent content from being hidden by the fixed navbar */
-    padding-top: 90px; /* Banner (45px) + Nav (~45px) */
+    padding-top: 115px; /* Banner (60px) + Nav (~45px) + padding/gap */
   }
 
   .header-container {
@@ -17,11 +17,11 @@
     border-bottom: 1px solid #222; /* Slightly lighter border on black */
     box-shadow: 0 2px 4px rgba(0,0,0,0.4);
     padding: 5px 0 0; /* Padding only at the top, none at the bottom */
-    gap: 0; /* Remove the gap between banner and nav */
+    gap: 2px; /* Re-introduce a small gap for visual balance */
   }
 
   .banner-image {
-    max-height: 45px; /* Keep banner reasonably sized */
+    max-height: 60px; /* Increased banner height */
     width: auto;
   }
 
