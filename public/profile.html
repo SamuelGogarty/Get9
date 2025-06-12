@@ -152,9 +152,7 @@
     // ================================
     // ONLOAD & NAVBAR
     // ================================
-    document.addEventListener('DOMContentLoaded', initPage);
-    
-    async function initPage() {
+    (async function initPage() {
       hideQueueProgress();
       let user = null;
 
@@ -209,7 +207,7 @@
       } catch (err) {
         console.error('Server stats fetch failed:', err);
       }
-    }
+    })();
 
     // ================================
     // PROGRESS BAR & CANCEL BUTTON

@@ -367,24 +367,16 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const playerId = urlParams.get('id') || 'me';
-      loadPlayerStats(playerId);
-    });
-
-    // Add accordion functionality
-    document.querySelectorAll('.vgui-title').forEach(title => {
-      title.addEventListener('click', function() {
-        const panel = this.closest('.vgui-panel');
-        panel.classList.toggle('collapsed');
+    function initAccordions() {
+      document.querySelectorAll('.vgui-title').forEach(title => {
+        title.addEventListener('click', function() {
+          const panel = this.closest('.vgui-panel');
+          panel.classList.toggle('collapsed');
+        });
       });
-    });
-  </script>
-  
-  
-  <script>
-    (async function() {
+    }
+
+    (async function initPlayerPage() {
       // Load navbar HTML
       try {
         const navResponse = await fetch('/navbar.html?v=' + new Date().getTime());
@@ -394,7 +386,7 @@
         return;
       }
 
-      // Fetch user info
+      // Fetch user info for navbar
       let user = null;
       try {
         const userResponse = await fetch('/user/info', { credentials: 'include' });
@@ -409,6 +401,12 @@
       if (typeof populateNavbar === 'function') {
         await populateNavbar(user);
       }
+
+      // Now run the page-specific logic
+      const urlParams = new URLSearchParams(window.location.search);
+      const playerId = urlParams.get('id') || 'me';
+      await loadPlayerStats(playerId);
+      initAccordions();
     })();
   </script>
 </body>
