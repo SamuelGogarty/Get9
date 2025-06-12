@@ -1,7 +1,7 @@
 <style>
   body {
     /* Add padding to the top of the body to prevent content from being hidden by the fixed navbar */
-    padding-top: 102px; /* Banner (50px) + Nav (~45px) + padding/gap */
+    padding-top: 95px; /* Banner (45px) + Nav (~45px) + padding/gap */
   }
 
   .header-container {
@@ -16,18 +16,25 @@
     align-items: center;
     border-bottom: 1px solid #222; /* Slightly lighter border on black */
     box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-    padding: 5px 0 0; /* Removed bottom padding */
-    gap: 1px; /* Reduced space between banner and nav */
+    padding: 5px 0 0; /* Padding only at the top */
+    gap: 2px; /* Minimal gap between banner and nav */
   }
 
   .banner-image {
-    max-height: 50px; /* Further reduced banner height */
+    max-height: 45px; /* Reduced banner height */
     width: auto;
   }
 
   nav {
     /* This ensures the nav itself is centered within the header-container */
     display: inline-block;
+  }
+  
+  /* Reset default browser styles for the list to remove extra space */
+  nav ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 </style>
 <div class="header-container">
