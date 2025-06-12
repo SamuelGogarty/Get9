@@ -12,7 +12,6 @@
       grid-template-columns: 1fr; /* Remove old 1fr 3fr 1fr */
       gap: 20px;
       padding: 0 15px;
-      margin-top: 80px; /* Add space for navbar */
     }
 
 
@@ -280,9 +279,6 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    // Add this at the top of the script section
-    window.skipNavbarInit = true;
-    
     async function loadPlayerStats(playerId) {
       try {
         document.querySelector('.loading-spinner').style.display = 'block';
@@ -392,7 +388,7 @@
       .then(response => response.text())
       .then(html => {
         document.getElementById('navbar-container').innerHTML = html;
-        // No need to call initNavbar again - it runs automatically
+        // The script inside navbar.html will now run and initialize itself.
       });
   </script>
 </body>

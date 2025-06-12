@@ -1,34 +1,87 @@
-<nav>
-  <ul>
-    <li><a href="/profile.html" class="nav-item" id="nav-home">Home</a></li>
-    <li><a href="/lobby.html" class="nav-item">Lobby</a></li>
-    <li><a href="/player.html" class="nav-item">My Stats</a></li>
-    <li><a href="https://discord.gg/8m4xG8sjXm" class="nav-item" target="_blank">Discord</a></li>
-    <li><a href="/profile-settings.html" class="nav-item">Profile Settings</a></li>
-    <li><a href="/about.html" class="nav-item">About</a></li>
-    <li><a href="/contact.html" class="nav-item">Contact</a></li>
-    <li><a href="/store.html" class="nav-item">Store</a></li>
-    <li><a href="/forums.html" class="nav-item">Forums</a></li>
-    <li class="right-nav">
-      <div class="nav-player-name">
-        <img id="navbarProfile" src="/img/fallback-pfp.png" alt="Avatar">
-        <span id="navbarUsername">Player Name</span>
-        <span id="navbarElo" class="elo-display">ELO: 0</span>
-      </div>
-    </li>
-  </ul>
-</nav>
+<style>
+  body {
+    /* Add padding to the top of the body to prevent content from being hidden by the fixed navbar */
+    padding-top: 145px; /* Banner (80px) + Nav (~50px) + padding */
+  }
+
+  .header-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #1b2838; /* Dark background to match Steam-like theme */
+    z-index: 1000;
+    text-align: center;
+    border-bottom: 1px solid #000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    padding-bottom: 5px;
+  }
+
+  .banner-image {
+    max-height: 80px; /* Scale down the banner */
+    width: auto;
+    margin-top: 5px;
+  }
+
+  nav {
+    /* This ensures the nav itself is centered within the header-container */
+    display: inline-block;
+  }
+</style>
+<div class="header-container">
+  <a href="/"><img src="/img/retromatch_banner.jpg" alt="RetroMatch Banner" class="banner-image"></a>
+  <nav>
+    <ul>
+      <li><a href="/profile.html" class="nav-item" id="nav-home">Home</a></li>
+      <li><a href="/lobby.html" class="nav-item">Lobby</a></li>
+      <li><a href="/player.html" class="nav-item">My Stats</a></li>
+      <li><a href="https://discord.gg/8m4xG8sjXm" class="nav-item" target="_blank">Discord</a></li>
+      <li><a href="/profile-settings.html" class="nav-item">Profile Settings</a></li>
+      <li><a href="/about.html" class="nav-item">About</a></li>
+      <li><a href="/contact.html" class="nav-item">Contact</a></li>
+      <li><a href="/store.html" class="nav-item">Store</a></li>
+      <li><a href="/forums.html" class="nav-item">Forums</a></li>
+      <li class="right-nav">
+        <div class="nav-player-name">
+          <img id="navbarProfile" src="/img/fallback-pfp.png" alt="Avatar">
+          <span id="navbarUsername">Player Name</span>
+          <span id="navbarElo" class="elo-display">ELO: 0</span>
+        </div>
+      </li>
+    </ul>
+  </nav>
+</div>
 
 <script>
   async function initNavbar() {
     // Add this check at the top
     if (window.skipNavbarInit) return;
+
+    const rightNavLi = document.querySelector('.right-nav');
+    const navHome = document.getElementById('nav-home');
+    const navLobby = document.querySelector('a[href="/lobby.html"]');
+    const navMyStats = document.querySelector('a[href="/player.html"]');
+    const navProfileSettings = document.querySelector('a[href="/profile-settings.html"]');
     
     try {
       const res = await fetch('/user/info', { credentials: 'include' });
       if (!res.ok) {
-        // User not logged in - change Home to root
-        document.getElementById('nav-home').href = '/';
+        // User not logged in
+        navHome.href = '/';
+        
+        // Hide links that require login
+        if (navLobby) navLobby.parentElement.style.display = 'none';
+        if (navMyStats) navMyStats.parentElement.style.display = 'none';
+        if (navProfileSettings) navProfileSettings.parentElement.style.display = 'none';
+
+        // Replace player info with a login button
+        rightNavLi.innerHTML = `
+          <a href="/auth/steam" style="text-decoration: none;">
+            <button class="greensteam-button" style="padding: 8px 16px; vertical-align: middle;">
+              Sign in with Steam
+            </button>
+          </a>
+        `;
         return;
       }
       
@@ -43,7 +96,7 @@
       };
       
       // Update Home link to go to profile page
-      document.getElementById('nav-home').href = '/profile.html';
+      navHome.href = '/profile.html';
 
       // Fetch ELO rating
       const eloRes = await fetch('/user/skill', { credentials: 'include' });
@@ -53,13 +106,25 @@
       }
     } catch (error) {
       console.error('Navbar init error:', error);
-      // Keep default Home link on error
-      document.getElementById('nav-home').href = '/';
+      // Fallback for non-logged-in state on error
+      navHome.href = '/';
+      if (navLobby) navLobby.parentElement.style.display = 'none';
+      if (navMyStats) navMyStats.parentElement.style.display = 'none';
+      if (navProfileSettings) navProfileSettings.parentElement.style.display = 'none';
+      rightNavLi.innerHTML = `
+        <a href="/auth/steam" style="text-decoration: none;">
+          <button class="greensteam-button" style="padding: 8px 16px; vertical-align: middle;">
+            Sign in with Steam
+          </button>
+        </a>
+      `;
     }
   }
   
   // Change initialization to use DOMContentLoaded
   document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(initNavbar, 100);
+    // A short timeout can help ensure the rest of the page's scripts have a moment to run,
+    // for instance, to set `skipNavbarInit` if needed.
+    setTimeout(initNavbar, 0);
   });
 </script>

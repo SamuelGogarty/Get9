@@ -5,16 +5,11 @@
   <title>User Profile</title>
   <link rel="stylesheet" href="css/profile.css">
   <script src="/socket.io/socket.io.js"></script>
-  <style>
-    .container {
-      margin-top: 80px; /* Added space for fixed navbar */
-    }
-  </style>
 </head>
 <body>
   <div id="navbar-container"></div>
 
-  <div class="container" style="margin-top: 20px;">
+  <div class="container">
     <main class="main-grid">
       <!-- Top Matchmaking Window -->
       <div class="window matchmaking-header" name="Matchmaking">
@@ -122,9 +117,6 @@
 
   <!-- The actual JS logic below -->
   <script>
-    // Add this at the top of the script section
-    window.skipNavbarInit = true;
-    
     const socket = io();
  
     // Request pre-lobby state restoration on connection
@@ -163,24 +155,19 @@
     document.addEventListener('DOMContentLoaded', initPage);
     async function initPage() {
       hideQueueProgress();
-      await loadNavbar();
-      initNavbar();
+      // Fetch and inject the navbar. The script within navbar.html will handle its own initialization.
+      fetch('/navbar.html')
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('navbar-container').innerHTML = html;
+        });
+      await initProfileContent();
     }
 
-    async function loadNavbar() {
-      try {
-        const response = await fetch('/navbar.html');
-        const html = await response.text();
-        document.getElementById('navbar-container').innerHTML = html;
-      } catch (error) {
-        console.error('Failed to load navbar:', error);
-      }
-    }
-
-    async function initNavbar() {
+    async function initProfileContent() {
       let user = null; // Store user data here
 
-      // Step 1: Fetch User Info
+      // Step 1: Fetch User Info for page content
       try {
         const userRes = await fetch('/user/info', { credentials: 'include' });
         if (!userRes.ok) {
@@ -188,54 +175,25 @@
         }
         user = await userRes.json();
 
-        // --- DEBUGGING ---
-        console.log('User data received:', JSON.stringify(user, null, 2));
-        // --- END DEBUGGING ---
-
-        // Update profile picture and username immediately
-        const profileImg = document.getElementById('navbarProfile');
-        profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
-        // Add error handling for profile images
-        profileImg.onerror = function() {
-          this.src = '/img/fallback-pfp.png';
-        };
-        document.getElementById('navbarUsername').textContent = user.username;
-
+        // Update profile page specific elements
         const mmProfile = document.getElementById('matchmakingProfile');
         mmProfile.src = user.profilePictureUrl || '/img/fallback-pfp.png';
         mmProfile.onerror = () => { mmProfile.src = '/img/fallback-pfp.png'; };
         document.getElementById('matchmakingUsername').textContent = user.username;
 
       } catch (err) {
-        console.error('User info fetch failed:', err);
+        console.error('User info fetch for profile page failed:', err);
         // Set defaults if user info fails
-        document.getElementById('navbarProfile').src = '/img/fallback-pfp.png';
-        document.getElementById('navbarUsername').textContent = 'Player';
         document.getElementById('matchmakingProfile').src = '/img/fallback-pfp.png';
         document.getElementById('matchmakingUsername').textContent = 'Commando'; // Keep HTML default
-        document.getElementById('navbarElo').textContent = 'ELO: 0';
         document.getElementById('playersWaiting').textContent = '0';
         document.getElementById('activeMatches').textContent = '0';
+        // Redirect to login if we can't get user info for the profile page
+        window.location.href = '/';
         return; // Stop if user info failed
       }
 
-      // Step 2: Fetch Skill Info (separately, so failure doesn't break username)
-      try {
-        const eloRes = await fetch('/user/skill', { credentials: 'include' });
-        if (!eloRes.ok) {
-          // Don't throw, just log and use default ELO
-          console.warn(`User skill fetch failed: ${eloRes.status}`);
-          document.getElementById('navbarElo').textContent = 'ELO: 0';
-        } else {
-          const eloData = await eloRes.json();
-          document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
-        }
-      } catch (err) {
-        console.error('Skill fetch failed:', err);
-        document.getElementById('navbarElo').textContent = 'ELO: 0'; // Default ELO on error
-      }
-
-      // Step 3: Fetch Server Stats (also separately)
+      // Step 2: Fetch Server Stats (also separately)
       try {
         const statsRes = await fetch('/api/server/stats', { credentials: 'include' });
         if (statsRes.ok) {

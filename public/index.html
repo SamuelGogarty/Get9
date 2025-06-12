@@ -9,21 +9,7 @@
 <body>
 
   <!-- NAVBAR -->
-  <nav>
-    <ul>
-      <li><a href="index.html">Home</a></li>
-      <li><a href="about.html">About</a></li>
-      <li><a href="/forums">Forums</a></li>
-      <li><a href="/contact">Contact</a></li>
-      <!-- Removed Discord link for welcome page -->
-      <li class="right-nav">
-         <!-- Steam Login Button in Navbar -->
-         <button id="steamLoginBtnNav" class="greensteam-button steam-nav-button">
-           Sign in with Steam
-         </button>
-      </li>
-    </ul>
-  </nav>
+  <div id="navbar-container"></div>
 
   <!-- Main Container -->
   <div class="container">
@@ -81,7 +67,7 @@
           </form>
 
           <p class="register-link" style="margin-top: 15px; font-size: 13px;">
-            Don't have an account? <a href="/register">Register here</a>.
+            Don't have an account? <a href="/register.html">Register here</a>.
           </p>
         </div>
       </div>
@@ -97,10 +83,13 @@
     document.getElementById('steamLoginBtn').addEventListener('click', function () {
       window.location.href = '/auth/steam';
     });
-    // Listener for the navbar Steam login button
-    document.getElementById('steamLoginBtnNav').addEventListener('click', function () {
-      window.location.href = '/auth/steam';
-    });
+  </script>
+  <script>
+    fetch('/navbar.html')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('navbar-container').innerHTML = html;
+      });
   </script>
 </body>
 </html>
