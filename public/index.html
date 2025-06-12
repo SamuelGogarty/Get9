@@ -86,12 +86,29 @@
   </script>
   <script>
     (async function() {
+      // Load navbar HTML
       try {
-        const response = await fetch('/navbar.html?v=' + new Date().getTime());
-        const html = await response.text();
-        document.getElementById('navbar-container').innerHTML = html;
+        const navResponse = await fetch('/navbar.html?v=' + new Date().getTime());
+        document.getElementById('navbar-container').innerHTML = await navResponse.text();
       } catch (error) {
-        console.error('Failed to load navbar:', error);
+        console.error('Failed to load navbar HTML:', error);
+        return;
+      }
+
+      // Fetch user info
+      let user = null;
+      try {
+        const userResponse = await fetch('/user/info', { credentials: 'include' });
+        if (userResponse.ok) {
+          user = await userResponse.json();
+        }
+      } catch (error) {
+        console.error('Failed to fetch user info for navbar:', error);
+      }
+
+      // Populate navbar
+      if (typeof populateNavbar === 'function') {
+        await populateNavbar(user);
       }
     })();
   </script>

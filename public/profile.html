@@ -153,65 +153,61 @@
     // ONLOAD & NAVBAR
     // ================================
     document.addEventListener('DOMContentLoaded', initPage);
+    
     async function initPage() {
       hideQueueProgress();
-      // Fetch and inject the navbar, awaiting completion before proceeding.
+      let user = null;
+
+      // Step 1: Load Navbar HTML
       try {
         const response = await fetch('/navbar.html?v=' + new Date().getTime());
         const html = await response.text();
         document.getElementById('navbar-container').innerHTML = html;
       } catch (error) {
-        console.error('Failed to load navbar:', error);
+        console.error('Failed to load navbar HTML:', error);
+        return; // Stop if navbar fails to load
       }
-      
-      await initProfileContent();
-    }
 
-    async function initProfileContent() {
-      let user = null; // Store user data here
-
-      // Step 1: Fetch User Info for page content
+      // Step 2: Fetch user info
       try {
         const userRes = await fetch('/user/info', { credentials: 'include' });
-        if (!userRes.ok) {
-          throw new Error(`User info fetch failed: ${userRes.status}`);
+        if (userRes.ok) {
+          user = await userRes.json();
+        } else {
+          // If not OK, user remains null, and we'll redirect later.
+          console.log('User not authenticated, redirecting to login.');
+          window.location.href = '/';
+          return;
         }
-        user = await userRes.json();
-
-        // Update profile page specific elements
-        const mmProfile = document.getElementById('matchmakingProfile');
-        mmProfile.src = user.profilePictureUrl || '/img/fallback-pfp.png';
-        mmProfile.onerror = () => { mmProfile.src = '/img/fallback-pfp.png'; };
-        document.getElementById('matchmakingUsername').textContent = user.username;
-
       } catch (err) {
-        console.error('User info fetch for profile page failed:', err);
-        // Set defaults if user info fails
-        document.getElementById('matchmakingProfile').src = '/img/fallback-pfp.png';
-        document.getElementById('matchmakingUsername').textContent = 'Commando'; // Keep HTML default
-        document.getElementById('playersWaiting').textContent = '0';
-        document.getElementById('activeMatches').textContent = '0';
-        // Redirect to login if we can't get user info for the profile page
-        window.location.href = '/';
-        return; // Stop if user info failed
+        console.error('Failed to fetch user info:', err);
+        window.location.href = '/'; // Redirect on error
+        return;
       }
 
-      // Step 2: Fetch Server Stats (also separately)
+      // Step 3: Populate Navbar
+      if (typeof populateNavbar === 'function') {
+        await populateNavbar(user);
+      } else {
+        console.error('populateNavbar function not found after loading navbar.');
+      }
+
+      // Step 4: Populate Profile Page Content (user is guaranteed to be valid here)
+      const mmProfile = document.getElementById('matchmakingProfile');
+      mmProfile.src = user.profilePictureUrl || '/img/fallback-pfp.png';
+      mmProfile.onerror = () => { mmProfile.src = '/img/fallback-pfp.png'; };
+      document.getElementById('matchmakingUsername').textContent = user.username;
+
+      // Fetch server stats
       try {
         const statsRes = await fetch('/api/server/stats', { credentials: 'include' });
         if (statsRes.ok) {
           const stats = await statsRes.json();
           document.getElementById('playersWaiting').textContent = stats.queuedPlayers ?? 0;
           document.getElementById('activeMatches').textContent = stats.activeMatches ?? 0;
-        } else {
-          console.warn(`Server stats fetch failed: ${statsRes.status}`);
-          document.getElementById('playersWaiting').textContent = '0';
-          document.getElementById('activeMatches').textContent = '0';
         }
       } catch (err) {
         console.error('Server stats fetch failed:', err);
-        document.getElementById('playersWaiting').textContent = '0';
-        document.getElementById('activeMatches').textContent = '0';
       }
     }
 
