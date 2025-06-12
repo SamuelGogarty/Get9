@@ -6,6 +6,7 @@
   <title>About - Retromatch</title>
   <link rel="stylesheet" href="/css/lobby_style.css">
   <link rel="stylesheet" href="/css/about.css">
+  <script src="/js/navbar.js"></script>
   <style>
     body {
       padding-top: 60px !important;
@@ -82,11 +83,34 @@
   </div>
 
   <script>
-    fetch('/navbar.html')
-      .then(response => response.text())
-      .then(html => {
-        document.getElementById('navbar-container').innerHTML = html;
-      });
+    (async function() {
+      // Load navbar HTML
+      try {
+        const navResponse = await fetch('/navbar.html?v=' + new Date().getTime());
+        document.getElementById('navbar-container').innerHTML = await navResponse.text();
+      } catch (error) {
+        console.error('Failed to load navbar HTML:', error);
+        return;
+      }
+
+      // Fetch user info
+      let user = null;
+      try {
+        const userResponse = await fetch('/user/info', { credentials: 'include' });
+        if (userResponse.ok) {
+          user = await userResponse.json();
+        }
+      } catch (error) {
+        console.error('Failed to fetch user info for navbar:', error);
+      }
+
+      // Directly call the function from navbar.js
+      if (typeof populateNavbar === 'function') {
+        populateNavbar(user);
+      } else {
+        console.error('populateNavbar function not found.');
+      }
+    })();
   </script>
 </body>
 </html>

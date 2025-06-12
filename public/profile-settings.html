@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/css/lobby_style.css">
   <!-- Page‑specific tweaks -->
   <link rel="stylesheet" href="/css/profile-settings.css">
+  <script src="/js/navbar.js"></script>
 </head>
 <body>
   <div id="navbar-container"></div>
@@ -29,38 +30,63 @@
   </main>
 
   <script>
-    /* Prefill the field with the user’s current binding (if any) */
-    fetch('/nosteam/my-steamid')
-      .then(r => r.ok ? r.json() : {})
-      .then(d => { if (d.steamid) document.getElementById('steamid').value = d.steamid; })
-      .catch(console.error);
-
-    /* Handle form submission */
-    document.getElementById('nosteam-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const steamid = document.getElementById('steamid').value.trim();
-      const res = await fetch('/nosteam/bind-steamid', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ steamid })
-      });
-
-      const msg = document.getElementById('status-message');
-      if (res.ok) {
-        msg.textContent = '✅  SteamID saved successfully.';
-        msg.style.color = '#F0B43F';
-      } else {
-        const { error } = await res.json();
-        msg.textContent = `❌  ${error}`;
-        msg.style.color = '#e03644';
+    (async function() {
+      // Load navbar HTML
+      try {
+        const navResponse = await fetch('/navbar.html?v=' + new Date().getTime());
+        document.getElementById('navbar-container').innerHTML = await navResponse.text();
+      } catch (error) {
+        console.error('Failed to load navbar HTML:', error);
+        return;
       }
-    });
 
-    fetch('/navbar.html')
-      .then(response => response.text())
-      .then(html => {
-        document.getElementById('navbar-container').innerHTML = html;
+      // Fetch user info
+      let user = null;
+      try {
+        const userResponse = await fetch('/user/info', { credentials: 'include' });
+        if (userResponse.ok) {
+          user = await userResponse.json();
+        }
+      } catch (error) {
+        console.error('Failed to fetch user info for navbar:', error);
+      }
+
+      // Directly call the function from navbar.js
+      if (typeof populateNavbar === 'function') {
+        populateNavbar(user);
+      } else {
+        console.error('populateNavbar function not found.');
+      }
+
+      // --- Page-specific logic ---
+
+      /* Prefill the field with the user’s current binding (if any) */
+      fetch('/nosteam/my-steamid')
+        .then(r => r.ok ? r.json() : {})
+        .then(d => { if (d.steamid) document.getElementById('steamid').value = d.steamid; })
+        .catch(console.error);
+
+      /* Handle form submission */
+      document.getElementById('nosteam-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const steamid = document.getElementById('steamid').value.trim();
+        const res = await fetch('/nosteam/bind-steamid', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ steamid })
+        });
+
+        const msg = document.getElementById('status-message');
+        if (res.ok) {
+          msg.textContent = '✅  SteamID saved successfully.';
+          msg.style.color = '#F0B43F';
+        } else {
+          const { error } = await res.json();
+          msg.textContent = `❌  ${error}`;
+          msg.style.color = '#e03644';
+        }
       });
+    })();
   </script>
 </body>
 </html>
