@@ -85,11 +85,15 @@
     });
   </script>
   <script>
-    fetch('/navbar.html')
-      .then(response => response.text())
-      .then(html => {
+    (async function() {
+      try {
+        const response = await fetch('/navbar.html?v=' + new Date().getTime());
+        const html = await response.text();
         document.getElementById('navbar-container').innerHTML = html;
-      });
+      } catch (error) {
+        console.error('Failed to load navbar:', error);
+      }
+    })();
   </script>
 </body>
 </html>

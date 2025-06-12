@@ -155,12 +155,15 @@
     document.addEventListener('DOMContentLoaded', initPage);
     async function initPage() {
       hideQueueProgress();
-      // Fetch and inject the navbar. The script within navbar.html will handle its own initialization.
-      fetch('/navbar.html')
-        .then(response => response.text())
-        .then(html => {
-          document.getElementById('navbar-container').innerHTML = html;
-        });
+      // Fetch and inject the navbar, awaiting completion before proceeding.
+      try {
+        const response = await fetch('/navbar.html?v=' + new Date().getTime());
+        const html = await response.text();
+        document.getElementById('navbar-container').innerHTML = html;
+      } catch (error) {
+        console.error('Failed to load navbar:', error);
+      }
+      
       await initProfileContent();
     }
 
