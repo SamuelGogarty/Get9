@@ -91,6 +91,16 @@ nav .right-nav {
   border: 1px solid #323232;
 }
 
+.navbar-username-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.navbar-username-link:hover {
+  color: #E3E41F;
+}
+
 /* GRID */
 .lobby-grid {
   display: grid;
