@@ -3,12 +3,13 @@
 async function populateNavbar(user) {
   const rightNavLi = document.querySelector('.right-nav');
   const navHome = document.getElementById('nav-home');
+  const navBannerLink = document.getElementById('nav-banner-link');
   const navLobby = document.querySelector('a[href="/lobby.html"]');
   const navMyStats = document.querySelector('a[href="/player.html"]');
   const navProfileSettings = document.querySelector('a[href="/profile-settings.html"]');
 
   // Safety check for navbar elements
-  if (!rightNavLi || !navHome || !navLobby || !navMyStats || !navProfileSettings) {
+  if (!rightNavLi || !navHome || !navBannerLink || !navLobby || !navMyStats || !navProfileSettings) {
     console.error("One or more navbar elements could not be found.");
     return;
   }
@@ -16,6 +17,7 @@ async function populateNavbar(user) {
   if (!user) {
     // User is not logged in, show the login button and hide protected links.
     navHome.href = '/';
+    navBannerLink.href = '/';
     navLobby.parentElement.style.display = 'none';
     navMyStats.parentElement.style.display = 'none';
     navProfileSettings.parentElement.style.display = 'none';
@@ -38,6 +40,7 @@ async function populateNavbar(user) {
   };
   
   navHome.href = '/profile.html';
+  navBannerLink.href = '/profile.html';
 
   // Fetch the user's ELO rating.
   try {
