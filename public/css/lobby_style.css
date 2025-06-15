@@ -38,7 +38,7 @@ nav li {
   display: inline-block;
 }
 
-nav li a {
+nav > ul > li > a {
   display: block;
   padding: 8px 20px;
   color: #F0B43F;
@@ -47,7 +47,7 @@ nav li a {
   line-height: 18px;
 }
 
-nav li a:hover {
+nav > ul > li > a:hover {
   color: #E3E41F;
   background: #181818;
 }
