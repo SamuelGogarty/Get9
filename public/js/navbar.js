@@ -31,7 +31,11 @@ async function populateNavbar(user) {
   }
 
   // User is logged in. Populate the navbar with their details.
-  document.getElementById('navbarUsername').textContent = user.username;
+  const navbarUsername = document.getElementById('navbarUsername');
+  navbarUsername.textContent = user.username;
+  navbarUsername.addEventListener('click', () => {
+    window.location.href = '/profile-settings.html';
+  });
   
   const profileImg = document.getElementById('navbarProfile');
   profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
