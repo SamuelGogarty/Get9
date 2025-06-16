@@ -289,10 +289,9 @@ main {
 /* Add a row for server stats and matchmaking controls */
 .stats-controls-row {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 15px;
 }
 
 /* Remove duplicate server-stats rule */
