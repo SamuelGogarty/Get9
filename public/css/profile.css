@@ -156,27 +156,25 @@ main {
   border-bottom: solid 1px #323232;
   border-left: solid 1px #080808;
   border-right: solid 1px #323232;
-  padding: 6px 20px; /* Reduced vertical padding from 8px */
-  gap: 3px; /* Reduced from 6px */
-  margin-right: 10px; /* Reduced from 20px */
+  padding: 6px 20px;
+  gap: 3px;
+  margin-right: 10px;
   display: flex;
   flex-direction: column; /* Stack vertically */
   height: auto;
   min-height: 0; /* Remove fixed minimum height */
-  text-align: left; /* Change from right to left alignment */
-  align-items: flex-start; /* Add left alignment for flex items */
-  width: fit-content; /* Add this */
-  max-width: 350px; /* Changed from 300px */
-  min-width: 290px; /* Changed from 240px */
+  text-align: left;
+  align-items: flex-start;
+  min-width: 300px;
+  flex-shrink: 0; /* Prevent the box from shrinking */
 }
 
 .server-stats p {
   display: flex;
-  justify-content: flex-start; /* Changed from space-between */
-  gap: 3px; /* Reduced from 5px */
+  justify-content: flex-start;
+  gap: 3px;
   white-space: nowrap;
   margin: 0;
-  min-width: 220px; /* Keep existing min-width */
 }
 
 .stat-value {
