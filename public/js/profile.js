@@ -100,9 +100,16 @@ cancelMatchmakingBtn.addEventListener('click', () => {
 
 // If we get an error or redirect => stop progress
 socket.on('error', (msg) => {
-  hideQueueProgress();
-  hideCancelSearchButton();
-  alert('Error: ' + msg);
+  // Check for the specific "already in queue" error message.
+  if (msg && msg.toLowerCase().includes('already in the matchmaking')) {
+    // Just show the alert, but don't hide the queue UI.
+    alert('Error: ' + msg);
+  } else {
+    // For all other errors, hide the UI elements.
+    hideQueueProgress();
+    hideCancelSearchButton();
+    alert('Error: ' + msg);
+  }
 });
 
 // REDIRECT HANDLER MODIFIED FOR CHECK-IN
