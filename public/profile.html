@@ -69,18 +69,20 @@
               <div class="welcome-username" id="matchmakingUsername">Commando</div>
             </div>
           </div>
-          <div class="server-stats">
-            <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
-            <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
-          </div>
-          <div class="matchmaking-controls">
-            <!-- Single button for both solo & group queue -->
-            <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
-            
-            <!-- NEW: Stop Searching button -->
-            <button class="greensteam-button" id="cancelMatchmakingBtn" style="display:none;">Stop Searching</button>
-            
-            <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100" style="display:none;"></progress>
+          <div class="stats-controls-row">
+            <div class="server-stats">
+              <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
+              <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
+            </div>
+            <div class="matchmaking-controls">
+              <!-- Single button for both solo & group queue -->
+              <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
+              
+              <!-- NEW: Stop Searching button -->
+              <button class="greensteam-button" id="cancelMatchmakingBtn" style="display:none;">Stop Searching</button>
+              
+              <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100" style="display:none;"></progress>
+            </div>
           </div>
         </div>
       </div>

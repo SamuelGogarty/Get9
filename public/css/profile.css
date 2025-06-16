@@ -156,36 +156,33 @@ main {
   border-bottom: solid 1px #323232;
   border-left: solid 1px #080808;
   border-right: solid 1px #323232;
-  padding: 6px 20px;
-  gap: 3px;
-  margin-right: 10px;
+  padding: 8px 20px;
+  gap: 6px;
+  margin-right: 20px;
   display: flex;
   flex-direction: column; /* Stack vertically */
   height: auto;
   min-height: 0; /* Remove fixed minimum height */
-  text-align: left;
-  align-items: flex-start;
-  min-width: 300px;
+  min-width: 260px; /* Set a comfortable minimum width */
   flex-shrink: 0; /* Prevent the box from shrinking */
 }
 
 .server-stats p {
   display: flex;
-  justify-content: flex-start;
-  gap: 3px;
+  justify-content: space-between; /* Align text and value */
+  gap: 5px;
   white-space: nowrap;
   margin: 0;
+  width: 100%;
 }
 
 .stat-value {
   color: #F0B43F;
   font-weight: bold;
-  margin-left: 8px; /* Added margin instead of padding */
   font-family: monospace;
   text-align: right;
   flex-shrink: 0;
-  min-width: auto; /* Removed fixed minimum width */
-  padding-left: 0; /* Removed padding */
+  padding-left: 10px;
 }
 
 /* Matchmaking controls from new_home form styling */
@@ -290,7 +287,7 @@ main {
 }
 
 /* Add a row for server stats and matchmaking controls */
-.window.matchmaking-header .content > div:not(.welcome-section) {
+.stats-controls-row {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
