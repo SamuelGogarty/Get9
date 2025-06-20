@@ -239,7 +239,7 @@ main {
 }
 
 /* Override the default resize handle position for the lobby bar */
-.lobby-management-bar:not(.no-resize)::after {
+.window.lobby-management-bar:not(.no-resize)::after {
   position: absolute;
   bottom: 2px;
   right: 2px;
