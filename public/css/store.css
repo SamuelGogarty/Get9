@@ -1,0 +1,44 @@
+/* store.css - Styles for the store page */
+
+.store-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  padding: 15px;
+}
+
+.store-item {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  text-align: center;
+}
+
+.store-item h3 {
+  color: #F0B43F;
+  font-size: 18px;
+  margin-top: 0;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.store-item .item-description {
+  flex-grow: 1; /* Pushes price and button to the bottom */
+  color: #d8ded3;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.store-item .item-price {
+  font-size: 24px;
+  font-weight: bold;
+  color: #E3E41F;
+  margin-bottom: 20px;
+}
+
+.store-item .greensteam-button {
+  width: 100%;
+  max-width: 200px;
+  margin: 0 auto; /* Center the button */
+}
