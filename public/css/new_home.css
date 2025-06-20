@@ -4,48 +4,71 @@ nav {
   border-bottom: solid 1px #080808;
   border-left: solid 1px #323232;
   border-right: solid 1px #080808;
-  padding: 0;
-  list-style: none;
   background: #212121;
-  margin-bottom: 20px;
+  padding: 0;
+  width: 100%;
+  max-width: 1040px;
+}
+nav ul {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  list-style: none;
 }
 nav li {
   display: inline-block;
-  position: relative;
-  line-height: 21px;
-  text-align: left;
-  cursor: pointer;
 }
 nav li a {
   display: block;
-  padding: 8px 25px;
+  padding: 8px 20px;
   color: #F0B43F;
   text-decoration: none;
+  font-size: 14px;
+  line-height: 18px;
 }
 nav li a:hover {
   color: #E3E41F;
   background: #181818;
 }
-nav li:hover ul.dropdown {
-  display: block;
+.right-nav {
+  margin-left: auto;
+  padding-right: 10px;
 }
-nav li ul.dropdown {
-  display: none;
-  list-style: none;
-  border-top: solid 1px #323232;
-  border-bottom: solid 1px #080808;
-  border-left: solid 1px #323232;
-  border-right: solid 1px #080808;
-  border-top: none;
-  padding: 0;
-  min-width: 150px;
-  background: #212121;
-  position: absolute;
-  top: 23px;
-  z-index: 1;
+.nav-player-name {
+  background: #080808;
+  border-top: solid 1px #080808;
+  border-bottom: solid 1px #323232;
+  border-left: solid 1px #080808;
+  border-right: solid 1px #323232;
+  color: white;
+  padding: 5px 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-nav li ul.dropdown li {
-  display: block;
+#navbarProfile {
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+  border: 1px solid #323232;
+}
+#navbarUsername {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#navbarElo.elo-display {
+  color: #ffffff;
+  font-size: 12px;
+  margin-left: 8px;
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #363636;
+  border-radius: 3px;
 }
 /*** Form Controls: Buttons, Checkboxes, Radio Buttons, Text Fields, etc. ***/
 button,
