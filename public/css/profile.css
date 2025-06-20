@@ -364,6 +364,10 @@ main {
   outline-offset: -4px;
 }
 
+.greensteam-button.text-center {
+  text-align: center;
+}
+
 /* Discord Button Style */
 .discord-button {
   background-color: #5865F2 !important; /* Discord Purple */
