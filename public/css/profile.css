@@ -225,6 +225,19 @@ main {
 }
 
 /* Matchmaking header proportions */
+.window.matchmaking-header {
+  min-height: 250px; /* Increased to ensure all content fits comfortably */
+  position: relative; /* Establish a positioning context for the resize handle */
+}
+
+/* Override the default resize handle position to fix alignment */
+.window.matchmaking-header:not(.no-resize)::after {
+  position: absolute; /* Position relative to the window itself */
+  bottom: 2px; /* Align to the bottom corner */
+  right: 2px;  /* Align to the right corner */
+  margin: 0;   /* Reset margin from the default rule */
+}
+
 .window.matchmaking-header .content {
   background: transparent; /* Remove dark inner background */
   border: none; /* Remove inner border */
