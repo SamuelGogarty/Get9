@@ -58,7 +58,7 @@ main {
   height: 50px; /* Fixed height instead of auto */
   max-height: 50px;
   margin: 10px 0;
-  overflow: hidden; /* Contain all children */
+  position: relative; /* For positioning the resize handle */
 }
 
 /* Member list and chat windows */
@@ -236,6 +236,14 @@ main {
   bottom: 2px; /* Align to the bottom corner */
   right: 2px;  /* Align to the right corner */
   margin: 0;   /* Reset margin from the default rule */
+}
+
+/* Override the default resize handle position for the lobby bar */
+.lobby-management-bar:not(.no-resize)::after {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  margin: 0;
 }
 
 .window.matchmaking-header .content {
