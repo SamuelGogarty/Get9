@@ -240,6 +240,13 @@ main {
 
 /* Override the default resize handle position for the lobby bar */
 .window.lobby-management-bar:not(.no-resize)::after {
+  width: 12px;
+  height: 12px;
+  display: block;
+  cursor: nwse-resize;
+  content: '';
+  background-image: url("resize.png");
+  background-size: 12px 12px;
   position: absolute;
   bottom: 2px;
   right: 2px;
