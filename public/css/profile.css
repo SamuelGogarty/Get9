@@ -505,7 +505,6 @@ nav {
   border-right: solid 1px #080808;
   background: #212121;
   padding: 0;
-  margin-bottom: 30px;
   width: 100%; /* Changed from fixed 1040px */
   max-width: 1040px; /* Add max-width instead */
 }
