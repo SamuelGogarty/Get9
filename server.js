@@ -19,6 +19,38 @@ const geoip = require('geoip-lite');
 const nosteamRoutes        = require('./routes/nosteam');
 
 
+// Azure region mapping from country code
+const countryToAzureRegion = {
+  // Americas
+  'US': 'eastus',
+  'CA': 'canadacentral',
+  'BR': 'brazilsouth',
+  // Europe
+  'IE': 'northeurope',
+  'NL': 'westeurope',
+  'GB': 'uksouth',
+  'FR': 'francecentral',
+  'DE': 'germanywestcentral',
+  'NO': 'norwayeast',
+  'SE': 'swedencentral',
+  'CH': 'switzerlandnorth',
+  'IT': 'italynorth',
+  'ES': 'spaincentral',
+  'PL': 'polandcentral',
+  // Asia Pacific
+  'HK': 'eastasia',
+  'SG': 'southeastasia',
+  'JP': 'japaneast',
+  'KR': 'koreacentral',
+  'AU': 'australiaeast',
+  'IN': 'indiacentral',
+  // Middle East & Africa
+  'AE': 'uaenorth',
+  'QA': 'qatarcentral',
+  'ZA': 'southafricanorth',
+  'IL': 'israelcentral',
+};
+
 // Steam ID conversion utility
 function steam64ToLegacy(steamId64) {
   const steamId = BigInt(steamId64);
@@ -722,14 +754,15 @@ async function checkQueueAndFormLobby(queue, db) {
 async function formLobbyWithPlayers(lobbyPlayers, db) {
   const requiredPlayers = lobbyPlayers.length;
 
-  // Determine lobby region (majority wins)
+  // Determine lobby region (majority country wins, then mapped to Azure region)
   const regionCounts = lobbyPlayers.reduce((acc, p) => {
     if (p.region) acc[p.region] = (acc[p.region] || 0) + 1;
     return acc;
   }, {});
-  const lobbyRegion = Object.keys(regionCounts).length > 0
+  const lobbyCountryCode = Object.keys(regionCounts).length > 0
     ? Object.keys(regionCounts).reduce((a, b) => (regionCounts[a] > regionCounts[b] ? a : b))
     : null; // Fallback if no players had a region
+  const lobbyRegion = lobbyCountryCode ? countryToAzureRegion[lobbyCountryCode] : null;
 
   // Fetch ELO for all players in the lobby
   const dbStats = await mysql.createConnection(dbConfigStats);
