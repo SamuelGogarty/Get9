@@ -15,6 +15,7 @@ const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 const { ensureAuthenticated } = require('./middleware/auth');
+const geoip = require('geoip-lite');
 const nosteamRoutes        = require('./routes/nosteam');
 
 
@@ -235,22 +236,33 @@ async function getPlayerSkill(user, dbStats) {
 }
 
 // K8s job creation
-async function createOrUpdateCsServerJob(lobbyId, mapName) {
+// K8s job creation
+async function createOrUpdateCsServerJob(lobbyId, mapName, region) {
   const port = getRandomPort();
   const jobName = generateUniqueName(`cs-server-${lobbyId}`);
   const templatePath = path.join(__dirname, 'k3s-manifest.yaml');
   let manifestTemplate = fs.readFileSync(templatePath, 'utf8');
+
+  let nodeSelectorYaml = '';
+  if (region) {
+      // Important: The indentation in this string is critical for YAML.
+      nodeSelectorYaml = `      nodeSelector:
+        topology.kubernetes.io/region: ${region}`;
+  }
+
   manifestTemplate = manifestTemplate
     .replace(/{{jobName}}/g, jobName)
     .replace(/{{port}}/g, port.toString())
-    .replace(/{{mapName}}/g, mapName);
+    .replace(/{{mapName}}/g, mapName)
+    .replace('      {{nodeSelector}}', nodeSelectorYaml);
+
   const manifest = yaml.load(manifestTemplate);
   try {
     await k8sBatchApi.createNamespacedJob('default', manifest);
-    console.log(`Job created: ${jobName} on port ${port}`);
+    console.log(`Job created: ${jobName} on port ${port} in region ${region || 'default'}`);
     return { port, jobName };
   } catch (error) {
-    console.error('Error creating job:', error);
+    console.error('Error creating job:', error.body ? error.body : error);
     throw error;
   }
 }
@@ -548,7 +560,7 @@ async function autoBan(lobbyId, currentTurn) {
     if (!lobby.serverCreated) {
       lobby.serverCreated = true;
       const finalMap = newRemaining[0];
-      const { port, jobName } = await createOrUpdateCsServerJob(lobbyId, finalMap);
+      const { port, jobName } = await createOrUpdateCsServerJob(lobbyId, finalMap, lobby.region);
       lobby.jobName = jobName;
       io.to(lobbyId).emit('lobbyCreated', { serverIp: '192.168.2.69', serverPort: port, mapName: finalMap });
       lobby.turn = null;
@@ -622,185 +634,199 @@ function leavePreLobbyInternal(inviteCode, socketId, kicked = false) {
 /**
  * Attempt to form a final-lobby from the queue
  */
-async function checkQueueAndFormLobby(matchmakingQueue, db) {
-  const groupedPlayers = {};
+async function checkQueueAndFormLobby(queue, db) {
+  const WIDEN_SEARCH_TIMEOUT = 300000; // 5 minutes in ms
+  const requiredPlayers = 2; // For a simple test, requiring 2 players total
 
-  for (const queued of matchmakingQueue) {
-    const [playerData] = await db.query(
-      'SELECT p.*, u.steam_id, u.profile_picture ' + 
-      'FROM players p ' +
-      'JOIN users u ON p.user_id = u.id ' + 
-      'WHERE p.id = ?',
-      [queued.playerId]
-    );
-    if (!playerData || playerData.length === 0) continue;
-    const playerRow = playerData[0];
+  // 1. Fetch full player data for everyone in the queue
+  if (queue.length < requiredPlayers) return;
 
-    // fetch ELO
-    const dbStats = await mysql.createConnection(dbConfigStats);
+  const playerIds = queue.map(q => q.player_id);
+  const [allPlayersData] = await db.query(
+    `SELECT p.*, u.steam_id, u.profile_picture 
+     FROM players p 
+     JOIN users u ON p.user_id = u.id 
+     WHERE p.id IN (?)`,
+    [playerIds]
+  );
+
+  // Add queue time to each player's data
+  const playersWithQueueTime = allPlayersData.map(p => {
+    const queueEntry = queue.find(q => q.player_id === p.id);
+    return { ...p, queue_time: queueEntry.queue_time };
+  });
+
+  // 2. Group players by region (and those eligible for wider search)
+  const now = new Date();
+  const regionalGroups = {};
+  const wideSearchPlayers = [];
+
+  for (const player of playersWithQueueTime) {
+    const timeInQueue = now - new Date(player.queue_time);
+    if (timeInQueue > WIDEN_SEARCH_TIMEOUT) {
+      wideSearchPlayers.push(player);
+    } else if (player.region) {
+      if (!regionalGroups[player.region]) {
+        regionalGroups[player.region] = [];
+      }
+      regionalGroups[player.region].push(player);
+    } else {
+      // Players without a region can be added to the wide search pool immediately
+      wideSearchPlayers.push(player);
+    }
+  }
+
+  // Combine regional and wide-search players for matchmaking attempts
+  const matchmakingPools = [...Object.values(regionalGroups), wideSearchPlayers];
+
+  for (let pool of matchmakingPools) {
+    if (pool.length < requiredPlayers) continue;
+
+    // Process one pool at a time to form as many lobbies as possible
+    while (pool.length >= requiredPlayers) {
+      // Inside the pool, group by party ID
+      const groupedByParty = {};
+      for (const player of pool) {
+        const groupId = player.group_id || `solo_${player.id}`;
+        if (!groupedByParty[groupId]) groupedByParty[groupId] = [];
+        groupedByParty[groupId].push(player);
+      }
+
+      const parties = Object.values(groupedByParty);
+      let lobbyPlayers = [];
+
+      // Try to fill a lobby
+      while (parties.length > 0 && lobbyPlayers.length < requiredPlayers) {
+        const party = parties.shift();
+        if (lobbyPlayers.length + party.length <= requiredPlayers) {
+          lobbyPlayers.push(...party);
+        }
+      }
+
+      if (lobbyPlayers.length === requiredPlayers) {
+        // We formed a lobby!
+        await formLobbyWithPlayers(lobbyPlayers, db);
+        
+        // Remove these players from the pool and restart the loop for this pool
+        const lobbyPlayerIds = lobbyPlayers.map(p => p.id);
+        pool = pool.filter(p => !lobbyPlayerIds.includes(p.id));
+      } else {
+        // Cannot form a lobby with the current set of parties, break from inner while
+        break;
+      }
+    }
+  }
+}
+
+// Helper function to encapsulate lobby formation logic
+async function formLobbyWithPlayers(lobbyPlayers, db) {
+  const requiredPlayers = lobbyPlayers.length;
+
+  // Determine lobby region (majority wins)
+  const regionCounts = lobbyPlayers.reduce((acc, p) => {
+    if (p.region) acc[p.region] = (acc[p.region] || 0) + 1;
+    return acc;
+  }, {});
+  const lobbyRegion = Object.keys(regionCounts).length > 0
+    ? Object.keys(regionCounts).reduce((a, b) => (regionCounts[a] > regionCounts[b] ? a : b))
+    : null; // Fallback if no players had a region
+
+  // Fetch ELO for all players in the lobby
+  const dbStats = await mysql.createConnection(dbConfigStats);
+  for (const p of lobbyPlayers) {
     const [eloRows] = await dbStats.query(
       'SELECT skill FROM ultimate_stats WHERE steamid = ? OR name = ?',
-      [playerRow.steam_id, playerRow.name]
+      [p.steam_id, p.name]
     );
-    await dbStats.end();
-    const elo = eloRows[0]?.skill || 0;
-
-    // group them by group_id or fallback to "solo_<id>"
-    const groupId = playerRow.group_id || `solo_${playerRow.id}`;
-    if (!groupedPlayers[groupId]) groupedPlayers[groupId] = [];
-    groupedPlayers[groupId].push({ ...playerRow, elo });
+    p.elo = eloRows[0]?.skill || 0;
   }
+  await dbStats.end();
+  
+  const lobbyId = generateUniqueName('lobby');
+  const team1 = [];
+  const team2 = [];
 
-  // for a simple test, requiring 4 players total
-  const requiredPlayers = 2;
+  // Team assignment logic (same as before)
+  const isSolo1v1 = requiredPlayers === 2 && lobbyPlayers.every(p => !p.group_id || p.group_id.startsWith('solo_'));
 
-  const groups = Object.values(groupedPlayers);
-  let lobbyPlayers = [];
-
-  // fill up to requiredPlayers
-  while (groups.length > 0 && lobbyPlayers.length < requiredPlayers) {
-    const group = groups.shift();
-    if (lobbyPlayers.length + group.length <= requiredPlayers) {
-      lobbyPlayers = lobbyPlayers.concat(group);
-    } else {
-      groups.push(group);
-      break;
-    }
-  }
-
-  // if we have exactly enough
-  if (lobbyPlayers.length === requiredPlayers) {
-    const lobbyId = generateUniqueName('lobby');
-    const team1 = [];
-    const team2 = [];
-
-    // Check for the specific 1v1 solo queue case
-    const isSolo1v1 = requiredPlayers === 2 &&
-                      lobbyPlayers.length === 2 &&
-                      (!lobbyPlayers[0].group_id || lobbyPlayers[0].group_id.startsWith('solo_')) &&
-                      (!lobbyPlayers[1].group_id || lobbyPlayers[1].group_id.startsWith('solo_'));
-
-    if (isSolo1v1) {
-      // Directly assign players to opposing teams for 1v1 solo
-      lobbyPlayers[0].team = 'team1';
-      team1.push(lobbyPlayers[0]);
-      lobbyPlayers[1].team = 'team2';
-      team2.push(lobbyPlayers[1]);
-      console.log(`[Match Ready] Assigned 1v1 solo players to opposing teams for lobby ${lobbyId}.`);
-    } else {
-      // Use existing group-based assignment for other cases
-      const playerGroupsInLobby = {}; // Store groups that are part of this lobby
-      lobbyPlayers.forEach(p => {
-          const groupId = p.group_id || `solo_${p.id}`; // Use group_id if present, else treat as solo
-          if (!playerGroupsInLobby[groupId]) {
-              playerGroupsInLobby[groupId] = [];
-          }
-          playerGroupsInLobby[groupId].push(p);
-      });
-
-      // Assign entire groups to teams for balance
-      Object.values(playerGroupsInLobby).forEach(group => {
-          const targetTeamList = team1.length <= team2.length ? team1 : team2;
-          const targetTeamName = team1.length <= team2.length ? 'team1' : 'team2';
-          group.forEach(player => {
-              player.team = targetTeamName; // Set the team property on the player
-              targetTeamList.push(player);  // Add player to the correct team list
-          });
-      });
-    }
-
-    // --- DEBUGGING: Log assigned teams ---
-    console.log(`[Team Assign Debug - ${lobbyId}] Assigned teams:`);
-    lobbyPlayers.forEach((p, index) => {
-      console.log(`  Player ${index}: ID=${p.id}, UserID=${p.user_id}, Name=${p.name}, Assigned Team=${p.team}`);
-    });
-    console.log(`  Team1 Array Length: ${team1.length}, Team2 Array Length: ${team2.length}`);
-    // --- END DEBUGGING ---
-
-    // Designate captains (function remains the same, operates on the assigned teams)
-    function designateCaptain(team) {
-      if (!team || team.length === 0) return null; // Handle empty team case
-      const priorityCandidate = team.find(p => {
-        const sid = p.steam_id;
-        if (sid && captainConfig.steamIds.includes(sid)) return true;
-        if (p.email && captainConfig.emails.includes(p.email)) return true;
-        return false;
-      });
-      return priorityCandidate || team[0];
-    }
-    const captainTeam1 = designateCaptain(team1);
-    const captainTeam2 = designateCaptain(team2);
-
-    // Reset captain flags for all players in the lobby first
-    lobbyPlayers.forEach(p => p.captain = false);
-
-    // Set the captain flag only for the designated captains
-    if (captainTeam1) captainTeam1.captain = true;
-    if (captainTeam2) captainTeam2.captain = true;
-
-    // --- START MATCH READY CHECK ---
-    const checkId = lobbyId; // Use the potential lobbyId as the check ID
-    const playersForCheck = {};
+  if (isSolo1v1) {
+    lobbyPlayers[0].team = 'team1';
+    team1.push(lobbyPlayers[0]);
+    lobbyPlayers[1].team = 'team2';
+    team2.push(lobbyPlayers[1]);
+  } else {
+    const playerGroupsInLobby = {};
     lobbyPlayers.forEach(p => {
-      playersForCheck[p.socket_id] = { // Use socket_id as the key
-        accepted: false,
-        userId: p.user_id, // Store user ID (from players table FK)
-        playerData: { // Store a *clean* subset of data needed later
-            id: p.id,                 // players table PK
-            user_id: p.user_id,       // users table FK
-            team: p.team,             // Assigned team
-            socket_id: p.socket_id,   // Socket ID at time of check start
-            name: p.name,             // Name from players table (might be stale)
-            steam_id: p.steam_id,     // Steam ID from users table (might be null)
-            // profile_picture: p.profile_picture // Don't store stale pic here
-            // Add captain flag if needed later: captain: p.captain
-        }
-      };
+      const groupId = p.group_id || `solo_${p.id}`;
+      if (!playerGroupsInLobby[groupId]) playerGroupsInLobby[groupId] = [];
+      playerGroupsInLobby[groupId].push(p);
     });
-
-    matchReadyChecks[checkId] = {
-      players: playersForCheck,
-      lobbyId: lobbyId, // Store the intended lobbyId
-      totalPlayers: requiredPlayers,
-      teams: { team1, team2 }, // Store proposed teams
-      captains: { // Store proposed captains
-        team1: captainTeam1 ? (captainTeam1.user_id || captainTeam1.id) : null,
-        team2: captainTeam2 ? (captainTeam2.user_id || captainTeam2.id) : null
-      },
-      timer: setTimeout(() => handleMatchReadyTimeout(checkId), MATCH_READY_TIMEOUT),
-      // Store other necessary info temporarily if needed
-      availableMaps: [ // Store map pool for when lobby is confirmed
-        'de_dust', 'de_dust2', 'de_inferno', 'de_nuke',
-        'de_tuscan', 'de_cpl_strike', 'de_prodigy'
-      ],
-      bannedMaps: [],
-      turn: 'team1', // Start with team1's turn for banning
-      teamCaptains: {
-        // Store the user ID (database ID) of the captains
-        team1: captainTeam1 ? (captainTeam1.user_id || captainTeam1.id) : null,
-        team2: captainTeam2 ? (captainTeam2.user_id || captainTeam2.id) : null
-      },
-      serverCreated: false,
-      createdAt: Date.now() // Store creation time for potential cleanup
-    };
-
-    // Remove players from queue immediately, but don't assign lobby_id yet
-    const playerIds = lobbyPlayers.map(p => p.id);
-    await db.query('DELETE FROM queue WHERE player_id IN (?)', [playerIds]);
-
-    console.log(`[Match Ready] Initiating check ${checkId} for ${requiredPlayers} players.`);
-
-    // Emit dedicated event to all players in the check to show the popup
-    const socketIds = Object.keys(playersForCheck);
-    socketIds.forEach(sid => {
-      // Using dedicated event for match ready check
-      io.to(sid).emit('matchReadyCheckInitiated', {
-        checkId,
-        totalPlayers: requiredPlayers
+    Object.values(playerGroupsInLobby).forEach(group => {
+      const targetTeamList = team1.length <= team2.length ? team1 : team2;
+      const targetTeamName = team1.length <= team2.length ? 'team1' : 'team2';
+      group.forEach(player => {
+        player.team = targetTeamName;
+        targetTeamList.push(player);
       });
     });
-    // --- END MATCH READY CHECK ---
   }
+
+  // Captain designation (same as before)
+  function designateCaptain(team) {
+    if (!team || team.length === 0) return null;
+    const priorityCandidate = team.find(p =>
+      (p.steam_id && captainConfig.steamIds.includes(p.steam_id)) ||
+      (p.email && captainConfig.emails.includes(p.email))
+    );
+    return priorityCandidate || team[0];
+  }
+  const captainTeam1 = designateCaptain(team1);
+  const captainTeam2 = designateCaptain(team2);
+
+  // Start Match Ready Check
+  const checkId = lobbyId;
+  const playersForCheck = {};
+  lobbyPlayers.forEach(p => {
+    playersForCheck[p.socket_id] = {
+      accepted: false,
+      userId: p.user_id,
+      playerData: {
+        id: p.id, user_id: p.user_id, team: p.team, socket_id: p.socket_id,
+        name: p.name, steam_id: p.steam_id
+      }
+    };
+  });
+
+  matchReadyChecks[checkId] = {
+    players: playersForCheck,
+    lobbyId: lobbyId,
+    totalPlayers: requiredPlayers,
+    teams: { team1, team2 },
+    captains: {
+      team1: captainTeam1 ? (captainTeam1.user_id || captainTeam1.id) : null,
+      team2: captainTeam2 ? (captainTeam2.user_id || captainTeam2.id) : null
+    },
+    timer: setTimeout(() => handleMatchReadyTimeout(checkId), MATCH_READY_TIMEOUT),
+    region: lobbyRegion, // <-- Store the determined region
+    availableMaps: ['de_dust', 'de_dust2', 'de_inferno', 'de_nuke', 'de_tuscan', 'de_cpl_strike', 'de_prodigy'],
+    bannedMaps: [],
+    turn: 'team1',
+    teamCaptains: {
+      team1: captainTeam1 ? (captainTeam1.user_id || captainTeam1.id) : null,
+      team2: captainTeam2 ? (captainTeam2.user_id || captainTeam2.id) : null
+    },
+    serverCreated: false,
+    createdAt: Date.now()
+  };
+
+  // Remove players from queue immediately
+  const playerIdsToRemove = lobbyPlayers.map(p => p.id);
+  await db.query('DELETE FROM queue WHERE player_id IN (?)', [playerIdsToRemove]);
+
+  console.log(`[Match Ready] Initiating check ${checkId} for ${requiredPlayers} players in region ${lobbyRegion || 'mixed'}.`);
+  Object.keys(playersForCheck).forEach(sid => {
+    io.to(sid).emit('matchReadyCheckInitiated', { checkId, totalPlayers: requiredPlayers });
+  });
 }
 
 // -----------------------------------------------------------------------
@@ -1036,7 +1062,7 @@ io.on('connection', (socket) => {
       if (!lobby.serverCreated) {
         lobby.serverCreated = true;
         const finalMap = remain[0];
-        const { port, jobName } = await createOrUpdateCsServerJob(lobbyId, finalMap);
+        const { port, jobName } = await createOrUpdateCsServerJob(lobbyId, finalMap, lobby.region);
         lobby.jobName = jobName;
         io.to(lobbyId).emit('lobbyCreated', {
           serverIp: '192.168.2.69',
@@ -1058,6 +1084,11 @@ io.on('connection', (socket) => {
 
   // SOLO MATCHMAKING
   socket.on('startMatchmaking', async (user) => {
+    const ip = socket.handshake.headers['x-forwarded-for']?.split(',').shift() || socket.handshake.address;
+    const geo = geoip.lookup(ip);
+    // Using country as the region for matchmaking purposes. Could be continent_code for broader regions.
+    const region = geo ? geo.country : null; 
+
     // block if in a pre-lobby
     const currentLobbyCode = userPreLobbyMap[socket.id];
     if (currentLobbyCode && preLobbies[currentLobbyCode]) {
@@ -1089,20 +1120,21 @@ io.on('connection', (socket) => {
       if (existingPlayer.length > 0) {
         playerId = existingPlayer[0].id;
         await db.query(
-          'UPDATE players SET socket_id = ?, user_id = ? WHERE id = ?',
-          [socket.id, foundUserId, playerId]
+          'UPDATE players SET socket_id = ?, user_id = ?, region = ? WHERE id = ?',
+          [socket.id, foundUserId, region, playerId]
         );
       } else {
         const [insertResult] = await db.query(
-          `INSERT INTO players (socket_id, name, profile_picture, steam_id, email, user_id)
-           VALUES (?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO players (socket_id, name, profile_picture, steam_id, email, user_id, region)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [
             socket.id,
             user.username,
             user.profilePictureUrl || DEFAULT_PROFILE_PICTURE,
             user.steamId || null,
             user.email || null,
-            foundUserId
+            foundUserId,
+            region
           ]
         );
         playerId = insertResult.insertId;
@@ -1116,12 +1148,11 @@ io.on('connection', (socket) => {
       }
 
       // insert into queue
-      await db.query('INSERT INTO queue (player_id) VALUES (?)', [playerId]);
+      await db.query('INSERT INTO queue (player_id, queue_time) VALUES (?, NOW())', [playerId]);
 
       // attempt to form a lobby
       const [queue] = await db.query('SELECT * FROM queue');
-      const matchmakingQueue = queue.map(q => ({ playerId: q.player_id }));
-      await checkQueueAndFormLobby(matchmakingQueue, db);
+      await checkQueueAndFormLobby(queue, db);
 
       socket.emit('queued');
     } catch (err) {
@@ -1403,6 +1434,14 @@ io.on('connection', (socket) => {
     try {
       const playerIds = [];
       for (const u of preLobby.players) {
+        const playerSocket = io.sockets.sockets.get(u.socketId);
+        let region = null;
+        if (playerSocket) {
+            const ip = playerSocket.handshake.headers['x-forwarded-for']?.split(',').shift() || playerSocket.handshake.address;
+            const geo = geoip.lookup(ip);
+            region = geo ? geo.country : null;
+        }
+
         const profilePic = u.profilePictureUrl || DEFAULT_PROFILE_PICTURE;
         let existingPlayer;
         if (u.steamId) {
@@ -1414,21 +1453,22 @@ io.on('connection', (socket) => {
         if (existingPlayer && existingPlayer.length > 0) {
           playerId = existingPlayer[0].id;
           await db.query(
-            'UPDATE players SET socket_id = ?, group_id = ? WHERE id = ?',
-            [u.socketId, groupId, playerId]
+            'UPDATE players SET socket_id = ?, group_id = ?, region = ? WHERE id = ?',
+            [u.socketId, groupId, region, playerId]
           );
         } else {
           const [insertResult] = await db.query(
             `INSERT INTO players
-             (socket_id, name, profile_picture, group_id, steam_id, email)
-             VALUES (?, ?, ?, ?, ?, ?)`,
+             (socket_id, name, profile_picture, group_id, steam_id, email, region)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
               u.socketId,
               u.username,
               profilePic,
               groupId,
               u.steamId || null,
-              u.email || null
+              u.email || null,
+              region
             ]
           );
           playerId = insertResult.insertId;
@@ -1437,7 +1477,7 @@ io.on('connection', (socket) => {
         // also add them to queue if they're not already
         const [queueRows] = await db.query('SELECT * FROM queue WHERE player_id = ?', [playerId]);
         if (queueRows.length === 0) {
-          await db.query('INSERT INTO queue (player_id) VALUES (?)', [playerId]);
+          await db.query('INSERT INTO queue (player_id, queue_time) VALUES (?, NOW())', [playerId]);
         }
       }
 
@@ -1449,8 +1489,7 @@ io.on('connection', (socket) => {
 
       // now see if we can match them
       const [queue] = await db.query('SELECT * FROM queue');
-      const matchmakingQueue = queue.map(q => ({ playerId: q.player_id }));
-      await checkQueueAndFormLobby(matchmakingQueue, db);
+      await checkQueueAndFormLobby(queue, db);
 
       // Let everyone in the pre-lobby know they are queued
       io.to(`preLobby_${inviteCode}`).emit('preLobbyQueued', { groupId });
@@ -1649,7 +1688,8 @@ io.on('connection', (socket) => {
       turn: 'team1',
       teamCaptains: {}, // Will be set after team assignment
       serverCreated: false,
-      createdAt: check.createdAt || Date.now()
+      createdAt: check.createdAt || Date.now(),
+      region: check.region // Pass region from check to lobby
     };
 
     let db;

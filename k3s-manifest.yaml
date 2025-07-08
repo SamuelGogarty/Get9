@@ -22,3 +22,4 @@ spec:
         - containerPort: {{port}}
           protocol: UDP
       restartPolicy: Never
+      {{nodeSelector}}
