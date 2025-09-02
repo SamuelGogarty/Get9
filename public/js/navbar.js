@@ -15,6 +15,7 @@ async function populateNavbar(user) {
   }
 
   if (!user) {
+    document.querySelector('nav').classList.add('logged-out');
     // User is not logged in, show the login button and hide protected links.
     navHome.href = '/';
     navBannerLink.href = '/';
