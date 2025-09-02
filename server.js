@@ -1153,21 +1153,20 @@ io.on('connection', (socket) => {
       if (existingPlayer.length > 0) {
         playerId = existingPlayer[0].id;
         await db.query(
-          'UPDATE players SET socket_id = ?, user_id = ?, region = ? WHERE id = ?',
-          [socket.id, foundUserId, region, playerId]
+          'UPDATE players SET socket_id = ?, user_id = ? WHERE id = ?',
+          [socket.id, foundUserId, playerId]
         );
       } else {
         const [insertResult] = await db.query(
-          `INSERT INTO players (socket_id, name, profile_picture, steam_id, email, user_id, region)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO players (socket_id, name, profile_picture, steam_id, email, user_id)
+           VALUES (?, ?, ?, ?, ?, ?)`,
           [
             socket.id,
             user.username,
             user.profilePictureUrl || DEFAULT_PROFILE_PICTURE,
             user.steamId || null,
             user.email || null,
-            foundUserId,
-            region
+            foundUserId
           ]
         );
         playerId = insertResult.insertId;
@@ -1486,22 +1485,21 @@ io.on('connection', (socket) => {
         if (existingPlayer && existingPlayer.length > 0) {
           playerId = existingPlayer[0].id;
           await db.query(
-            'UPDATE players SET socket_id = ?, group_id = ?, region = ? WHERE id = ?',
-            [u.socketId, groupId, region, playerId]
+            'UPDATE players SET socket_id = ?, group_id = ? WHERE id = ?',
+            [u.socketId, groupId, playerId]
           );
         } else {
           const [insertResult] = await db.query(
             `INSERT INTO players
-             (socket_id, name, profile_picture, group_id, steam_id, email, region)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+             (socket_id, name, profile_picture, group_id, steam_id, email)
+             VALUES (?, ?, ?, ?, ?, ?)`,
             [
               u.socketId,
               u.username,
               profilePic,
               groupId,
               u.steamId || null,
-              u.email || null,
-              region
+              u.email || null
             ]
           );
           playerId = insertResult.insertId;
