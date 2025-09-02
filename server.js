@@ -316,6 +316,13 @@ const appRoutes = () => {
     failureRedirect: '/login?error=1'
   }));
 
+  app.get('/logout', (req, res, next) => {
+    req.logout(function(err) {
+      if (err) { return next(err); }
+      res.redirect('/');
+    });
+  });
+
   app.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
     if (!username || !email || !password) {
