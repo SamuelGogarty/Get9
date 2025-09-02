@@ -558,7 +558,7 @@ nav li {
 
 nav li a {
   display: block;
-  padding: 8px 20px;
+  padding: 4px 20px;
   color: #F0B43F;
   text-decoration: none;
   font-size: 14px;
@@ -582,7 +582,7 @@ nav li a:hover {
   border-left: solid 1px #080808;
   border-right: solid 1px #323232;
   color: white;
-  padding: 5px 8px;
+  padding: 2px 8px;
   font-size: 14px;
   display: flex;
   align-items: center;
