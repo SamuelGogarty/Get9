@@ -682,8 +682,34 @@ async function checkQueueAndFormLobby(queue, db) {
     [playerIds]
   );
 
-  // Combine all players into a single matchmaking pool for local development
-  const matchmakingPools = [allPlayersData];
+  // Add queue time to each player's data
+  const playersWithQueueTime = allPlayersData.map(p => {
+    const queueEntry = queue.find(q => q.player_id === p.id);
+    return { ...p, queue_time: queueEntry.queue_time };
+  });
+
+  // 2. Group players by region (and those eligible for wider search)
+  const now = new Date();
+  const regionalGroups = {};
+  const wideSearchPlayers = [];
+
+  for (const player of playersWithQueueTime) {
+    const timeInQueue = now - new Date(player.queue_time);
+    if (timeInQueue > WIDEN_SEARCH_TIMEOUT) {
+      wideSearchPlayers.push(player);
+    } else if (player.region) {
+      if (!regionalGroups[player.region]) {
+        regionalGroups[player.region] = [];
+      }
+      regionalGroups[player.region].push(player);
+    } else {
+      // Players without a region can be added to the wide search pool immediately
+      wideSearchPlayers.push(player);
+    }
+  }
+
+  // Combine regional and wide-search players for matchmaking attempts
+  const matchmakingPools = [...Object.values(regionalGroups), wideSearchPlayers];
 
   for (let pool of matchmakingPools) {
     if (pool.length < requiredPlayers) continue;
@@ -1127,20 +1153,21 @@ io.on('connection', (socket) => {
       if (existingPlayer.length > 0) {
         playerId = existingPlayer[0].id;
         await db.query(
-          'UPDATE players SET socket_id = ?, user_id = ? WHERE id = ?',
-          [socket.id, foundUserId, playerId]
+          'UPDATE players SET socket_id = ?, user_id = ?, region = ? WHERE id = ?',
+          [socket.id, foundUserId, region, playerId]
         );
       } else {
         const [insertResult] = await db.query(
-          `INSERT INTO players (socket_id, name, profile_picture, steam_id, email, user_id)
-           VALUES (?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO players (socket_id, name, profile_picture, steam_id, email, user_id, region)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [
             socket.id,
             user.username,
             user.profilePictureUrl || DEFAULT_PROFILE_PICTURE,
             user.steamId || null,
             user.email || null,
-            foundUserId
+            foundUserId,
+            region
           ]
         );
         playerId = insertResult.insertId;
@@ -1154,7 +1181,7 @@ io.on('connection', (socket) => {
       }
 
       // insert into queue
-      await db.query('INSERT INTO queue (player_id) VALUES (?)', [playerId]);
+      await db.query('INSERT INTO queue (player_id, queue_time) VALUES (?, NOW())', [playerId]);
 
       // attempt to form a lobby
       const [queue] = await db.query('SELECT * FROM queue');
@@ -1459,21 +1486,22 @@ io.on('connection', (socket) => {
         if (existingPlayer && existingPlayer.length > 0) {
           playerId = existingPlayer[0].id;
           await db.query(
-            'UPDATE players SET socket_id = ?, group_id = ? WHERE id = ?',
-            [u.socketId, groupId, playerId]
+            'UPDATE players SET socket_id = ?, group_id = ?, region = ? WHERE id = ?',
+            [u.socketId, groupId, region, playerId]
           );
         } else {
           const [insertResult] = await db.query(
             `INSERT INTO players
-             (socket_id, name, profile_picture, group_id, steam_id, email)
-             VALUES (?, ?, ?, ?, ?, ?)`,
+             (socket_id, name, profile_picture, group_id, steam_id, email, region)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
               u.socketId,
               u.username,
               profilePic,
               groupId,
               u.steamId || null,
-              u.email || null
+              u.email || null,
+              region
             ]
           );
           playerId = insertResult.insertId;
@@ -1482,7 +1510,7 @@ io.on('connection', (socket) => {
         // also add them to queue if they're not already
         const [queueRows] = await db.query('SELECT * FROM queue WHERE player_id = ?', [playerId]);
         if (queueRows.length === 0) {
-          await db.query('INSERT INTO queue (player_id) VALUES (?)', [playerId]);
+          await db.query('INSERT INTO queue (player_id, queue_time) VALUES (?, NOW())', [playerId]);
         }
       }
 
