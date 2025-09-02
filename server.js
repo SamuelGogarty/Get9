@@ -291,7 +291,7 @@ async function createOrUpdateCsServerJob(lobbyId, mapName, region) {
   const manifest = yaml.load(manifestTemplate);
   try {
     await k8sBatchApi.createNamespacedJob('default', manifest);
-    console.log(`Job created: ${jobName} on port ${port} in region ${region || 'default'}`);
+    console.log(`Job created: ${jobName} on port ${port}${region ? ` in region ${region}` : ' (no region specified)'}`);
     return { port, jobName };
   } catch (error) {
     console.error('Error creating job:', error.body ? error.body : error);
