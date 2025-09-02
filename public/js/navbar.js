@@ -24,7 +24,7 @@ async function populateNavbar(user) {
     navProfileSettings.parentElement.style.display = 'none';
 
     rightNavLi.innerHTML = `
-      <a href="/auth/steam" class="greensteam-button" style="text-decoration: none; text-align: center;">
+      <a href="/auth/steam" class="greensteam-button nav-item" style="text-decoration: none; text-align: center;">
         Sign in with Steam
       </a>
     `;
