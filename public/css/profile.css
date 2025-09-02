@@ -538,7 +538,6 @@ nav {
   background: #212121;
   padding: 0;
   width: 100%; /* Changed from fixed 1040px */
-  max-width: 1040px; /* Add max-width instead */
 }
 
 nav ul {
@@ -553,6 +552,7 @@ nav ul {
 
 nav li {
   display: inline-block;
+  white-space: nowrap;
 }
 
 nav li a {
