@@ -1,0 +1,45 @@
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+body {
+  /* Add padding to the top of the body to prevent content from being hidden by the fixed navbar */
+  padding-top: 107px; /* Banner (60px) + Nav (~37px) + padding/gap */
+  margin: 0; /* Remove default browser margin to prevent unwanted scrolling */
+}
+
+.header-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #000; /* Black background */
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid #222; /* Slightly lighter border on black */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  padding: 5px 0 0; /* Padding only at the top, none at the bottom */
+  gap: 2px; /* Re-introduce a small gap for visual balance */
+}
+
+.banner-image {
+  max-height: 60px; /* Increased banner height */
+  width: auto;
+}
+
+nav {
+  /* This ensures the nav itself is centered within the header-container */
+  display: inline-block;
+  margin: 0; /* Explicitly remove any default margin on the nav element */
+}
+
+/* Reset default browser styles for the list to remove extra space */
+nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

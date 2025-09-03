@@ -3,54 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <title>CS Matchmaking - Welcome</title>
-  <link rel="stylesheet" href="css/profile.css"> <!-- Use profile styles for navbar consistency -->
+  <link rel="stylesheet" href="css/shared.css">
   <link rel="stylesheet" href="css/styles.css"> <!-- Optional: your own overrides -->
   <script src="/js/navbar.js"></script>
   <style>
-    html {
-      box-sizing: border-box;
-    }
-    *, *:before, *:after {
-      box-sizing: inherit;
-    }
-    body {
-      /* Add padding to the top of the body to prevent content from being hidden by the fixed navbar */
-      padding-top: 107px; /* Banner (60px) + Nav (~37px) + padding/gap */
-      margin: 0; /* Remove default browser margin to prevent unwanted scrolling */
-    }
-  
-    .header-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background-color: #000; /* Black background */
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      border-bottom: 1px solid #222; /* Slightly lighter border on black */
-      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-      padding: 5px 0 0; /* Padding only at the top, none at the bottom */
-      gap: 2px; /* Re-introduce a small gap for visual balance */
-    }
-  
-    .banner-image {
-      max-height: 60px; /* Increased banner height */
-      width: auto;
-    }
-  
-    nav {
-      /* This ensures the nav itself is centered within the header-container */
-      display: inline-block;
-      margin: 0; /* Explicitly remove any default margin on the nav element */
-    }
-    
-    /* Reset default browser styles for the list to remove extra space */
-    nav ul {
-      margin: 0;
+    /* Visually hide labels while keeping them accessible to screen readers */
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
       padding: 0;
-      list-style: none;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .container {
+      margin-top: 30px;
     }
 
     .mapvotebutton {
@@ -82,8 +52,8 @@
   <div id="navbar-container"></div>
 
   <!-- Main Container -->
-  <div class="container" style="margin-top: 30px;">
-    <div class="window" name="Welcome">
+  <main class="container">
+    <div class="window">
       <div class="content">
         <h1 style="color: #E3E41F;">Welcome to RetroMatch!</h1>
         <p class="description">
@@ -110,15 +80,19 @@
 
           <!-- Email Login Form -->
           <form action="/login" method="POST" class="email-form">
+            <label for="email" class="visually-hidden">Email</label>
             <input 
               type="email"
+              id="email"
               name="email"
               placeholder="Email"
               required
               class="login-input"
             >
+            <label for="password" class="visually-hidden">Password</label>
             <input
               type="password"
+              id="password"
               name="password"
               placeholder="Password"
               required
@@ -144,7 +118,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </main>
 
   <footer style="margin-top: 40px; font-size: 12px; color: #666;">
     <p>© 2025 RetroMatch. All rights reserved.</p>
