@@ -17,12 +17,17 @@
           <span id="navbarUsername" class="navbar-username-link">Player Name</span>
           <span id="navbarElo" class="elo-display">ELO: 0</span>
         </div>
+        <a href="/logout" class="nav-item">Logout</a>
       </li>
-      <li><a href="/logout" class="nav-item">Logout</a></li>
     </ul>
   </nav>
 </div>
 <style>
+  .right-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Adds space between user info and logout button */
+  }
   #navbar-container nav.logged-out {
     padding-top: 0 !important;
     padding-bottom: 0 !important;
