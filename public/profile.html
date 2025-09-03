@@ -3,18 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <title>User Profile</title>
-  <link rel="stylesheet" href="css/shared.css">
   <link rel="stylesheet" href="css/profile.css">
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/navbar.js"></script>
+  <style>
+    html {
+      box-sizing: border-box;
+    }
+    *, *:before, *:after {
+      box-sizing: inherit;
+    }
+    body {
+      /* Add padding to the top of the body to prevent content from being hidden by the fixed navbar */
+      padding-top: 107px; /* Banner (60px) + Nav (~37px) + padding/gap */
+      margin: 0; /* Remove default browser margin to prevent unwanted scrolling */
+    }
+  
+    .header-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #000; /* Black background */
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-bottom: 1px solid #222; /* Slightly lighter border on black */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      padding: 5px 0 0; /* Padding only at the top, none at the bottom */
+      gap: 2px; /* Re-introduce a small gap for visual balance */
+    }
+  
+    .banner-image {
+      max-height: 60px; /* Increased banner height */
+      width: auto;
+    }
+  
+    nav {
+      /* This ensures the nav itself is centered within the header-container */
+      display: inline-block;
+      margin: 0; /* Explicitly remove any default margin on the nav element */
+    }
+    
+    /* Reset default browser styles for the list to remove extra space */
+    nav ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+  </style>
 </head>
 <body>
   <div id="navbar-container"></div>
 
-  <main class="container">
-    <div class="main-grid">
+  <div class="container">
+    <main class="main-grid">
       <!-- Top Matchmaking Window -->
-      <div class="window matchmaking-header">
+      <div class="window matchmaking-header" name="Matchmaking">
         <div class="content">
           <div class="welcome-section">
             <img id="matchmakingProfile" src="/img/fallback-pfp.png" alt="Profile Picture">
@@ -42,7 +88,7 @@
       </div>
 
       <!-- Thin Lobby Management Bar -->
-      <div class="window lobby-management-bar">
+      <div class="window lobby-management-bar" name="Lobby Management">
         <div class="content">
           <div class="lobby-controls">
             <div class="create-container">
@@ -68,7 +114,7 @@
       <!-- Side-by-Side Sections -->
       <div class="lobby-sections" style="display:none;">
         <!-- Pre-Lobby Members -->
-        <div class="window member-list-container">
+        <div class="window member-list-container" name="Pre-Lobby Members">
           <div class="content" id="preLobbyPlayerList">
             <!-- Member rows (via JS) -->
           </div>
@@ -79,7 +125,7 @@
         </div>
 
         <!-- Pre-Lobby Chat -->
-        <div class="window chat-container clan-chat">
+        <div class="window chat-container clan-chat" name="Pre-Lobby Chat">
           <div class="content">
             <ul id="preLobbyChatMessages" class="inset"></ul>
             <div class="chat-input">
@@ -89,12 +135,12 @@
           </div>
         </div>
       </div>
-    </div>
-  </main>
+    </main>
+  </div>
 
   <!-- Match Ready Check-in Popup -->
   <div id="matchReadyOverlay" class="overlay" style="display: none;">
-    <div class="window vgui-popup">
+    <div class="window vgui-popup" name="Match Ready!">
       <!-- Audio element (looping handled by JS) -->
       <audio id="matchReadySound" src="/sounds/blip1.wav" preload="auto"></audio> 
       <div class="content">
