@@ -1013,7 +1013,14 @@ io.on('connection', (socket) => {
         const occupant = pRows[0];
         await db.query('UPDATE players SET socket_id = ? WHERE id = ?', [socket.id, occupant.id]);
         const memP = lobbies[lobbyId].players.find(pp => pp.id === occupant.id);
-        if (memP) memP.socket_id = socket.id;
+        if (memP) {
+          // Player is still in memory (e.g., opened a new tab), just update socket.
+          memP.socket_id = socket.id;
+        } else {
+          // Player has reconnected after disconnect, add them back to the memory list.
+          occupant.socket_id = socket.id; // The DB was updated, now update the object we fetched.
+          lobbies[lobbyId].players.push(occupant);
+        }
       }
     } catch (err) {
       console.error('Error updating occupant socket_id:', err);
