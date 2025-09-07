@@ -625,15 +625,9 @@ function leavePreLobbyInternal(inviteCode, socketId, kicked = false) {
   // remove user from array
   const idx = preLobby.players.findIndex(p => p.socketId === socketId);
   if (idx >= 0) {
-    // Only remove if socket is completely disconnected
-    // This allows for page refreshes without losing state
-    if (!io.sockets.sockets.has(socketId)) {
-      const removedPlayer = preLobby.players.splice(idx, 1)[0];
-      delete userPreLobbyMap[socketId];
-      console.log(`[PreLobby ${inviteCode}] Player with socket ${socketId} fully disconnected and removed.`);
-    } else {
-      console.log(`[PreLobby ${inviteCode}] Player with socket ${socketId} still connected, not removing.`);
-    }
+    preLobby.players.splice(idx, 1);
+    delete userPreLobbyMap[socketId];
+    console.log(`[PreLobby ${inviteCode}] Player with socket ${socketId} removed (kicked=${kicked}).`);
 
     if (kicked) {
       io.to(socketId).emit('kickedFromPreLobby', { inviteCode });
