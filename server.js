@@ -2033,6 +2033,21 @@ io.on('connection', (socket) => {
 // Attach routes
 appRoutes();
 app.use('/nosteam', nosteamRoutes);
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
+// On startup, clear stale lobby data from the database.
+(async () => {
+  try {
+    const db = await mysql.createConnection(dbConfigMatchmaking);
+    await db.query("UPDATE players SET lobby_id = NULL");
+    await db.query("DELETE FROM queue");
+    await db.end();
+    console.log("[Startup] Cleared stale lobby and queue data.");
+  } catch (error) {
+    console.error("[Startup] Failed to clear stale data from database:", error);
+    process.exit(1); // Exit to prevent inconsistent state
+  }
+
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+})();
