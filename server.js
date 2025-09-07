@@ -1019,6 +1019,11 @@ io.on('connection', (socket) => {
         } else {
           // Player has reconnected after disconnect, add them back to the memory list.
           occupant.socket_id = socket.id; // The DB was updated, now update the object we fetched.
+          // Re-assign captain status since it is not stored in the DB
+          if (lobbies[lobbyId].teamCaptains) {
+            occupant.captain = (String(occupant.user_id) === String(lobbies[lobbyId].teamCaptains.team1) ||
+                                String(occupant.user_id) === String(lobbies[lobbyId].teamCaptains.team2));
+          }
           lobbies[lobbyId].players.push(occupant);
         }
       }
