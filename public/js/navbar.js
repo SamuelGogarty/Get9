@@ -51,16 +51,18 @@ async function populateNavbar(user) {
   if (user.activeLobby) {
     navLobby.href = `/lobby.html?id=${user.activeLobby}`;
     navLobby.textContent = 'Return to Lobby';
+    navLobby.parentElement.style.display = ''; // Restore default display
   } else if (user.activePreLobby) {
     navLobby.href = `/pre-lobby.html?inviteCode=${user.activePreLobby}`;
     navLobby.textContent = 'Return to Pre-Lobby';
+    navLobby.parentElement.style.display = ''; // Restore default display
   } else if (user.activeMatchReadyCheck) {
     navLobby.href = '/profile.html'; // Redirect to a page where they can see the modal
     navLobby.textContent = 'Match Ready!';
+    navLobby.parentElement.style.display = ''; // Restore default display
   } else {
-    // Default state: link to the main matchmaking/lobby page
-    navLobby.href = '/lobby.html';
-    navLobby.textContent = 'Lobby';
+    // Player is not in any lobby, so hide the link.
+    navLobby.parentElement.style.display = 'none';
   }
 
   // Fetch the user's ELO rating.
