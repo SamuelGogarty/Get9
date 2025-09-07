@@ -361,17 +361,57 @@ const appRoutes = () => {
     res.sendFile(path.join(__dirname, 'public', 'profile.html'));
   });
 
-  app.get('/user/info', ensureAuthenticated, (req, res) => {
+  app.get('/user/info', ensureAuthenticated, async (req, res) => {
     const user = req.user;
     // --- DEBUGGING ---
     console.log(`[User Info] User object for ID ${user.id}:`, JSON.stringify(user, null, 2));
     // --- END DEBUGGING ---
+
+    // Check if user is in a pre-lobby
+    let activePreLobby = null;
+    for (const inviteCode in preLobbies) {
+      if (preLobbies[inviteCode].players.some(p => String(p.id) === String(user.id))) {
+        activePreLobby = inviteCode;
+        break;
+      }
+    }
+
+    // Check if user is in a final lobby (most persistent state)
+    let activeLobby = null;
+    const db = await mysql.createConnection(dbConfigMatchmaking);
+    try {
+      const [playerRows] = await db.query(
+        'SELECT lobby_id FROM players WHERE user_id = ? AND lobby_id IS NOT NULL',
+        [user.id]
+      );
+      if (playerRows.length > 0) {
+        activeLobby = playerRows[0].lobby_id;
+      }
+    } catch (error) {
+      console.error('[User Info] DB error checking active lobby:', error);
+    } finally {
+      await db.end();
+    }
+
+    // Check if user is in a match ready check (transient state)
+    let activeMatchReadyCheck = null;
+    for (const checkId in matchReadyChecks) {
+      const check = matchReadyChecks[checkId];
+      if (Object.values(check.players).some(p => String(p.userId) === String(user.id))) {
+        activeMatchReadyCheck = checkId;
+        break;
+      }
+    }
+
     res.json({
       id: user.id,
       username: user.username, // Still sending user.username
       steamId: user.steamId || null,
       email: user.email || null,
-      profilePictureUrl: user.profile_picture || DEFAULT_PROFILE_PICTURE
+      profilePictureUrl: user.profile_picture || DEFAULT_PROFILE_PICTURE,
+      activePreLobby,
+      activeLobby,
+      activeMatchReadyCheck
     });
   });
 
