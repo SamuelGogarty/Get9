@@ -1064,7 +1064,7 @@ io.on('connection', (socket) => {
       lob.teams = updatedTeams;
 
       // Emit with the updated data including ELO in teams
-      socket.emit('lobbyReady', {
+      io.to(lobbyId).emit('lobbyReady', {
         lobbyId,
         players: transformedPlayers, // Send players with ELO
         teams: updatedTeams,         // Send teams with ELO
