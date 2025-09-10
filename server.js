@@ -92,6 +92,7 @@ kc.loadFromDefault();
 const k8sBatchApi = kc.makeApiClient(BatchV1Api);
 
 const PORT = 3000;
+const DEFAULT_PROFILE_PICTURE = '/img/nonsteam-profile.png';
 
 // DB configs
 const dbConfigMatchmaking = {
@@ -300,9 +301,64 @@ async function createOrUpdateCsServerJob(lobbyId, mapName, region) {
 }
 
 // Express routes
-const appRoutes = () => {
-  app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/auth/steam', passport.authenticate('steam'));
+app.get('/auth/steam/callback',
+  passport.authenticate('steam', { failureRedirect: '/' }),
+  (req, res) => {
+    res.redirect('/profile');
+  }
+);
+
+app.post('/login', passport.authenticate('local', {
+  successRedirect: '/profile',
+  failureRedirect: '/login?error=1'
+}));
+
+app.post('/register', async (req, res) => {
+  const { username, email, password } = req.body;
+  if (!username || !email || !password) {
+    return res.status(400).send('Please fill all fields.');
+  }
+  try {
+    const db = await mysql.createConnection(dbConfigMatchmaking);
+    const passwordHash = await bcrypt.hash(password, 10);
+    await db.query(
+      'INSERT INTO users (username, email, password_hash, role, status) VALUES (?, ?, ?, ?, ?)',
+      [username, email, passwordHash, 'user', 'active']
+    );
+    await db.end();
+    res.redirect('/login');
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).send('Server error.');
+  }
+});
+
+
+app.get('/register', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'register.html'));
+});
+
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.get('/profile', ensureAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'profile.html'));
+});
+
+app.get('/user/info', ensureAuthenticated, (req, res) => {
+  const user = req.user;
+  res.json({
+    id: user.id,
+    username: user.username,
+    steamId: user.steamId || null,
+    email: user.email || null,
+    profilePictureUrl: user.profile_picture || DEFAULT_PROFILE_PICTURE
   });
 
   app.get('/auth/steam', passport.authenticate('steam'));

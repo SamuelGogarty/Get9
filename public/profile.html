@@ -1,224 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>User Profile</title>
-  <link rel="stylesheet" href="css/profile.css">
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/navbar.js"></script>
-  <style>
-    html {
-      box-sizing: border-box;
-    }
-    *, *:before, *:after {
-      box-sizing: inherit;
-    }
-    body {
-      /* Add padding to the top of the body to prevent content from being hidden by the fixed navbar */
-      padding-top: 107px; /* Banner (60px) + Nav (~37px) + padding/gap */
-      margin: 0; /* Remove default browser margin to prevent unwanted scrolling */
-    }
-  
-    .header-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background-color: #000; /* Black background */
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      border-bottom: 1px solid #222; /* Slightly lighter border on black */
-      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-      padding: 5px 0 0; /* Padding only at the top, none at the bottom */
-      gap: 2px; /* Re-introduce a small gap for visual balance */
-    }
-  
-    .banner-image {
-      max-height: 60px; /* Increased banner height */
-      width: auto;
-    }
-  
-    nav {
-      /* This ensures the nav itself is centered within the header-container */
-      display: inline-block;
-      margin: 0; /* Explicitly remove any default margin on the nav element */
-    }
-    
-    /* Reset default browser styles for the list to remove extra space */
-    nav ul {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>User Profile</title>
+    <link rel="stylesheet" href="/css/blackstream.css">
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-  <div id="navbar-container"></div>
+    <!-- Main Navigation -->
+    <nav>
+        <li><a href="/">Home</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/logout">Logout</a></li>
+    </nav>
 
-  <div class="container">
-    <main class="main-grid">
-      <!-- Top Matchmaking Window -->
-      <div class="window matchmaking-header" name="Matchmaking">
-        <div class="content">
-          <div class="welcome-section">
-            <img id="matchmakingProfile" src="/img/fallback-pfp.png" alt="Profile Picture">
-            <div class="welcome-message">
-              <div class="welcome-text">WELCOME BACK,</div>
-              <div class="welcome-username" id="matchmakingUsername">Commando</div>
-            </div>
-          </div>
-          <div class="stats-controls-row">
-            <div class="server-stats">
-              <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
-              <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
-            </div>
-            <div class="matchmaking-controls">
-              <!-- Single button for both solo & group queue -->
-              <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
-              
-              <!-- NEW: Stop Searching button -->
-              <button class="greensteam-button" id="cancelMatchmakingBtn" style="display:none;">Stop Searching</button>
-              
-              <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100" style="display:none;"></progress>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Thin Lobby Management Bar -->
-      <div class="window lobby-management-bar" name="Lobby Management">
-        <div class="content">
-          <div class="lobby-controls">
-            <div class="create-container">
-              <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
-
-              <!-- Code Box Inset with Eye Toggle -->
-              <div id="inviteCodeSection" class="invite-code-box inset active" style="display: none; margin-left: 10px;" role="status" aria-live="polite" aria-label="Invite code container">
-                <div class="code-container">
-                  <strong id="inviteCodeDisplay"></strong>
-                  <div class="mask-overlay"></div>
+    <!-- Main Content Container -->
+    <main>
+        <!-- Profile Window -->
+        <div class="window">
+            <h1>Profile</h1>
+            <div class="flex-row">
+                <img id="profilePicture" src="" alt="Profile Picture" style="width:64px;height:64px;">
+                <div class="flex-column">
+                    <h2 id="username">loading...</h2>
+                    <p>Steam ID / Email: <span id="identifier">loading...</span></p>
+                    <p>ELO Rating: <span id="skill">loading...</span></p>
                 </div>
                 <button class="greensteam-button" id="toggleCodeVisibility" title="Show Code" style="margin-left: 8px;" aria-label="Reveal invite code">👁</button>
               </div>
             </div>
-            <div class="join-container">
-              <button class="greensteam-button text-center" id="joinPreLobbyBtn" disabled>Join</button>
-              <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Side-by-Side Sections -->
-      <div class="lobby-sections" style="display:none;">
-        <!-- Pre-Lobby Members -->
-        <div class="window member-list-container" name="Pre-Lobby Members">
-          <div class="content" id="preLobbyPlayerList">
-            <!-- Member rows (via JS) -->
-          </div>
-          <!-- Add this button container at the bottom of the member list -->
-          <div class="lobby-leave-container">
-            <button class="greensteam-button" id="leavePreLobbyBtn" style="display:none;">Leave Lobby</button>
-          </div>
         </div>
 
-        <!-- Pre-Lobby Chat -->
-        <div class="window chat-container clan-chat" name="Pre-Lobby Chat">
-          <div class="content">
-            <ul id="preLobbyChatMessages" class="inset"></ul>
-            <div class="chat-input">
-              <input type="text" id="preLobbyChatInput" placeholder="Type message...">
-              <button class="greensteam-button" id="sendPreLobbyMessage">Send</button>
-            </div>
-          </div>
+        <!-- Matchmaking Window -->
+        <div class="window">
+            <h2>Matchmaking</h2>
+            <button id="startMatchmakingBtn" class="greensteam-button">Start Matchmaking</button>
         </div>
-      </div>
+
+        <!-- Pre-Lobby Window -->
+        <div class="window">
+            <h2>Pre-Lobby</h2>
+            <div class="flex-column">
+                <button id="createPreLobbyBtn" class="greensteam-button">Create Pre-Lobby</button>
+                <div class="border inset" style="padding: 10px; margin: 10px 0;">
+                    <h3>Join Pre-Lobby</h3>
+                    <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
+                    <button id="joinPreLobbyBtn" class="greensteam-button">Join</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Pre-Lobby Window -->
+        <div id="preLobbySection" class="window" style="display: none;">
+            <h2>Active Pre-Lobby</h2>
+            <p>Invite Code: <span id="inviteCode"></span></p>
+            <div id="preLobbyPlayerList" class="border inset" style="padding: 10px; margin: 10px 0;">
+                <!-- Players will be dynamically inserted here -->
+            </div>
+                        <button id="startPreLobbyMatchmakingBtn" class="greensteam-button" style="display: none;">
+                Start Matchmaking
+            </button>
+        </div>
     </main>
-  </div>
 
-  <!-- Match Ready Check-in Popup -->
-  <div id="matchReadyOverlay" class="overlay" style="display: none;">
-    <div class="window vgui-popup" name="Match Ready!">
-      <!-- Audio element (looping handled by JS) -->
-      <audio id="matchReadySound" src="/sounds/blip1.wav" preload="auto"></audio> 
-      <div class="content">
-        <p>Your match is ready. Click Accept to join!</p>
-        <div id="readyCheckIndicators" class="ready-indicators">
-          <!-- 10 indicator boxes will be generated by JS or styled directly -->
-          <div class="indicator-box"></div>
-          <div class="indicator-box"></div>
-          <div class="indicator-box"></div>
-          <div class="indicator-box"></div>
-          <div class="indicator-box"></div>
-          <div class="indicator-box"></div>
-          <div class="indicator-box"></div>
-          <div class="indicator-box"></div>
-          <div class="indicator-box"></div>
-          <div class="indicator-box"></div>
-        </div>
-        <button id="acceptMatchBtn" class="greensteam-button accept-button">Accept</button>
-        <p id="readyCheckTimer" class="timer-text"></p> <!-- Timer display -->
-        <p id="readyCheckStatus" class="status-text"></p> <!-- Optional status text -->
-      </div>
-    </div>
-  </div>
-
-  <script>
-    (async function() {
-      // Load navbar HTML
-      try {
-        const navResponse = await fetch('/navbar.html?v=' + new Date().getTime());
-        document.getElementById('navbar-container').innerHTML = await navResponse.text();
-      } catch (error) {
-        console.error('Failed to load navbar HTML:', error);
-        return;
-      }
-
-      // Fetch user info
-      let user = null;
-      try {
-        const userResponse = await fetch('/user/info', { credentials: 'include' });
-        if (userResponse.ok) {
-          user = await userResponse.json();
-        } else {
-          window.location.href = '/';
-          return;
-        }
-      } catch (error) {
-        console.error('Failed to fetch user info:', error);
-        window.location.href = '/';
-        return;
-      }
-
-      // Directly call the function from navbar.html
-      if (typeof populateNavbar === 'function') {
-        populateNavbar(user);
-      } else {
-        console.error('populateNavbar function not found.');
-      }
-
-      // Populate the main profile page content with the same user data
-      if (user) {
-        const mmProfile = document.getElementById('matchmakingProfile');
-        mmProfile.src = user.profilePictureUrl || '/img/fallback-pfp.png';
-        mmProfile.onerror = () => { mmProfile.src = '/img/fallback-pfp.png'; };
-        document.getElementById('matchmakingUsername').textContent = user.username;
-
-        // Fetch server stats
-        fetch('/api/server/stats', { credentials: 'include' })
-          .then(statsRes => statsRes.ok ? statsRes.json() : null)
-          .then(stats => {
-            if (stats) {
-              document.getElementById('playersWaiting').textContent = stats.queuedPlayers ?? 0;
-              document.getElementById('activeMatches').textContent = stats.activeMatches ?? 0;
+    <script>
+        const socket = io();
+        
+        async function fetchUserInfo() {
+            try {
+                const [userInfo, skillInfo] = await Promise.all([
+                    fetch('/user/info').then(r => r.json()),
+                    fetch('/user/skill').then(r => r.json())
+                ]);
+                
+                document.getElementById('username').textContent = userInfo.username || 'Unknown user';
+                document.getElementById('identifier').textContent = userInfo.steamId || userInfo.email || 'No ID';
+                document.getElementById('skill').textContent = skillInfo.skill || 'Unrated';
+                
+                if (userInfo.profilePictureUrl) {
+                    const profilePicture = document.getElementById('profilePicture');
+                    profilePicture.src = userInfo.profilePictureUrl;
+                    profilePicture.style.display = 'block';
+                }
+                
+                return { ...userInfo, skill: skillInfo.skill };
+            } catch (error) {
+                console.error('Error fetching user info:', error);
+                return null;
             }
-          })
-          .catch(err => console.error('Server stats fetch failed:', err));
-      }
-    })();
-  </script>
-  <script src="/js/profile.js" defer></script>
-</body>
+        }
+    
+        // Update create/join pre-lobby handlers
+        document.getElementById('createPreLobbyBtn').addEventListener('click', async () => {
+            const userInfo = await fetchUserInfo();
+            socket.emit('createPreLobby', userInfo);
+        });
+    
+        document.getElementById('joinPreLobbyBtn').addEventListener('click', async () => {
+            const inviteCode = document.getElementById('inviteCodeInput').value;
+            const userInfo = await fetchUserInfo();
+            socket.emit('joinPreLobby', { inviteCode, user: userInfo });
+        });
+    
+        // Update pre-lobby display handler
+        socket.on('preLobbyUpdated', ({ players }) => {
+            const playerList = document.getElementById('preLobbyPlayerList');
+            playerList.innerHTML = '';
+    
+            players.forEach((player) => {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'border outset flex-row';
+                playerCard.style.padding = '8px';
+                playerCard.style.margin = '4px 0';
+                playerCard.style.alignItems = 'center';
+    
+                // Profile picture
+                const profilePic = document.createElement('img');
+                profilePic.src = player.profilePictureUrl || '/images/default-avatar.png';
+                profilePic.alt = 'Avatar';
+                profilePic.className = 'avatar';
+                profilePic.style.width = '32px';
+                profilePic.style.height = '32px';
+                profilePic.style.marginRight = '8px';
+                profilePic.style.borderRadius = '4px';
+    
+                // Player info
+                const info = document.createElement('div');
+                info.className = 'flex-column';
+                info.style.flex = '1';
+    
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = player.username;
+                nameSpan.style.fontWeight = 'bold';
+    
+                const skillSpan = document.createElement('span');
+                skillSpan.textContent = `ELO: ${player.skill || 'Unrated'}`;
+                skillSpan.style.fontSize = '0.9em';
+                skillSpan.style.opacity = '0.8';
+    
+                info.appendChild(nameSpan);
+                info.appendChild(skillSpan);
+    
+                playerCard.appendChild(profilePic);
+                playerCard.appendChild(info);
+                playerList.appendChild(playerCard);
+            });
+        });
+    
+        // Handle pre-lobby creation success
+        socket.on('preLobbyCreated', ({ inviteCode }) => {
+            document.getElementById('inviteCode').textContent = inviteCode;
+            document.getElementById('preLobbySection').style.display = 'block';
+            document.getElementById('startPreLobbyMatchmakingBtn').style.display = 'block';
+        });
+    
+        // Start with user info fetch
+        fetchUserInfo();
+    </script>
+    </body>
 </html>
