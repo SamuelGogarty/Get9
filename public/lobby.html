@@ -1,81 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Game Lobby</title>
-    <link rel="stylesheet" href="lobby_style.css">
+  <meta charset="UTF-8" />
+  <title>CS 1.6 Lobby</title>
+  <link rel="stylesheet" href="/css/lobby_style.css" />
+  <script src="/js/navbar.js"></script>
+  <style>
+    html {
+      box-sizing: border-box;
+    }
+    *, *:before, *:after {
+      box-sizing: inherit;
+    }
+    body {
+      /* Add padding to the top of the body to prevent content from being hidden by the fixed navbar */
+      padding-top: 107px; /* Banner (60px) + Nav (~37px) + padding/gap */
+    }
+  
+    .header-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #000; /* Black background */
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-bottom: 1px solid #222; /* Slightly lighter border on black */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      padding: 5px 0 0; /* Padding only at the top, none at the bottom */
+      gap: 2px; /* Re-introduce a small gap for visual balance */
+    }
+  
+    .header-container .banner-image {
+      max-height: 60px; /* Increased banner height */
+      width: auto;
+    }
+  
+    nav {
+      /* This ensures the nav itself is centered within the header-container */
+      display: inline-block;
+      margin: 0; /* Explicitly remove any default margin on the nav element */
+    }
+    
+    /* Reset default browser styles for the list to remove extra space */
+    nav ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Get9</h1>
-    </header>
-    <div class="container">
-        <div class="team-container">
-            <div class="team" id="team1">
-                <h2>Team 1</h2>
-                <ul class="player-list" id="team1List">
-                    <!-- Player details will be dynamically added here -->
-                </ul>
-            </div>
+  <div class="container">
+    <!-- NAV -->
+    <div id="navbar-container"></div>
 
-            <div class="action-section">
-                <div id="mapSelection">
-                    <h2>Select Map</h2>
-                    <button class="map-option">de_dust2</button>
-                    <button class="map-option">de_inferno</button>
-                    <!-- Add more map options as needed -->
-                </div>
-                <button id="connectServerBtn">Connect to Server</button>
-                <div id="connectionInfo"></div>
-            </div>
+    <!-- GRID -->
+    <div class="lobby-grid">
+      <!-- Team 1 -->
+      <div class="window" name="Team 1">
+        <div id="team1-container"></div>
+      </div>
 
-            <div class="team" id="team2">
-                <h2>Team 2</h2>
-                <ul class="player-list" id="team2List">
-                    <!-- Player details will be dynamically added here -->
-                </ul>
+      <!-- Map vote -->
+      <div class="window" name="Map Vote" style="position: relative;">
+        <div id="mapVoteOverlay">
+          <div class="vgui-titlebar">CAPTAIN'S TURN</div>
+          <div class="overlay-content">
+            <span id="overlayMessage"></span>
+            <div class="vgui-progress">
+              <div id="banProgressBar" class="vgui-progress-bar"></div>
             </div>
+            <div id="banCountdown"></div>
+          </div>
         </div>
+        <button class="mapvotebutton">de_dust</button>
+        <button class="mapvotebutton">de_dust2</button>
+        <button class="mapvotebutton">de_inferno</button>
+        <button class="mapvotebutton">de_nuke</button>
+        <button class="mapvotebutton">de_tuscan</button>
+        <button class="mapvotebutton">de_cpl_strike</button>
+        <button class="mapvotebutton">de_prodigy</button>
+      </div>
+
+      <!-- Team 2 -->
+      <div class="window" name="Team 2">
+        <div id="team2-container"></div>
+      </div>
+
+      <!-- Team Chat -->
+      <div class="window" name="Team Chat">
+        <div class="chat-inner">
+          <ul id="teamChatMessages"></ul>
+          <div class="chat-input-row">
+            <input type="text" id="teamChatInput" placeholder="Message your team..." />
+            <button id="sendTeamMessage">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Server Info -->
+      <div class="window" name="Server Info">
+        <div id="banCountdown" style="display: none; color: #E3E41F; font-weight: bold; font-size: 14px; text-align: center;"></div>
+        <button id="connectServerBtn" class="ServerBtn" style="display: none;">Connect to Server</button>
+        <div id="connectionInfo" style="display: none;"></div>
+      </div>
+
+      <!-- Public Chat -->
+      <div class="window" name="Public Chat">
+        <div class="chat-inner">
+          <ul id="publicChatMessages"></ul>
+          <div class="chat-input-row">
+            <input type="text" id="publicChatInput" placeholder="Message everyone..." />
+            <button id="sendPublicMessage">Send</button>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    (async function() {
+      // Load navbar HTML
+      try {
+        const navResponse = await fetch('/navbar.html?v=' + new Date().getTime());
+        document.getElementById('navbar-container').innerHTML = await navResponse.text();
+      } catch (error) {
+        console.error('Failed to load navbar HTML:', error);
+        return;
+      }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            fetch('/user/info')
-                .then(response => response.json())
-                .then(data => {
-                    const playerList = document.getElementById('team1List'); // Or team2List based on some logic
-                    const playerItem = document.createElement('li');
-                    playerItem.innerHTML = `${data.displayName} <img src="${data.profilePictureUrl}" alt="Profile Picture" style="width: 30px; height: 30px;">`;
-                    playerList.appendChild(playerItem);
+      // Fetch user info
+      let user = null;
+      try {
+        const userResponse = await fetch('/user/info', { credentials: 'include' });
+        if (userResponse.ok) {
+          user = await userResponse.json();
+        }
+      } catch (error) {
+        console.error('Failed to fetch user info for navbar:', error);
+      }
 
-                    socket.emit('joinLobby', { name: data.displayName, steamId: data.id, profilePictureUrl: data.profilePictureUrl });
-                })
-                .catch(error => console.error('Error fetching user info:', error));
-        });
-
-        document.querySelectorAll('.map-option').forEach(element => {
-            element.addEventListener('click', () => {
-                const mapName = element.textContent;
-                socket.emit('mapSelected', { mapName });
-                document.getElementById('mapSelection').style.display = 'none';
-                document.getElementById('connectServerBtn').style.display = 'block';
-            });
-        });
-
-        socket.on('lobbyCreated', data => {
-            const connectButton = document.getElementById('connectServerBtn');
-            connectButton.style.display = 'block';
-            connectButton.onclick = () => {
-                window.location.href = `steam://connect/${data.serverIp}:${data.serverPort}`;
-            };
-
-            const connectionInfo = document.getElementById('connectionInfo');
-            connectionInfo.innerHTML = `Connect to: steam://connect/${data.serverIp}:${data.serverPort}`;
-            connectionInfo.style.display = 'block';
-        });
-    </script>
+      // Directly call the function from navbar.html
+      if (typeof populateNavbar === 'function') {
+        populateNavbar(user);
+      } else {
+        console.error('populateNavbar function not found.');
+      }
+    })();
+  </script>
+  <script src="/js/lobby.js"></script>
 </body>
 </html>

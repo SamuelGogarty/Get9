@@ -1,0 +1,798 @@
+/* public/css/styles.css */
+
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Styles adapted from profile.css */
+body {
+  background-color: #080808;
+  font-family: "Trebuchet MS", "Verdana", sans-serif;
+  color: #d8ded3;
+  font-size: 14px;
+  margin: 0;
+  padding: 40px 0; /* Add vertical padding */
+  display: flex;
+  flex-direction: column; /* Stack container vertically */
+  align-items: center; /* Center container horizontally */
+  min-height: 100vh;
+}
+
+.container {
+  width: 100%; /* Use full width up to max-width */
+  max-width: 600px; /* Limit width like original vgui-panel-container */
+  display: flex; /* Use flex to center the window */
+  justify-content: center;
+}
+
+a {
+  color: #F0B43F; /* Match profile link color */
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: none; /* Remove underline by default */
+}
+a:hover {
+  color: #E3E41F; /* Match profile hover color */
+  text-decoration: underline;
+}
+
+/* Window Styling from profile.css */
+.window {
+  position: static; /* Changed from relative for simplicity here */
+  background-color: #212121;
+  padding: 10px;
+  box-sizing: border-box;
+  margin: 0 0 20px; /* Keep bottom margin */
+  width: 100%; /* Take full width of container */
+  max-width: 100%;
+  min-height: 200px;
+  border-top: solid 1px #323232;
+  border-bottom: solid 1px #080808;
+  border-left: solid 1px #323232;
+  border-right: solid 1px #080808;
+  display: flex; /* Use flex for internal layout */
+  flex-direction: column;
+}
+
+.window:not(.headless)::before {
+  content: attr(name);
+  display: block;
+  position: relative; /* Keep relative */
+  margin-bottom: 1em;
+  width: 100%;
+  height: 18px;
+  line-height: 18px;
+  text-indent: 24px; /* Indent text past icon */
+  background-image: url("/img/steamico.png"); /* Use correct path if needed */
+  background-repeat: no-repeat;
+  background-position: top left;
+  background-size: 16px 16px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
+  color: white;
+  font-weight: bold;
+}
+
+/* Content area within the window */
+.content {
+  padding: 15px;
+  background: #080808; /* Darker background inside */
+  border: 1px solid #2d2d2d; /* Inner border */
+  flex-grow: 1; /* Allow content to fill window */
+  overflow: auto; /* Add scroll if needed */
+  text-align: center; /* Center content like original panel */
+}
+
+/* Headings and Paragraphs inside .content */
+.content h1 {
+  font-size: 18px; /* Adjusted size */
+  color: #F0B43F; /* Match profile title color */
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #2d2d2d; /* Match inner border */
+  font-weight: bold; /* Use bold like profile titles */
+  text-transform: uppercase; /* Uppercase like profile titles */
+  letter-spacing: 1px;
+}
+
+.content h2 {
+    font-size: 16px;
+    color: #d8ded3; /* Match default text color */
+    margin-top: 20px;
+    margin-bottom: 15px;
+    font-weight: normal;
+}
+
+.content p.description {
+  font-size: 14px;
+  color: #a0a0a0; /* Slightly dimmer text */
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+/* Login Options */
+.login-options {
+  margin-top: 20px;
+}
+
+/* Divider - Optional, can use margin/padding instead */
+.divider {
+  border: 0;
+  height: 1px;
+  background-color: #2d2d2d; /* Match inner border color */
+  margin: 25px auto; /* Center horizontally */
+  width: 80%; /* Make it less wide */
+}
+
+/* Greensteam Button Styling from profile.css */
+.greensteam-button {
+  color: white;
+  background-color: #212121 !important;
+  height: auto; /* Allow natural height based on padding */
+  min-height: 25px; /* Ensure minimum height */
+  min-width: 150px; /* Keep minimum width */
+  cursor: pointer;
+  border-top: solid 1px #323232 !important;
+  border-bottom: solid 1px #080808 !important;
+  border-left: solid 1px #323232 !important;
+  border-right: solid 1px #080808 !important;
+  font-weight: lighter;
+  text-align: center; /* Center text */
+  -webkit-font-smoothing: none;
+  padding: 8px 18px !important; /* Adjusted padding */
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-size: 11px !important;
+  display: inline-block; /* Ensure proper block behavior */
+  margin-top: 10px; /* Spacing */
+  transition: background-color 0.2s, border-color 0.2s; /* Add transition */
+}
+
+.greensteam-button:active {
+  border-top: solid 1px #080808 !important;
+  border-bottom: solid 1px #323232 !important;
+  border-left: solid 1px #080808 !important;
+  border-right: solid 1px #323232 !important;
+  background-color: #1a1a1a !important; /* Darker active state */
+}
+
+.greensteam-button:focus {
+  outline: 1px dashed #080808;
+  outline-offset: -4px;
+}
+
+.greensteam-button:hover {
+    background-color: #2c2c2c !important; /* Subtle hover */
+}
+
+/* Steam Button Specific Color */
+.greensteam-button.steam {
+  background-color: #5C7E10 !important; /* Steam green */
+  border-color: #7A9A20 !important;
+}
+
+.greensteam-button.steam:hover {
+  background-color: #6B8F14 !important;
+  border-color: #8AB528 !important;
+}
+
+.greensteam-button.steam:active {
+  background-color: #4a660c !important; /* Darker green active state */
+  border-top: solid 1px #080808 !important;
+  border-bottom: solid 1px #323232 !important;
+  border-left: solid 1px #080808 !important;
+  border-right: solid 1px #323232 !important;
+}
+
+
+/* Input Styling adapted from profile.css chat input */
+.login-input {
+  font-family: "Trebuchet MS", "Verdana", sans-serif;
+  background: #080808; /* Match inset background */
+  border: 1px solid #2d2d2d; /* Match inner border */
+  color: #d8ded3; /* Match text color */
+  height: 28px; /* Match chat input height */
+  font-size: 13px;
+  padding: 4px 8px; /* Match chat input padding */
+  margin-bottom: 10px;
+  width: 100%; /* Full width within form */
+  box-sizing: border-box; /* Include padding/border in width */
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: #F0B43F; /* Highlight focus with profile color */
+}
+
+.email-form {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center form elements */
+}
+
+.email-form input {
+  max-width: 300px; /* Limit input width */
+}
+.email-form button {
+  max-width: 300px; /* Limit button width */
+  width: 100%; /* Make button fill max-width */
+}
+
+.register-link {
+  margin-top: 20px;
+  font-size: 13px;
+  color: #a0a0a0; /* Match description text color */
+}
+
+
+/* --- Remove Unused VGUI Styles --- */
+
+
+/* --- Existing Styles (Review/Remove/Adapt as needed) --- */
+/* Keep relevant ones, remove/comment out unused ones like .hero, .matchmaking etc. */
+
+/* Navigation Bar (Keep if used globally, adapt if needed) */
+/* .navbar { ... } */ /* Assuming navbar is not on this page */
+
+/* Footer (Keep if used globally, adapt if needed) */
+/* footer { ... } */ /* Assuming footer is not on this page */
+
+
+/* Responsive Styles (Adapt as needed) */
+@media (max-width: 768px) {
+  .container {
+    max-width: 95%; /* Allow slightly wider on small screens */
+    padding: 0 10px; /* Add horizontal padding */
+  }
+  .window {
+    padding: 8px;
+  }
+  .content {
+    padding: 10px;
+  }
+  .content h1 {
+    font-size: 16px;
+  }
+  .content p.description {
+    font-size: 13px;
+  }
+  /* Remove navbar responsive styles if navbar isn't present */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background-color: #1f1f1f;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+}
+
+.nav-links li {
+  margin-left: 20px;
+}
+
+.nav-links a {
+  color: #e0e0e0;
+  transition: color 0.3s;
+}
+
+.nav-links a:hover {
+  color: #66C0F4; /* Adjusted hover color */
+}
+
+/* Footer (Keep if used globally, adapt if needed) */
+footer {
+  text-align: center;
+  padding: 20px;
+  background-color: #1f1f1f; /* Keep or adjust as needed */
+  color: #777;
+  margin-top: 40px; /* Add some space if needed */
+}
+
+/* Responsive Styles (Adapt as needed) */
+@media (max-width: 768px) {
+  .vgui-panel {
+    padding: 15px;
+  }
+
+  .vgui-panel h1 {
+    font-size: 20px;
+  }
+
+  .vgui-panel p.description {
+    font-size: 13px;
+  }
+  .nav-links {
+    flex-direction: column;
+    display: none;
+  }
+
+  .navbar.active .nav-links {
+    display: flex;
+  }
+
+  .menu-toggle {
+    display: block;
+    cursor: pointer;
+  }
+}
+/* =========================== */
+/* GENERAL / RESET            */
+/* =========================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #080808;
+  font-family: "Trebuchet MS", "Verdana", sans-serif;
+  color: #d8ded3;
+  font-size: 14px;
+  margin: 0;
+  padding: 40px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* Container center alignment */
+.container {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Links */
+a {
+  color: #F0B43F;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #E3E41F;
+  text-decoration: underline;
+}
+
+/* =========================== */
+/* NAVBAR / HEADER            */
+/* =========================== */
+
+.navbar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background-color: #1f1f1f;
+  box-sizing: border-box;
+  position: relative; /* for mobile toggle, if used */
+  margin-bottom: 20px;
+}
+
+/* Logo in the nav */
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+  color: #F0B43F;
+  text-transform: uppercase;
+}
+
+/* Navigation links */
+.nav-links {
+  list-style: none;
+  display: flex;
+}
+
+.nav-links li {
+  margin-left: 20px;
+}
+
+.nav-links a {
+  color: #e0e0e0;
+  transition: color 0.3s;
+}
+
+.nav-links a:hover {
+  color: #66C0F4;
+}
+
+/* Mobile menu toggle */
+.menu-toggle {
+  display: none; /* hidden by default; show via media query if needed */
+  font-size: 24px;
+  cursor: pointer;
+  color: #e0e0e0;
+  margin-left: 20px;
+}
+
+/* =========================== */
+/* WINDOW / PANEL STYLES      */
+/* =========================== */
+
+.window {
+  position: static;
+  background-color: #212121;
+  padding: 10px;
+  box-sizing: border-box;
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 100%;
+  min-height: 200px;
+  border-top: 1px solid #323232;
+  border-bottom: 1px solid #080808;
+  border-left: 1px solid #323232;
+  border-right: 1px solid #080808;
+  display: flex;
+  flex-direction: column;
+}
+
+.window:not(.headless)::before {
+  content: attr(name);
+  display: block;
+  position: relative;
+  margin-bottom: 1em;
+  width: 100%;
+  height: 18px;
+  line-height: 18px;
+  text-indent: 24px;
+  background-image: url("/img/steamico.png"); /* adjust path as needed */
+  background-repeat: no-repeat;
+  background-position: top left;
+  background-size: 16px 16px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
+  color: white;
+  font-weight: bold;
+}
+
+/* Content area */
+.content {
+  padding: 15px;
+  background: #080808;
+  border: 1px solid #2d2d2d;
+  flex-grow: 1;
+  overflow: auto;
+  text-align: center;
+}
+
+/* Headings */
+.content h1 {
+  font-size: 18px;
+  color: #F0B43F;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #2d2d2d;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.content h2 {
+  font-size: 16px;
+  color: #d8ded3;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  font-weight: normal;
+}
+
+/* Paragraph styles */
+.content p.description {
+  font-size: 14px;
+  color: #a0a0a0;
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+/* Feature list for bullets (optional) */
+.feature-list {
+  text-align: left;  /* Align bullets to the left instead of center */
+  margin: 0 auto 30px auto; /* auto-left/right for horizontal centering */
+  padding-left: 18px;
+  max-width: 350px; /* limit width for neatness */
+  list-style: disc;
+}
+
+.feature-list li {
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+/* =========================== */
+/* LOGIN OPTIONS              */
+/* =========================== */
+
+.login-options {
+  margin-top: 20px;
+}
+
+/* Divider line */
+.divider {
+  border: 0;
+  height: 1px;
+  background-color: #2d2d2d;
+  margin: 25px auto;
+  width: 80%;
+}
+
+/* Buttons */
+.greensteam-button {
+  color: white;
+  background-color: #212121 !important;
+  min-height: 25px;
+  min-width: 150px;
+  cursor: pointer;
+  border-top: 1px solid #323232 !important;
+  border-bottom: 1px solid #080808 !important;
+  border-left: 1px solid #323232 !important;
+  border-right: 1px solid #080808 !important;
+  font-weight: lighter;
+  text-align: center;
+  -webkit-font-smoothing: none;
+  padding: 8px 18px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-size: 11px !important;
+  display: inline-block;
+  margin-top: 10px;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.greensteam-button:hover {
+  background-color: #2c2c2c !important;
+}
+
+.greensteam-button:active {
+  background-color: #1a1a1a !important;
+  border-top: 1px solid #080808 !important;
+  border-bottom: 1px solid #323232 !important;
+  border-left: 1px solid #080808 !important;
+  border-right: 1px solid #323232 !important;
+}
+
+.greensteam-button:focus {
+  outline: 1px dashed #080808;
+  outline-offset: -4px;
+}
+
+/* Steam button variant */
+.greensteam-button.steam {
+  background-color: #5C7E10 !important; 
+  border-color: #7A9A20 !important;
+}
+
+.greensteam-button.steam:hover {
+  background-color: #6B8F14 !important;
+  border-color: #8AB528 !important;
+}
+
+.greensteam-button.steam:active {
+  background-color: #4a660c !important;
+}
+
+/* =========================== */
+/* FORM STYLING               */
+/* =========================== */
+
+.login-input {
+  font-family: "Trebuchet MS", "Verdana", sans-serif;
+  background: #080808;
+  border: 1px solid #2d2d2d;
+  color: #d8ded3;
+  height: 28px;
+  font-size: 13px;
+  padding: 4px 8px;
+  margin-bottom: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: #F0B43F;
+}
+
+.email-form {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.email-form input,
+.email-form button {
+  max-width: 300px;
+  width: 100%;
+}
+
+/* Remember Me / Forgot password row */
+.form-row {
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.remember-me {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #a0a0a0;
+}
+
+.forgot-password {
+  font-size: 12px;
+  color: #F0B43F;
+  text-decoration: underline;
+}
+
+/* Register link */
+.register-link {
+  margin-top: 20px;
+  font-size: 13px;
+  color: #a0a0a0;
+}
+
+/* =========================== */
+/* FOOTER                     */
+/* =========================== */
+
+footer {
+  text-align: center;
+  padding: 20px;
+  background-color: #1f1f1f;
+  color: #777;
+  width: 100%;
+  margin-top: auto; /* push footer to bottom if page doesn't fill viewport */
+}
+
+/* =========================== */
+/* RESPONSIVE STYLES          */
+/* =========================== */
+
+@media (max-width: 768px) {
+
+  /* Container & Window Adjust */
+  .container {
+    max-width: 95%;
+    padding: 0 10px;
+  }
+  .window {
+    padding: 8px;
+  }
+  .content {
+    padding: 10px;
+  }
+  .content h1 {
+    font-size: 16px;
+  }
+  .content p.description {
+    font-size: 13px;
+  }
+
+  /* Navbar: stack links if needed */
+  .nav-links {
+    display: none; /* hide for mobile, show when toggled */
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  .navbar.active .nav-links {
+    display: flex;
+  }
+
+  /* Show menu toggle */
+  .menu-toggle {
+    display: block;
+  }
+
+  /* Logo can be smaller */
+  .logo {
+    font-size: 18px;
+  }
+}
+/* Fix container spacing */
+.container {
+  display: flex;
+  justify-content: center;
+}
+
+/* Feature list matching VGUI style */
+.feature-list {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.feature-list li {
+  margin-bottom: 6px;
+}
+
+/* Login input fields */
+.login-input {
+  background-color: #080808;
+  border: 1px solid #323232;
+  color: white;
+  padding: 6px 10px;
+  font-family: "Trebuchet MS", "Verdana", sans-serif;
+  font-size: 14px;
+}
+
+/* Highlight links */
+a {
+  color: #F0B43F;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #E3E41F;
+  text-decoration: underline;
+}
+/* Fix navbar list layout */
+nav ul {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  gap: 20px;
+}
+
+/* Green Steam button (styled like VGUI) */
+.greensteam-button {
+  background-color: #3a5f0b;
+  border-top: solid 1px #4e7022;
+  border-bottom: solid 1px #1f2e0b;
+  border-left: solid 1px #4e7022;
+  border-right: solid 1px #1f2e0b;
+  color: #d8ded3;
+  padding: 6px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: "Trebuchet MS", "Verdana", sans-serif;
+  text-align: center;
+  min-width: 160px;
+  margin: 10px auto;
+  display: block;
+}
+
+.greensteam-button:hover {
+  background-color: #4e7022;
+  color: #E3E41F;
+}
+
+/* Email login inputs */
+.login-input {
+  background-color: #080808;
+  border: 1px solid #323232;
+  color: white;
+  padding: 6px 10px;
+  font-family: "Trebuchet MS", "Verdana", sans-serif;
+  font-size: 14px;
+  width: 100%;
+  margin-top: 10px;
+}

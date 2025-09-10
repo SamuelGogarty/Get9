@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Lobby</title>
+    <link rel="stylesheet" href="lobby_style.css">
+</head>
+<body>
+    <header>
+        <h1>Get9</h1>
+    </header>
+    <div class="container">
+        <div class="team-container">
+            <div class="team" id="team1">
+                <h2>Team 1</h2>
+                <ul class="player-list" id="team1List">
+                </ul>
+            </div>
+
+            <div class="action-section">
+                <div id="mapSelection">
+                    <h2>Select Map</h2>
+                    <button class="map-option">de_dust2</button>
+                    <button class="map-option">de_inferno</button>
+                </div>
+                <button id="connectServerBtn" style="display:none;">Connect to Server</button>
+                <div id="connectionInfo"></div>
+            </div>
+
+            <div class="team" id="team2">
+                <h2>Team 2</h2>
+                <ul class="player-list" id="team2List">
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('lobbyId')) {
+                const lobbyId = params.get('lobbyId');
+                localStorage.setItem('currentLobbyId', lobbyId);
+                socket.emit('joinLobby', { lobbyId });
+            }
+        });
+
+        socket.on('lobbyReady', (data) => {
+            const { players } = data;
+            const team1List = document.getElementById('team1List');
+            const team2List = document.getElementById('team2List');
+
+            team1List.innerHTML = '';
+            team2List.innerHTML = '';
+
+            players.forEach((player, index) => {
+                const playerItem = document.createElement('li');
+                playerItem.innerHTML = `${player.name} <img src="${player.profile_picture}" alt="Profile Picture" style="width: 30px; height: 30px;">`;
+                if (index % 2 === 0) {
+                    team1List.appendChild(playerItem);
+                } else {
+                    team2List.appendChild(playerItem);
+                }
+            });
+        });
+
+        document.querySelectorAll('.map-option').forEach(element => {
+            element.addEventListener('click', () => {
+                const mapName = element.textContent;
+                const lobbyId = localStorage.getItem('currentLobbyId');
+                socket.emit('mapSelected', { lobbyId, mapName });
+
+                document.getElementById('mapSelection').style.display = 'none';
+                document.getElementById('connectServerBtn').style.display = 'block';
+            });
+        });
+
+        socket.on('lobbyCreated', data => {
+            const connectButton = document.getElementById('connectServerBtn');
+            connectButton.style.display = 'block';
+            connectButton.onclick = () => {
+                window.location.href = `steam://connect/${data.serverIp}:${data.serverPort}`;
+            };
+
+            const connectionInfo = document.getElementById('connectionInfo');
+            connectionInfo.innerHTML = `Connect to: steam://connect/${data.serverIp}:${data.serverPort}`;
+            connectionInfo.style.display = 'block';
+        });
+
+        socket.on('error', (message) => {
+            alert('Error: ' + message);
+        });
+    </script>
+</body>
+</html>
+

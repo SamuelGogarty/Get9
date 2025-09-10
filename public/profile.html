@@ -1,73 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>User Profile</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="/socket.io/socket.io.js"></script>
+  <meta charset="UTF-8">
+  <title>User Profile</title>
+  <link rel="stylesheet" href="css/profile.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/navbar.js"></script>
+  <style>
+    html {
+      box-sizing: border-box;
+    }
+    *, *:before, *:after {
+      box-sizing: inherit;
+    }
+    body {
+      /* Add padding to the top of the body to prevent content from being hidden by the fixed navbar */
+      padding-top: 107px; /* Banner (60px) + Nav (~37px) + padding/gap */
+      margin: 0; /* Remove default browser margin to prevent unwanted scrolling */
+    }
+  
+    .header-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #000; /* Black background */
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-bottom: 1px solid #222; /* Slightly lighter border on black */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      padding: 5px 0 0; /* Padding only at the top, none at the bottom */
+      gap: 2px; /* Re-introduce a small gap for visual balance */
+    }
+  
+    .banner-image {
+      max-height: 60px; /* Increased banner height */
+      width: auto;
+    }
+  
+    nav {
+      /* This ensures the nav itself is centered within the header-container */
+      display: inline-block;
+      margin: 0; /* Explicitly remove any default margin on the nav element */
+    }
+    
+    /* Reset default browser styles for the list to remove extra space */
+    nav ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome to Your Profile</h1>
-        <p>Welcome, <span id="username">loading...</span>! Your Steam ID is: <span id="steamId">loading...</span></p>
-        <button id="startMatchmakingBtn">Start Matchmaking</button>
-        <div id="lobby" style="display:none;">
-            <h2>Lobby</h2>
-            <ul id="playerList"></ul>
-            <button id="connectServerBtn" style="display:none;">Connect to CS 1.6 Server</button>
-            <div id="serverInfo" style="display:none;">
-                <p>Server IP: <span id="serverIp">...</span></p>
-                <p>Server Port: <span id="serverPort">...</span></p>
+  <div id="navbar-container"></div>
+
+  <div class="container">
+    <main class="main-grid">
+      <!-- Top Matchmaking Window -->
+      <div class="window matchmaking-header" name="Matchmaking">
+        <div class="content">
+          <div class="welcome-section">
+            <img id="matchmakingProfile" src="/img/fallback-pfp.png" alt="Profile Picture">
+            <div class="welcome-message">
+              <div class="welcome-text">WELCOME BACK,</div>
+              <div class="welcome-username" id="matchmakingUsername">Commando</div>
             </div>
+          </div>
+          <div class="stats-controls-row">
+            <div class="server-stats">
+              <p>Players waiting: <span class="stat-value" id="playersWaiting">0</span></p>
+              <p>Ongoing matches: <span class="stat-value" id="activeMatches">0</span></p>
+            </div>
+            <div class="matchmaking-controls">
+              <!-- Single button for both solo & group queue -->
+              <button class="greensteam-button" id="startMatchmakingBtn">Start Matchmaking</button>
+              
+              <!-- NEW: Stop Searching button -->
+              <button class="greensteam-button" id="cancelMatchmakingBtn" style="display:none;">Stop Searching</button>
+              
+              <progress class="que-in-progress-bar" id="matchmakingProgress" value="0" max="100" style="display:none;"></progress>
+            </div>
+          </div>
         </div>
-        <a href="/">Go back to main page</a>
+      </div>
+
+      <!-- Thin Lobby Management Bar -->
+      <div class="window lobby-management-bar" name="Lobby Management">
+        <div class="content">
+          <div class="lobby-controls">
+            <div class="create-container">
+              <button class="greensteam-button" id="createPreLobbyBtn">Create Lobby</button>
+
+              <!-- Code Box Inset with Eye Toggle -->
+              <div id="inviteCodeSection" class="invite-code-box inset active" style="display: none; margin-left: 10px;" role="status" aria-live="polite" aria-label="Invite code container">
+                <div class="code-container">
+                  <strong id="inviteCodeDisplay"></strong>
+                  <div class="mask-overlay"></div>
+                </div>
+                <button class="greensteam-button" id="toggleCodeVisibility" title="Show Code" style="margin-left: 8px;" aria-label="Reveal invite code">👁</button>
+              </div>
+            </div>
+            <div class="join-container">
+              <button class="greensteam-button text-center" id="joinPreLobbyBtn" disabled>Join</button>
+              <input type="text" id="inviteCodeInput" placeholder="Enter invite code">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Side-by-Side Sections -->
+      <div class="lobby-sections" style="display:none;">
+        <!-- Pre-Lobby Members -->
+        <div class="window member-list-container" name="Pre-Lobby Members">
+          <div class="content" id="preLobbyPlayerList">
+            <!-- Member rows (via JS) -->
+          </div>
+          <!-- Add this button container at the bottom of the member list -->
+          <div class="lobby-leave-container">
+            <button class="greensteam-button" id="leavePreLobbyBtn" style="display:none;">Leave Lobby</button>
+          </div>
+        </div>
+
+        <!-- Pre-Lobby Chat -->
+        <div class="window chat-container clan-chat" name="Pre-Lobby Chat">
+          <div class="content">
+            <ul id="preLobbyChatMessages" class="inset"></ul>
+            <div class="chat-input">
+              <input type="text" id="preLobbyChatInput" placeholder="Type message...">
+              <button class="greensteam-button" id="sendPreLobbyMessage">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Match Ready Check-in Popup -->
+  <div id="matchReadyOverlay" class="overlay" style="display: none;">
+    <div class="window vgui-popup" name="Match Ready!">
+      <!-- Audio element (looping handled by JS) -->
+      <audio id="matchReadySound" src="/sounds/blip1.wav" preload="auto"></audio> 
+      <div class="content">
+        <p>Your match is ready. Click Accept to join!</p>
+        <div id="readyCheckIndicators" class="ready-indicators">
+          <!-- 10 indicator boxes will be generated by JS or styled directly -->
+          <div class="indicator-box"></div>
+          <div class="indicator-box"></div>
+          <div class="indicator-box"></div>
+          <div class="indicator-box"></div>
+          <div class="indicator-box"></div>
+          <div class="indicator-box"></div>
+          <div class="indicator-box"></div>
+          <div class="indicator-box"></div>
+          <div class="indicator-box"></div>
+          <div class="indicator-box"></div>
+        </div>
+        <button id="acceptMatchBtn" class="greensteam-button accept-button">Accept</button>
+        <p id="readyCheckTimer" class="timer-text"></p> <!-- Timer display -->
+        <p id="readyCheckStatus" class="status-text"></p> <!-- Optional status text -->
+      </div>
     </div>
+  </div>
 
-    <script>
-        const socket = io();
+  <script>
+    (async function() {
+      // Load navbar HTML
+      try {
+        const navResponse = await fetch('/navbar.html?v=' + new Date().getTime());
+        document.getElementById('navbar-container').innerHTML = await navResponse.text();
+      } catch (error) {
+        console.error('Failed to load navbar HTML:', error);
+        return;
+      }
 
-        function fetchUserInfo() {
-            fetch('/user/info')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('username').textContent = data.displayName || 'Unknown user';
-                    document.getElementById('steamId').textContent = data.id || 'No Steam ID';
-                })
-                .catch(error => {
-                    console.error('Error fetching user info:', error);
-                    document.getElementById('username').textContent = 'Error loading username';
-                    document.getElementById('steamId').textContent = 'Error loading Steam ID';
-                });
+      // Fetch user info
+      let user = null;
+      try {
+        const userResponse = await fetch('/user/info', { credentials: 'include' });
+        if (userResponse.ok) {
+          user = await userResponse.json();
+        } else {
+          window.location.href = '/';
+          return;
         }
+      } catch (error) {
+        console.error('Failed to fetch user info:', error);
+        window.location.href = '/';
+        return;
+      }
 
-        document.getElementById('startMatchmakingBtn').addEventListener('click', () => {
-            const username = document.getElementById('username').textContent;
-            const steamId = document.getElementById('steamId').textContent;
-            socket.emit('startMatchmaking', { username, steamId });
-        });
+      // Directly call the function from navbar.html
+      if (typeof populateNavbar === 'function') {
+        populateNavbar(user);
+      } else {
+        console.error('populateNavbar function not found.');
+      }
 
-        socket.on('lobbyCreated', data => {
-            document.getElementById('lobby').style.display = 'block';
-            const playerList = document.getElementById('playerList');
-            playerList.innerHTML = '';
-            data.players.forEach(player => {
-                const playerItem = document.createElement('li');
-                playerItem.textContent = `${player.username} (Steam ID: ${player.steamId})`;
-                playerList.appendChild(playerItem);
-            });
+      // Populate the main profile page content with the same user data
+      if (user) {
+        const mmProfile = document.getElementById('matchmakingProfile');
+        mmProfile.src = user.profilePictureUrl || '/img/fallback-pfp.png';
+        mmProfile.onerror = () => { mmProfile.src = '/img/fallback-pfp.png'; };
+        document.getElementById('matchmakingUsername').textContent = user.username;
 
-            document.getElementById('serverIp').textContent = data.serverIp;
-            document.getElementById('serverPort').textContent = data.serverPort;
-
-            const connectButton = document.getElementById('connectServerBtn');
-            connectButton.style.display = 'block';
-            connectButton.onclick = () => {
-                window.location.href = `steam://connect/${data.serverIp}:${data.serverPort}`;
-            };
-        });
-
-        // Fetch user info on page load
-        fetchUserInfo();
-    </script>
+        // Fetch server stats
+        fetch('/api/server/stats', { credentials: 'include' })
+          .then(statsRes => statsRes.ok ? statsRes.json() : null)
+          .then(stats => {
+            if (stats) {
+              document.getElementById('playersWaiting').textContent = stats.queuedPlayers ?? 0;
+              document.getElementById('activeMatches').textContent = stats.activeMatches ?? 0;
+            }
+          })
+          .catch(err => console.error('Server stats fetch failed:', err));
+      }
+    })();
+  </script>
+  <script src="/js/profile.js" defer></script>
 </body>
 </html>

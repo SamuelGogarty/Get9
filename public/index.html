@@ -1,19 +1,196 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Counter-Strike Matchmaking</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>CS Matchmaking - Welcome</title>
+  <link rel="stylesheet" href="css/profile.css"> <!-- Use profile styles for navbar consistency -->
+  <link rel="stylesheet" href="css/styles.css"> <!-- Optional: your own overrides -->
+  <script src="/js/navbar.js"></script>
+  <style>
+    html {
+      box-sizing: border-box;
+    }
+    *, *:before, *:after {
+      box-sizing: inherit;
+    }
+    body {
+      /* Add padding to the top of the body to prevent content from being hidden by the fixed navbar */
+      padding-top: 107px; /* Banner (60px) + Nav (~37px) + padding/gap */
+      margin: 0; /* Remove default browser margin to prevent unwanted scrolling */
+    }
+  
+    .header-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #000; /* Black background */
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-bottom: 1px solid #222; /* Slightly lighter border on black */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      padding: 5px 0 0; /* Padding only at the top, none at the bottom */
+      gap: 2px; /* Re-introduce a small gap for visual balance */
+    }
+  
+    .banner-image {
+      max-height: 60px; /* Increased banner height */
+      width: auto;
+    }
+  
+    nav {
+      /* This ensures the nav itself is centered within the header-container */
+      display: inline-block;
+      margin: 0; /* Explicitly remove any default margin on the nav element */
+    }
+    
+    /* Reset default browser styles for the list to remove extra space */
+    nav ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .mapvotebutton {
+      display: block;
+      background-color: #212121;
+      color: white;
+      border-top: solid 1px #323232;
+      border-bottom: solid 1px #080808;
+      border-left: solid 1px #323232;
+      border-right: solid 1px #080808;
+      padding: 5px 15px;
+      margin: 10px auto;
+      cursor: pointer;
+      min-width: 160px;
+      text-align: center;
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .mapvotebutton:hover {
+      background-color: #181818;
+      color: #E3E41F;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Counter-Strike Matchmaking</h1>
-    <button id="steamLoginBtn">Login with Steam</button>
-    <button id="matchmakingBtn" style="display: none;">Enter Matchmaking</button>
+
+  <!-- NAVBAR -->
+  <div id="navbar-container"></div>
+
+  <!-- Main Container -->
+  <div class="container" style="margin-top: 30px;">
+    <div class="window" name="Welcome">
+      <div class="content">
+        <h1 style="color: #E3E41F;">Welcome to RetroMatch!</h1>
+        <p class="description">
+          Experience competitive Counter-Strike like never before. Join our community
+          for balanced matches, detailed stats, and a seamless matchmaking experience. 
+          Log in using your Steam account or create an account with your email.
+        </p>
+
+        <ul class="feature-list">
+          <li>Automatic matchmaking with skill-based balance</li>
+          <li>Track your stats</li>
+        </ul>
+
+        <div class="login-options">
+
+          <!-- Steam Login Button -->
+          <button id="steamLoginBtn" class="greensteam-button">
+            LOGIN WITH STEAM
+          </button>
+
+          <hr class="divider" style="margin: 20px 0; border: 0; border-top: 1px solid #323232;">
+
+          <p id="loginError" style="color: #e03644; text-align: center; display: none; margin: 0 0 15px 0;">Invalid email or password.</p>
+
+          <!-- Email Login Form -->
+          <form action="/login" method="POST" class="email-form">
+            <input 
+              type="email"
+              name="email"
+              placeholder="Email"
+              required
+              class="login-input"
+            >
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              required
+              class="login-input"
+            >
+
+            <div class="form-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+              <label class="remember-me" style="color: #d8ded3; font-size: 13px;">
+                <input type="checkbox" name="remember" value="1">
+                Remember Me
+              </label>
+              <a href="/forgot-password" class="forgot-password" style="font-size: 13px; color: #F0B43F;">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="mapvotebutton" style="margin-top: 15px;">
+              LOGIN WITH EMAIL
+            </button>
+          </form>
+
+          <p class="register-link" style="margin-top: 15px; font-size: 13px;">
+            Don't have an account? <a href="/register.html">Register here</a>.
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
-  <script src="https://cdn.socket.io/socket.io-4.0.1.min.js"></script>
-  <script src="app.js"></script>
+
+  <footer style="margin-top: 40px; font-size: 12px; color: #666;">
+    <p>© 2025 RetroMatch. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Listener for the main Steam login button
+    document.getElementById('steamLoginBtn').addEventListener('click', function () {
+      window.location.href = '/auth/steam';
+    });
+
+    // Check for login error from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('error')) {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  </script>
+  <script>
+    (async function() {
+      // Load navbar HTML
+      try {
+        const navResponse = await fetch('/navbar.html?v=' + new Date().getTime());
+        document.getElementById('navbar-container').innerHTML = await navResponse.text();
+      } catch (error) {
+        console.error('Failed to load navbar HTML:', error);
+        return;
+      }
+
+      // Fetch user info
+      let user = null;
+      try {
+        const userResponse = await fetch('/user/info', { credentials: 'include' });
+        if (userResponse.ok) {
+          user = await userResponse.json();
+        }
+      } catch (error) {
+        console.error('Failed to fetch user info for navbar:', error);
+      }
+
+      // Directly call the function from navbar.html
+      if (typeof populateNavbar === 'function') {
+        populateNavbar(user);
+      } else {
+        console.error('populateNavbar function not found.');
+      }
+    })();
+  </script>
 </body>
 </html>

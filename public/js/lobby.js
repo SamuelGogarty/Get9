@@ -1,0 +1,318 @@
+const socket = io();
+let currentUserId = null;
+let myTeam = null;
+let isCaptain = false;
+let currentLobbyId = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  document.getElementById('mapVoteOverlay').style.display = 'block';
+
+  try {
+    const res = await fetch('/user/info', { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to fetch user info');
+    const user = await res.json();
+    currentUserId = user.id;
+    document.getElementById('navbarUsername').textContent = user.username;
+    
+    const profileImg = document.getElementById('navbarProfile');
+    profileImg.src = user.profilePictureUrl || '/img/fallback-pfp.png';
+    profileImg.onerror = () => profileImg.src = '/img/fallback-pfp.png';
+    
+    // Add ELO fetch
+    try {
+      const eloRes = await fetch('/user/skill', { credentials: 'include' });
+      if (eloRes.ok) {
+        const eloData = await eloRes.json();
+        document.getElementById('navbarElo').textContent = `ELO: ${eloData.skill || 0}`;
+      } else {
+        document.getElementById('navbarElo').textContent = 'ELO: 0';
+      }
+    } catch (error) {
+      console.error('ELO fetch failed:', error);
+      document.getElementById('navbarElo').textContent = 'ELO: 0';
+    }
+    
+    // Try to restore lobby from server first
+    try {
+      const lobbyRes = await fetch('/user/current-lobby', { credentials: 'include' });
+      if (lobbyRes.ok) {
+        const lobbyData = await lobbyRes.json();
+        if (lobbyData.lobbyId) {
+          currentLobbyId = lobbyData.lobbyId;
+          localStorage.setItem('currentLobbyId', lobbyData.lobbyId);
+          socket.emit('joinLobby', { lobbyId: lobbyData.lobbyId, userId: currentUserId });
+          return; // Skip URL param check if we restored from server
+        }
+      }
+    } catch (lobbyError) {
+      console.error('Lobby state restore failed:', lobbyError);
+    }
+    
+    // Check URL params if server restore failed
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('lobbyId') && currentUserId) {
+      const lobbyId = params.get('lobbyId');
+      currentLobbyId = lobbyId;
+      localStorage.setItem('currentLobbyId', lobbyId);
+      socket.emit('joinLobby', { lobbyId, userId: currentUserId });
+    } else {
+      // Try to restore from localStorage as last resort
+      currentLobbyId = localStorage.getItem('currentLobbyId');
+      if (currentLobbyId && currentUserId) {
+        socket.emit('joinLobby', { lobbyId: currentLobbyId, userId: currentUserId });
+      }
+    }
+  } catch (e) {
+    console.error('User initialization failed:', e);
+    document.getElementById('navbarProfile').src = '/img/fallback-pfp.png';
+    document.getElementById('navbarUsername').textContent = 'Player';
+    document.getElementById('navbarElo').textContent = 'ELO: 0';
+  }
+});
+
+socket.on('lobbyReady', ({ teams, currentTurn, players }) => {
+  const team1Container = document.getElementById('team1-container');
+  const team2Container = document.getElementById('team2-container');
+  team1Container.innerHTML = '';
+  team2Container.innerHTML = '';
+
+  function renderTeam(container, team, teamName) {
+    team.forEach(player => {
+      const row = document.createElement('div');
+      row.classList.add('player-row');
+      row.innerHTML = `
+        <img src="${player.profile_picture}" class="profile-pic" alt="Profile">
+        <div class="player-name">
+          <a href="/player.html?id=${player.user_id}" class="player-profile-link">${player.username || player.name}${player.captain ? " (Captain)" : ""}</a>
+        </div>
+        <div class="player-elo">${player.elo || 0}</div>
+      `;
+      container.appendChild(row);
+
+      if (player.user_id === currentUserId) {
+        myTeam = teamName;
+        isCaptain = player.captain;
+      }
+    });
+  }
+
+  renderTeam(team1Container, teams.team1, 'team1');
+  renderTeam(team2Container, teams.team2, 'team2');
+
+  // Initial setup: Update overlay based on turn, but hide countdown elements
+  if (currentTurn) {
+      updateOverlayAndCountdown(currentTurn); // Update overlay visibility
+      // Explicitly hide countdown elements initially
+      document.getElementById('banProgressBar').style.width = '100%'; // Reset progress bar visually
+      document.getElementById('banCountdown').style.display = 'none'; // Hide countdown text
+  }
+});
+
+socket.on('turnChanged', ({ currentTurn }) => {
+  updateOverlayAndCountdown(currentTurn);
+});
+
+function updateOverlayAndCountdown(currentTurn) {
+  const overlay = document.getElementById('mapVoteOverlay');
+  const message = document.getElementById('overlayMessage');
+  const countdown = document.getElementById('banCountdown');
+
+  if (currentTurn === myTeam && isCaptain) {
+    overlay.style.display = 'none';
+  } else {
+    overlay.style.display = 'block';
+    message.textContent = (currentTurn === myTeam)
+      ? "Your team captain is choosing a ban..."
+      : "Waiting for the other captain...";
+  }
+
+  // Ensure countdown elements are visible when a timed turn starts
+  document.getElementById('banProgressBar').style.width = '100%'; // Reset progress bar
+  countdown.style.display = 'block'; // Show countdown text container
+  countdown.textContent = ''; // Clear previous time
+}
+
+socket.on('countdownTick', ({ time, currentTurn }) => {
+  const progressBar = document.getElementById('banProgressBar');
+  const countdownText = document.getElementById('banCountdown');
+  
+  const percent = (time / 10) * 100;
+  progressBar.style.width = `${percent}%`;
+  countdownText.textContent = `${time} SECONDS REMAINING`;
+  
+  // Update overlay message based on turn
+  const message = document.getElementById('overlayMessage');
+  message.textContent = currentTurn === myTeam ?
+    "YOUR CAPTAIN IS CHOOSING A BAN" : 
+    "WAITING FOR OPPOSING CAPTAIN";
+  
+  if (currentTurn === myTeam && isCaptain) {
+    document.getElementById('mapVoteOverlay').style.display = 'none';
+  } else {
+    document.getElementById('mapVoteOverlay').style.display = 'flex';
+  }
+});
+
+socket.on('mapBanned', ({ mapName }) => {
+  const btn = Array.from(document.querySelectorAll('.mapvotebutton'))
+    .find(b => b.textContent.trim() === mapName);
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+  }
+
+  // Reset countdown display elements after a ban
+  const progressBar = document.getElementById('banProgressBar');
+  progressBar.style.width = '100%'; // Reset progress bar visually
+  const countdownText = document.getElementById('banCountdown');
+  countdownText.textContent = ''; // Clear text
+  countdownText.style.display = 'none'; // Hide until next turn starts
+});
+
+// Updated map vote button listener: checks if button is already disabled.
+document.querySelectorAll('.mapvotebutton').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.disabled) return;
+    if (document.getElementById('mapVoteOverlay').style.display !== 'none') return;
+    
+    const progressBar = document.getElementById('banProgressBar');
+    progressBar.classList.remove('animating');
+    
+    const mapName = btn.textContent.trim();
+    const lobbyId = localStorage.getItem('currentLobbyId');
+    socket.emit('mapSelected', { lobbyId, mapName });
+    // Mark the button as clicked
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+  });
+});
+
+// Updated lobbyCreated handler disables all map vote buttons.
+// The final (remaining) map button is disabled but its opacity remains at 1.
+socket.on('lobbyCreated', ({ serverIp, serverPort, mapName }) => {
+  document.getElementById('mapVoteOverlay').style.display = 'none';
+  document.getElementById('banCountdown').style.display = 'none';
+
+  // Disable all map vote buttons so no further clicks can trigger a timer.
+  document.querySelectorAll('.mapvotebutton').forEach(btn => {
+    btn.disabled = true;
+    if (btn.textContent.trim() === mapName) {
+      // For the final map button, keep its appearance unclicked.
+      btn.style.opacity = '1';
+    } else {
+      btn.style.opacity = '0.5';
+    }
+  });
+
+  const btn = document.getElementById('connectServerBtn');
+  const info = document.getElementById('connectionInfo');
+  const url = `steam://connect/${serverIp}:${serverPort}`;
+
+  btn.style.display = 'block';
+  info.style.display = 'block';
+  info.innerText = url;
+
+  btn.onclick = () => window.location.href = url;
+});
+
+document.getElementById('sendTeamMessage').addEventListener('click', () => {
+  const msg = document.getElementById('teamChatInput').value.trim();
+  if (!msg) return;
+  const lobbyId = localStorage.getItem('currentLobbyId');
+  socket.emit('teamChatMessage', { message: msg, lobbyId });
+  document.getElementById('teamChatInput').value = '';
+});
+
+document.getElementById('teamChatInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('sendTeamMessage').click();
+  }
+});
+
+socket.on('teamChatMessage', ({ username, message }) => {
+  const ul = document.getElementById('teamChatMessages');
+  const li = document.createElement('li');
+  li.textContent = `${username}: ${message}`;
+  ul.appendChild(li);
+  ul.scrollTop = ul.scrollHeight;
+});
+
+document.getElementById('sendPublicMessage').addEventListener('click', () => {
+  const msg = document.getElementById('publicChatInput').value.trim();
+  if (!msg) return;
+  const lobbyId = localStorage.getItem('currentLobbyId');
+  socket.emit('publicChatMessage', { message: msg, lobbyId });
+  document.getElementById('publicChatInput').value = '';
+});
+
+document.getElementById('publicChatInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('sendPublicMessage').click();
+  }
+});
+
+socket.on('publicChatMessage', ({ username, message }) => {
+  const ul = document.getElementById('publicChatMessages');
+  const li = document.createElement('li');
+  li.textContent = `${username}: ${message}`;
+  ul.appendChild(li);
+  ul.scrollTop = ul.scrollHeight;
+});
+
+socket.on('redirect', url => window.location.href = url);
+socket.on('error', msg => alert('Error: ' + msg));
+
+// Handle reconnections
+socket.on('connect', () => {
+  if (currentLobbyId && currentUserId) {
+    socket.emit('joinLobby', { lobbyId: currentLobbyId, userId: currentUserId });
+  }
+});
+
+// Add periodic connection checks
+setInterval(() => {
+  if (document.visibilityState === 'visible') {
+    if (currentLobbyId) {
+      socket.emit('heartbeat', { lobbyId: currentLobbyId });
+    }
+  }
+}, 30000);
+
+// Handle page unload to clean up lobby state
+window.addEventListener('beforeunload', () => {
+  if (currentLobbyId) {
+    // Include user ID to properly track who's leaving
+    navigator.sendBeacon('/api/leave-game-lobby', JSON.stringify({
+      lobbyId: currentLobbyId,
+      userId: currentUserId
+    }));
+  }
+});
+
+// Handle socket reconnection more robustly
+socket.on('disconnect', () => {
+  console.log('Socket disconnected, will attempt to reconnect...');
+});
+
+socket.on('reconnect', () => {
+  console.log('Socket reconnected, rejoining lobby...');
+  if (currentLobbyId && currentUserId) {
+    socket.emit('joinLobby', { 
+      lobbyId: currentLobbyId, 
+      userId: currentUserId,
+      isReconnect: true 
+    });
+  }
+});
+
+// Handle lobby errors
+socket.on('lobbyError', (error) => {
+  console.error('Lobby error:', error);
+  alert('Lobby error: ' + error.message);
+  
+  // Clear lobby state if it's invalid
+  if (error.code === 'LOBBY_NOT_FOUND' || error.code === 'INVALID_LOBBY') {
+    currentLobbyId = null;
+    localStorage.removeItem('currentLobbyId');
+  }
+});

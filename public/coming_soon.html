@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Coming Soon!</title>
+  <link rel="stylesheet" href="css/styles.css"> <!-- Use the main VGUI styles -->
+  <style>
+    /* Keep body centering styles if needed, or rely on styles.css */
+    /* Centering is handled by styles.css body and .container rules */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh; /* Ensure body takes full viewport height */
+      padding: 20px; /* Add some padding around */
+      box-sizing: border-box;
+    }
+    .container {
+      width: auto; /* Let the window define the width */
+      max-width: 600px; /* Limit max width */
+    }
+    .window[name="Coming Soon"] .content {
+        text-align: center; /* Center the text inside */
+        min-height: 150px; /* Give it some minimum height */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    /* Remove window-specific styles, rely on styles.css */
+    /* .window[name="Coming Soon"] .content { ... } */
+    /* .window[name="Coming Soon"] p { ... } */
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="window" name="Coming Soon">
+      <div class="content">
+        <h1>Almost Ready!</h1>
+        <p>Our new matchmaking platform is launching soon.</p>
+        <p>Stay tuned for updates!</p>
+        <!-- Optional: Add a link to Discord or other social media -->
+        <!-- Use the standard button class from styles.css -->
+        <a href="https://discord.gg/8m4xG8sjXm" target="_blank" class="greensteam-button">Join our Discord</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

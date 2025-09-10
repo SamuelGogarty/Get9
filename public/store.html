@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Store – RetroMatch</title>
+
+  <!-- Add global navbar styles -->
+  <link rel="stylesheet" href="/css/profile.css">
+  <!-- Page‑specific tweaks -->
+  <link rel="stylesheet" href="/css/store.css">
+  <script src="/js/navbar.js"></script>
+  <style>
+    html {
+      box-sizing: border-box;
+    }
+    *, *:before, *:after {
+      box-sizing: inherit;
+    }
+    body {
+      /* Add padding to the top of the body to prevent content from being hidden by the fixed navbar */
+      padding-top: 115px; /* Banner (60px) + Nav (~45px) + padding/gap */
+      margin: 0; /* Remove default browser margin to prevent unwanted scrolling */
+    }
+  
+    .header-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #000; /* Black background */
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-bottom: 1px solid #222; /* Slightly lighter border on black */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      padding: 5px 0 0; /* Padding only at the top, none at the bottom */
+      gap: 2px; /* Re-introduce a small gap for visual balance */
+    }
+  
+    .banner-image {
+      max-height: 60px; /* Increased banner height */
+      width: auto;
+    }
+  
+    nav {
+      /* This ensures the nav itself is centered within the header-container */
+      display: inline-block;
+      margin: 0; /* Explicitly remove any default margin on the nav element */
+    }
+    
+    /* Reset default browser styles for the list to remove extra space */
+    nav ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar-container"></div>
+  <main class="container">
+    <div class="window" name="Store">
+      <div class="store-grid">
+        <!-- Unban Item -->
+        <div class="store-item inset">
+          <h3>Unban Pass</h3>
+          <p class="item-description">Redeem this pass to remove a competitive matchmaking ban from your account.</p>
+          <p class="item-price">$5.00</p>
+          <button class="greensteam-button text-center">Purchase</button>
+        </div>
+
+        <!-- VIP Item -->
+        <div class="store-item inset">
+          <h3>VIP Subscription (30 Days)</h3>
+          <p class="item-description">Get access to reserved slots on all servers, a special in-game tag, and other exclusive perks.</p>
+          <p class="item-price">$10.00</p>
+          <button class="greensteam-button text-center">Purchase</button>
+        </div>
+
+        <!-- Admin Item -->
+        <div class="store-item inset">
+          <h3>Admin Subscription (30 Days)</h3>
+          <p class="item-description">Become a server administrator with access to moderation commands. Subject to approval.</p>
+          <p class="item-price">$25.00</p>
+          <button class="greensteam-button text-center">Purchase</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (async function() {
+      // Load navbar HTML
+      try {
+        const navResponse = await fetch('/navbar.html?v=' + new Date().getTime());
+        document.getElementById('navbar-container').innerHTML = await navResponse.text();
+      } catch (error) {
+        console.error('Failed to load navbar HTML:', error);
+        return;
+      }
+
+      // Fetch user info
+      let user = null;
+      try {
+        const userResponse = await fetch('/user/info', { credentials: 'include' });
+        if (userResponse.ok) {
+          user = await userResponse.json();
+        }
+      } catch (error) {
+        console.error('Failed to fetch user info for navbar:', error);
+      }
+
+      // Directly call the function from navbar.js
+      if (typeof populateNavbar === 'function') {
+        populateNavbar(user);
+      } else {
+        console.error('populateNavbar function not found.');
+      }
+    })();
+  </script>
+</body>
+</html>

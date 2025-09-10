@@ -1,0 +1,949 @@
+/* profile.css - Revamped to match new_home.css style */
+body {
+  background-color: #080808;
+  font-family: "Trebuchet MS", "Verdana", sans-serif;
+  color: #d8ded3;
+  font-size: 14px;
+  margin: 0;
+  padding: 40px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.container {
+  width: 1040px;
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Main grid layout */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto minmax(0, 1fr) auto; /* Better row distribution */
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: calc(100vh - 150px); /* Prevent vertical overflow */
+}
+
+/* Matchmaking header */
+.matchmaking-header {
+  grid-column: 1 / -1;
+  max-width: 100%;
+}
+
+/* Lobby sections container */
+.lobby-sections {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 20px;
+  align-items: stretch;
+  height: auto; /* Remove fixed height */
+  min-height: 400px; /* Ensure minimum usable space */
+  grid-auto-rows: minmax(400px, 1fr); /* Both sections equal height */
+}
+
+/* Thin lobby management bar */
+.lobby-management-bar {
+  grid-column: 1 / -1;
+  min-height: 40px;
+  height: 50px; /* Fixed height instead of auto */
+  max-height: 50px;
+  margin: 10px 0;
+  position: relative; /* For positioning the resize handle */
+}
+
+/* Member list and chat windows */
+.member-list-container,
+.chat-container {
+  height: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Match new_home window styling */
+.window, .box {
+  position: static;
+  background-color: #212121;
+  padding: 10px;
+  box-sizing: border-box;
+  margin: 0 0 20px;
+  width: 100%;
+  max-width: 100%;
+  min-height: 200px;
+  border-top: solid 1px #323232;
+  border-bottom: solid 1px #080808;
+  border-left: solid 1px #323232;
+  border-right: solid 1px #080808;
+}
+
+.window:not(.headless)::before {
+  content: attr(name);
+  display: block;
+  position: relative;
+  margin-bottom: 1em;
+  width: 100%;
+  height: 18px;
+  line-height: 18px;
+  text-indent: 24px;
+  background-image: url("steamico.png"), url("minimize.png"), url("close.png");
+  background-repeat: no-repeat;
+  background-position: top left, top right 20px, top right;
+  background-size: 16px 16px, 16px 16px, 16px 16px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
+  color: white;
+  font-weight: bold;
+}
+
+.window:not(.no-resize)::after {
+  width: 12px;
+  height: 12px;
+  display: block;
+  margin: 0 0 0 auto;
+  position: relative;
+  bottom: -7px;
+  right: -7px;
+  cursor: nwse-resize;
+  content: '';
+  background-image: url("resize.png");
+  background-size: 12px 12px;
+}
+
+/* For backward compatibility with existing titlebar divs */
+.titlebar {
+  background: #212121;
+  border-bottom: 2px solid #080808;
+  padding: 6px 12px;
+  font-weight: bold;
+  color: #F0B43F;
+  text-transform: uppercase;
+  font-size: 13px;
+  margin-bottom: 1em;
+}
+
+.content {
+  padding: 15px;
+  background: #080808;
+  border: 1px solid #2d2d2d;
+  height: calc(100% - 30px);
+  overflow: auto;
+  max-height: calc(100vh - 200px); /* Add viewport-based limit */
+}
+
+.inset, .box.inset {
+  background-color: #080808;
+  border-top: solid 1px #080808;
+  border-bottom: solid 1px #323232;
+  border-left: solid 1px #080808;
+  border-right: solid 1px #323232;
+}
+
+/* Server stats grid from new_home */
+.server-stats {
+  background: #080808; /* Inset background */
+  border-top: solid 1px #080808;
+  border-bottom: solid 1px #323232;
+  border-left: solid 1px #080808;
+  border-right: solid 1px #323232;
+  padding: 8px 20px;
+  gap: 6px;
+  margin-right: 20px;
+  display: flex;
+  flex-direction: column; /* Stack vertically */
+  height: auto;
+  min-height: 0; /* Remove fixed minimum height */
+  min-width: 260px; /* Set a comfortable minimum width */
+  flex-shrink: 0; /* Prevent the box from shrinking */
+}
+
+.server-stats p {
+  display: flex;
+  justify-content: space-between; /* Align text and value */
+  gap: 5px;
+  white-space: nowrap;
+  margin: 0;
+  width: 100%;
+}
+
+.stat-value {
+  color: #F0B43F;
+  font-weight: bold;
+  font-family: monospace;
+  text-align: right;
+  flex-shrink: 0;
+  padding-left: 10px;
+}
+
+/* Matchmaking controls from new_home form styling */
+.matchmaking-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Thin bar adjustments */
+.lobby-management-bar .content {
+  background: none; /* Remove dark background */
+  border: none; /* Remove border */
+  padding: 4px 0; /* Reduce vertical padding */
+  height: calc(100% - 8px); /* Account for padding */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.lobby-management-bar .lobby-controls {
+  display: flex;
+  align-items: flex-start; /* Align items to top */
+  gap: 8px; /* Reduce gap between items */
+  height: 100%;
+  flex-wrap: nowrap; /* Prevent wrapping */
+  padding-top: 2px; /* Remove extra spacing */
+}
+
+#preLobbySection {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Reduce gap since we're removing a button */
+  margin: 0;
+  padding: 0 8px;
+  height: 100%;
+  background: none;
+  border: none;
+}
+
+/* Matchmaking header proportions */
+.window.matchmaking-header {
+  min-height: 250px; /* Increased to ensure all content fits comfortably */
+  position: relative; /* Establish a positioning context for the resize handle */
+}
+
+/* Override the default resize handle position to fix alignment */
+.window.matchmaking-header:not(.no-resize)::after {
+  position: absolute; /* Position relative to the window itself */
+  bottom: 2px; /* Align to the bottom corner */
+  right: 2px;  /* Align to the right corner */
+  margin: 0;   /* Reset margin from the default rule */
+}
+
+/* Override the default resize handle position for the lobby bar */
+.window.lobby-management-bar:not(.no-resize)::after {
+  width: 12px;
+  height: 12px;
+  display: block;
+  cursor: nwse-resize;
+  content: '';
+  background-image: url("resize.png");
+  background-size: 12px 12px;
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  margin: 0;
+}
+
+.window.matchmaking-header .content {
+  background: transparent; /* Remove dark inner background */
+  border: none; /* Remove inner border */
+  padding: 0; /* Remove extra padding */
+  display: flex;
+  flex-direction: column; /* Changed to column to accommodate welcome section */
+  justify-content: space-between;
+  min-height: auto;
+  max-height: none;
+  gap: 15px;
+}
+
+/* Welcome section styling */
+.welcome-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 5px;
+  padding: 10px;
+  background: #080808;
+  border: 1px solid #2d2d2d;
+  width: calc(100% - 25px); /* Changed from calc(100% - 30px) */
+  margin-left: 0; /* Align left edge */
+}
+
+#matchmakingProfile {
+  width: 50px;
+  height: 50px;
+  border: 2px solid #F0B43F;
+  object-fit: cover;
+  box-shadow: 0 0 8px rgba(240, 180, 63, 0.3);
+}
+
+.welcome-message {
+  display: flex;
+  flex-direction: column;
+}
+
+.welcome-text {
+  color: #7b8484;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.welcome-username {
+  color: #F0B43F;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(240, 180, 63, 0.4);
+  letter-spacing: 0.5px;
+}
+
+.server-stats {
+  margin-left: 0; /* Remove previous auto margin */
+}
+
+.matchmaking-controls {
+  margin-right: 0; /* Remove previous auto margin */
+}
+
+/* Add a row for server stats and matchmaking controls */
+.stats-controls-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+/* Remove duplicate server-stats rule */
+
+/* Grid element spacing */
+.main-grid > .window {
+  margin-bottom: 0;
+}
+
+.lobby-sections {
+  margin-top: 10px;
+}
+
+.greensteam-button {
+  color: white;
+  background-color: #212121 !important;
+  height: 25px;
+  min-width: 75px;
+  cursor: pointer;
+  border-top: solid 1px #323232 !important;
+  border-bottom: solid 1px #080808 !important;
+  border-left: solid 1px #323232 !important;
+  border-right: solid 1px #080808 !important;
+  font-weight: lighter;
+  text-align: left;
+  -webkit-font-smoothing: none;
+  padding: 6px 12px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-size: 11px !important;
+}
+
+.greensteam-button:active {
+  border-top: solid 1px #080808 !important;
+  border-bottom: solid 1px #323232 !important;
+  border-left: solid 1px #080808 !important;
+  border-right: solid 1px #323232 !important;
+}
+
+.greensteam-button:focus {
+  outline: 1px dashed #080808;
+  outline-offset: -4px;
+}
+
+.greensteam-button.text-center {
+  text-align: center;
+}
+
+/* Discord Button Style */
+.discord-button {
+  background-color: #5865F2 !important; /* Discord Purple */
+  color: white !important;
+  text-decoration: none;
+  display: inline-block; /* Make it behave like a button */
+  margin-left: 10px; /* Add some space */
+}
+.discord-button:hover {
+  background-color: #4752C4 !important; /* Darker purple on hover */
+}
+
+/* Chat section styling matching new_home */
+.member-list-container .content,
+.chat-container .content {
+  height: 100%; /* Fill parent container */
+  min-height: 300px; /* Prevent collapse */
+  display: flex;
+  flex-direction: column;
+  background: none; /* Remove default background */
+  border: none; /* Remove default border */
+  padding: 0; /* Remove default padding */
+}
+
+#preLobbyChatMessages {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 10px; /* Add padding inside the inset message list */
+  list-style: none;
+  margin-bottom: 0; /* Ensure no extra space below list */
+}
+
+.chat-input {
+  margin-top: 10px; /* Add space above the input area */
+  display: flex;
+  align-items: center; /* Vertically center the input and button */
+  gap: 10px;
+  margin-top: auto;
+}
+
+.chat-input input {
+  flex: 1;
+  background: #080808;
+  border: 1px solid #2d2d2d;
+  color: #fff;
+  height: 28px;
+  font-size: 13px;
+  padding: 4px 8px;
+}
+
+/* Remove focus outline from chat input */
+.chat-input input:focus {
+  outline: none;
+}
+
+/* Player list styling */
+#preLobbyPlayerList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  margin-bottom: 10px;
+}
+
+.member-list-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.lobby-leave-container {
+  margin-top: auto;
+  padding: 10px;
+  border-top: 1px solid #323232;
+  background: #181818;
+}
+
+#leavePreLobbyBtn {
+  width: 100%;
+  text-align: center;
+  padding: 8px;
+}
+
+.player-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  margin: 4px 0;
+  background: #181818;
+  border: 1px solid #2d2d2d;
+}
+
+.player-info {
+  flex: 1;
+}
+
+.player-name {
+  font-weight: bold;
+  color: #F0B43F;
+}
+
+.player-elo {
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+/* Kick button specific styling */
+.kick-button {
+  margin-left: auto; /* Push button to the right */
+  text-align: center; /* Center the text */
+  padding: 6px 10px !important; /* Adjust padding if needed */
+  min-width: 50px; /* Ensure minimum width */
+}
+
+/* Progress bar from new_home */
+.que-in-progress-bar {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 20px;
+  flex: 1;
+  min-width: 200px;
+  border-top: solid 1px #080808;
+  border-bottom: solid 1px #323232;
+  border-left: solid 1px #080808;
+  border-right: solid 1px #323232;
+  background: #080808;
+}
+
+.que-in-progress-bar::-webkit-progress-bar {
+  background: #080808;
+  padding: 4px;
+}
+
+.que-in-progress-bar::-webkit-progress-value {
+  height: 16px;
+  background: repeating-linear-gradient(
+    to right,
+    #96892D,
+    #96892D 8px,
+    #080808 1px,
+    #080808 12px
+  );
+}
+
+.que-in-progress-bar::-moz-progress-bar {
+  height: 16px;
+  background: repeating-linear-gradient(
+    to right,
+    #96892D,
+    #96892D 8px,
+    #080808 1px,
+    #080808 12px
+  );
+  margin-top: 4px;
+  margin-left: 4px;
+}
+
+/* NAVBAR */
+nav {
+  border-top: solid 1px #323232;
+  border-bottom: solid 1px #080808;
+  border-left: solid 1px #323232;
+  border-right: solid 1px #080808;
+  background: #212121;
+  padding: 0;
+  width: 100%; /* Changed from fixed 1040px */
+  max-width: 1040px; /* Add max-width instead */
+}
+
+nav ul {
+  display: flex;
+  justify-content: flex-start;
+  gap: 5px;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+nav li {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+nav li a {
+  display: block;
+  padding: 4px 20px;
+  color: #F0B43F;
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+nav li a:hover {
+  color: #E3E41F;
+  background: #181818;
+}
+
+.right-nav {
+  margin-left: auto;
+  padding-right: 10px;
+}
+
+.nav-player-name {
+  background: #080808;
+  border-top: solid 1px #080808;
+  border-bottom: solid 1px #323232;
+  border-left: solid 1px #080808;
+  border-right: solid 1px #323232;
+  color: white;
+  padding: 2px 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#navbarProfile {
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+  border: 1px solid #323232;
+}
+
+#navbarUsername {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#navbarElo.elo-display {
+  color: #ffffff;
+  font-size: 12px;
+  margin-left: 8px;
+  padding: 2px 6px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid #363636;
+  border-radius: 3px;
+}
+
+/* Lobby controls layout */
+.lobby-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Increased from 8px */
+  padding: 6px 0; /* Added vertical padding */
+}
+
+/* Create container layout */
+.create-container {
+  display: flex;
+  flex-direction: row; /* Explicit row direction */
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+/* Fix join section layout */
+.join-container {
+  display: flex;
+  flex-direction: row; /* Explicit row direction */
+  align-items: center;
+  gap: 6px; /* Reduced from 8px */
+  width: 100%;
+  max-width: 400px; /* Add max-width constraint */
+  margin-top: 8px; /* Increased from 4px */
+  padding-bottom: 4px; /* Add bottom padding */
+}
+
+/* Invite code box styling */
+.invite-code-box {
+  display: none;
+  background: #080808;
+  border: 1px solid #323232;
+  padding: 6px 12px;
+  height: 28px;
+  align-items: center;
+}
+
+/* Style invite code box to appear immediately after button */
+.invite-code-box {
+  display: flex !important; /* Force display when inserted */
+  order: 1;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background-color: #080808; /* Match inset background */
+  border-top: solid 1px #080808; /* Inset-style borders */
+  border-bottom: solid 1px #323232;
+  border-left: solid 1px #080808;
+  border-right: solid 1px #323232;
+  margin-left: 10px;
+}
+
+/* Optional: Add hover effect to match other inset elements */
+.invite-code-box.active:hover {
+  background-color: #101010;
+}
+
+.invite-code-box.active::before {
+  content: "Invite Code:";
+  color: #d8ded3;
+}
+
+.invite-code-box.active strong {
+  color: #F0B43F;
+  font-weight: bold;
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+/* Add to invite code box styling */
+.code-container {
+  position: relative;
+  width: 120px; /* Fixed width */
+  height: 24px; /* Match input field height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #080808;
+  border-top: solid 1px #080808;
+  border-bottom: solid 1px #323232;
+  border-left: solid 1px #080808;
+  border-right: solid 1px #323232;
+  padding: 0 6px;
+}
+
+.mask-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    #080808 0px,
+    #080808 2px,
+    #212121 2px,
+    #212121 4px
+  );
+  background-size: 6px 100%; /* More consistent stripe pattern */
+  pointer-events: none;
+  display: block;
+  border-top: solid 1px #080808;
+  border-bottom: solid 1px #323232;
+  border-left: solid 1px #080808;
+  border-right: solid 1px #323232;
+  z-index: 2; /* Ensure overlay is above text */
+  user-select: none; /* Prevent selection of the mask */
+}
+
+.code-container.revealed .mask-overlay {
+  display: none;
+}
+
+#inviteCode {
+  position: relative;
+  z-index: 1;
+  line-height: 24px;
+  padding: 0 4px;
+  /* Removed: user-select: none */
+}
+
+.code-container.revealed {
+  user-select: text; /* Enable text selection when revealed */
+}
+
+#toggleCodeVisibility {
+  padding: 0 6px !important;
+  min-width: 28px;
+  height: 24px;
+  margin-left: 4px;
+}
+
+#toggleCodeVisibility.revealed {
+  background-color: #323232 !important;
+}
+
+/* Input field sizing */
+#inviteCodeInput {
+  order: 1;
+  width: 120px; /* Reduced from 150px */
+  max-width: 150px; /* Reduced from 200px */
+  flex: 0; /* Changed from 1 to prevent expansion */
+  background: #080808;
+  border: 1px solid #323232;
+  color: white;
+  padding: 2px 6px; /* Reduced vertical padding from 3px */
+  height: 24px; /* Reduced from 28px */
+  margin-left: 0;
+  margin-top: 2px; /* Add top margin */
+  font-size: 13px; /* Added explicit font-size for better control */
+}
+
+/* Center align join button text */
+#joinPreLobbyBtn.greensteam-button {
+  text-align: center; /* Add centered text alignment */
+  padding: 6px 12px !important; /* Maintain padding for proper centering */
+}
+
+/* Position create button first */
+#createPreLobbyBtn {
+  order: 0 !important; /* Force first position */
+  flex-shrink: 0;
+  margin: 0;
+}
+
+#joinPreLobbyBtn {
+  order: 0 !important; /* Force button first */
+  flex-shrink: 0;
+}
+
+/* Update lobby management window */
+.window[name="Lobby Management"] {
+  height: 160px; /* Reduced from 180px */
+  min-height: 160px;
+  flex-shrink: 0;
+}
+
+.window[name="Lobby Management"] .content {
+  padding: 10px;
+}
+
+
+/* Visual feedback for buttons */
+.greensteam-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #181818 !important;
+}
+
+/* Pulsing effect for active matchmaking */
+@keyframes pulse {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; }
+  100% { opacity: 0.8; }
+}
+
+.que-in-progress-bar {
+  animation: pulse 1.5s infinite;
+}
+
+/* Media query for responsive layout */
+@media (max-width: 800px) {
+  .lobby-sections {
+    grid-template-columns: 1fr;
+  }
+  
+  .invite-section {
+    min-width: unset;
+  }
+  
+  .lobby-controls {
+    flex-direction: column;
+  }
+  
+  .que-in-progress-bar {
+    width: 100%;
+  }
+  
+  .window-row {
+    flex-direction: column;
+  }
+  
+  .window-column {
+    min-width: unset;
+  }
+}
+
+/* Match Ready Check-in Popup Styles */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85); /* Darker backdrop */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Increased to ensure it's on top of everything */
+  transform: translateZ(0); /* Force hardware acceleration */
+}
+
+.vgui-popup {
+  width: 400px; /* Adjust width as needed */
+  min-height: 200px; /* Adjust height */
+  max-width: 90%;
+  position: relative; /* Ensure positioning context for children */
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  z-index: 10000; /* Higher than overlay to ensure visibility */
+  transform: translateZ(100px); /* Force hardware acceleration */
+  animation: popupSlideIn 0.3s ease-out;
+  /* Add a subtle orange glow */
+  box-shadow: 0 0 20px rgba(240, 180, 63, 0.4); /* Orange glow, similar to HL/VGUI */
+}
+
+@keyframes popupSlideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Removed temporary debug styles */
+
+.vgui-popup .content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  height: auto; /* Let content determine height */
+  background: #212121; /* Match window background */
+  border: 1px solid #323232; /* Match window border */
+}
+
+.vgui-popup p {
+  margin-bottom: 15px;
+  color: #d8ded3;
+}
+
+.ready-indicators {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 20px;
+}
+
+.indicator-box {
+  width: 20px;
+  height: 20px;
+  background-color: #080808; /* Dark background */
+  border: 1px solid #323232; /* Border like inset */
+}
+
+.indicator-box.accepted {
+  background-color: #F0B43F; /* Orange/Yellow color for accepted */
+  border-color: #E3E41F;
+}
+
+.accept-button {
+  min-width: 120px;
+  text-align: center; /* Center text in button */
+  margin-top: 10px;
+}
+
+.accept-button.accepted {
+  background-color: #4CAF50 !important; /* Green background for accepted state */
+  border-color: #45a049 !important;
+}
+
+.status-text {
+  margin-top: 15px;
+  font-size: 12px;
+  color: #7b8484; /* Dim color for status */
+  min-height: 1em; /* Reserve space */
+}
+
+/* Timer text styling */
+.timer-text {
+  margin-top: 10px; /* Space above timer */
+  margin-bottom: 5px; /* Space below timer */
+  font-size: 14px;
+  font-weight: bold;
+  color: #F0B43F; /* Orange color */
+}
+
+/* Window sizing from new_home.css */
+.window.half,
+.window-row .window {
+  width: 100%;
+  max-width: 580px;
+  align-self: flex-start;
+}
